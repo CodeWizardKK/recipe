@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:recipe_app/store/display_state.dart';
 
 class CameraApp extends StatefulWidget {
 
@@ -32,6 +34,29 @@ class _CameraAppState extends State<CameraApp> {
   int index = 0; //0:アウトカメラ 1:インカメラ
   bool imageTap = false;
 
+  @override
+  void initState() {
+    super.initState();
+    init();
+    setImage();
+  }
+
+  //編集画面より画像アイコンがtapされた場合に該当が画像が表示された状態にする処理
+  setImage(){
+    var result = Provider.of<Display>(context, listen: false).getImages();
+    var selectImage = Provider.of<Display>(context, listen: false).getSelectImage();
+    setState(() {
+      for(var i=0; i<result.length;i++){
+        if(result[i]['path'] != ''){
+          images[i]['path'] = result[i]['path'];
+          imageCount++;
+        }
+      }
+      selectIndex = selectImage['index'];
+      selecedImage = selectImage['item'];
+      imageTap = selectImage['tap'];
+    });
+  }
 
   Future<void> getCameras() async {
     cameras = await availableCameras();
@@ -48,12 +73,6 @@ class _CameraAppState extends State<CameraApp> {
         setState(() {});
       });
     });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    init();
   }
 
   //カメラ切り替えアイコン押下時処理
@@ -103,25 +122,21 @@ class _CameraAppState extends State<CameraApp> {
     } on CameraException catch (e) {
       return null;
     }
-//    print('file-pass:[${filePaths}]');
     return filePath;
   }
 
   //撮影した画像アイコンクリック時処理
   clickImage(imageNo){
-//    print('クリックした画像:${images[selectIndex]}');
     setState(() {
       //画像番号からindex番号を取得
       selectIndex = imageNo -1;
       selecedImage = images[selectIndex];
-//      print('表示用${selecedImage}');
       imageTap = true;
     });
   }
 
   clickTest(image){
     var index = image['no'];
-    print('クリックした画像:${images[index - 1]}');
   }
 
   //<-(戻る)アイコン押下時処理
@@ -133,9 +148,6 @@ class _CameraAppState extends State<CameraApp> {
 
   //削除アイコン押下時処理
   deleteImage(){
-    print('+-------------------------------+');
-    print('|              削除              |');
-    print('+--------------------------------+');
     //removeAt用
     var removeImages = [];
     //
@@ -149,24 +161,28 @@ class _CameraAppState extends State<CameraApp> {
     for(var i=0; i < images.length;i++){
       removeImages.add(images[i]);
     }
-    print('削除前：formImages${removeImages}');
+//    print('削除前：formImages${removeImages}');
     removeImages.removeAt(selectIndex);
-    print('削除後：formImages${removeImages}');
-    print('+--------------------------------+');
-    print('+--------------------------------+');
-    print('+--------------------------------+');
+//    print('削除後：formImages${removeImages}');
     for(var i=0; i < removeImages.length;i++){
       newImages[i]['path'] = removeImages[i]['path'];
     }
-    print('削除後：newImages${newImages}');
+//    print('削除後：newImages${newImages}');
     setState(() {
       images = newImages;
-      print('images${images}');
       imageTap = !imageTap;
       //削除した際のカウントダウンの処理を追加
       imageCount--;
     });
   }
+
+  onEdit(){
+    //撮影した画像をstoreへ格納する
+    Provider.of<Display>(context, listen: false).setImages(images);
+    //編集画面に戻る
+    Provider.of<Display>(context, listen: false).setCamera();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -175,17 +191,50 @@ class _CameraAppState extends State<CameraApp> {
     } else {
       return
         Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            leading: Container(),
+            title: Center(
+              child: Text('カメラ',
+                style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold
+                ),
+              ),
+            ),
+            actions: <Widget>[
+              Padding(
+                padding: EdgeInsets.all(15),
+                child:
+                InkWell(child:
+                  Text('完了',
+                    style:
+                      TextStyle(
+                        color: Colors.black,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold
+                      ),
+                  ),
+                  onTap: (){
+                    onEdit();
+                  },
+                )
+              ),
+            ],
+          ),
           body: Center(
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  imageTap
-                      ? SizedBox(
-                    child: Image.file(File(selecedImage['path'])),
-                  )
-                      : AspectRatio(
-                      aspectRatio: controller.value.aspectRatio,
-                      child: CameraPreview(controller)
+                  SizedBox(
+                    child:
+                      imageTap
+                        ? Image.file(File(selecedImage['path']))
+                        : AspectRatio(aspectRatio: controller.value.aspectRatio,
+                                      child: CameraPreview(controller),
+                                      ),
+                    height: 400,
                   ),
                   Container(
                     padding: EdgeInsets.all(10),
@@ -229,8 +278,6 @@ class _CameraAppState extends State<CameraApp> {
                             var filePath = await takePicture();
                             setState(() {
                               images[imageCount]["path"] = filePath;
-                              print('---------------------------------------------');
-                              print('Images:${images}');
                               imageCount++;
                             });
                           },

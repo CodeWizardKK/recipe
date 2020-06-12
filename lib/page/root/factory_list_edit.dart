@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/page/list/recipi_list.dart';
-import 'package:recipe_app/page/edit/recipi_edit.dart';
-import 'package:recipe_app/page/edit/camera_app.dart';
+import 'package:recipe_app/page/edit/factory_edit.dart';
 
-class ListEditRoot extends StatelessWidget{
+class FactoryListEdit extends StatelessWidget{
 
-  var rootPage = <Widget>[RecipiList(),RecipiEdit(),CameraApp()];
+  var rootPage = <Widget>[RecipiList(),FactoryEdit()];
 
 
   @override

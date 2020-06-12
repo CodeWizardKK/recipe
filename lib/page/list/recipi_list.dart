@@ -12,7 +12,8 @@ class RecipiList extends StatefulWidget{
 class _RecipiListState extends State<RecipiList>{
 
   //url
-  final String url = "https://reqres.in/api/users?page=2";
+//  final String url = "https://reqres.in/api/users?page=2";
+  final String url = "";
 
   //リスト表示するdata
   List data;
@@ -54,11 +55,13 @@ class _RecipiListState extends State<RecipiList>{
     // TODO: implement build
     return Scaffold(
       appBar: AppBar(
-        title: Text('レシピリスト',
-          style: TextStyle(
-              color: Colors.grey,
-              fontSize: 25
-
+        title: Center(
+          child: Text('レシピリスト',
+            style: TextStyle(
+                color: Colors.black,
+                fontSize: 25,
+                fontWeight: FontWeight.bold
+            ),
           ),
         ),
         backgroundColor: Colors.white,

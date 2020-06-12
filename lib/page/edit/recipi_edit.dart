@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -16,14 +15,6 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   final _formKey = new GlobalKey<FormState>();
 
-  var images = [
-    {'no':1,'path':''},
-    {'no':2,'path':''},
-    {'no':3,'path':''},
-    {'no':4,'path':''},
-    {'no':5,'path':''},
-  ];
-
   String _title;
   String _body;
 
@@ -37,10 +28,6 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   void onList(){
     Provider.of<Display>(context, listen: false).setState(0);
-  }
-
-  void onCamera(){
-    Provider.of<Display>(context, listen: false).setState(2);
   }
 
   //入力チェック
@@ -65,6 +52,25 @@ class _RecipiEditState extends State<RecipiEdit>{
     }
   }
 
+  //画像一覧にて表示されている画像アイコンの押下時処理
+  void clickImage(image){
+    var selectNo = image['no'];
+    var selectIndex = selectNo -1;
+    var selecedImage = image;
+    var imageTap = true;
+    Provider.of<Display>(context, listen: false).setSelectImage(selectIndex, selecedImage, imageTap);
+    Provider.of<Display>(context, listen: false).setCamera();
+  }
+
+  //画像一覧にて表示されているカメラアイコンの押下時処理
+  void onCamera(){
+    //clickImage時に取得していた選択した画像情報をresetする
+    Provider.of<Display>(context, listen: false).resetSelectImage();
+    //カメラ起動
+    Provider.of<Display>(context, listen: false).setCamera();
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -72,77 +78,89 @@ class _RecipiEditState extends State<RecipiEdit>{
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title:Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios,
-                color: Colors.grey,
+        title:
+            InkWell(
+              child:
+              RichText(
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.bodyText1,
+                  children: [
+                    WidgetSpan(
+//                      child:
+//                      Padding(
+//                        padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                        child: Icon(Icons.arrow_back_ios,color: Colors.grey,size: 20,),
+//                      ),
+                    ),
+                    TextSpan(text: 'レシピリスト',
+                            style:
+                              TextStyle(
+                                color: Colors.grey,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold
+                              )
+                    ),
+                  ],
+                ),
               ),
-              onPressed: () {
+              onTap: (){
                 onList();
               },
-            ),
-            Text('レシピリスト',
-              style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 15
-              ),
-            ),
-          ],
-        )
+            )
       ),
       body: showForm(),
     );
   }
 
   Widget showForm(){
-    return Container(
+        return Container(
 //        padding: EdgeInsets.all(16.0),
-        //入力フィールドをformでグループ化し、key:_formKey(グローバルキー)と
-        child: Form(
-          key: _formKey,
+            //入力フィールドをformでグループ化し、key:_formKey(グローバルキー)と
+            child: Form(
+              key: _formKey,
 //          child: Center(
-            child: Column(
+              child: Column(
 //              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                imageArea(),
-                textArea(),
-                saveButton(),
-              ],
-            ),
+                children: <Widget>[
+                  imageArea(),
+                  textArea(),
+                  saveButton(),
+                ],
+              ),
 //          ),
-        ),
-    );
+            ),
+          );
   }
 
   Widget imageArea(){
-    return Container(
-      padding: EdgeInsets.all(20),
-      child:Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        for(var image in images)
-          SizedBox(
-            child:
-            image['path'] == ''
-                ? InkWell(child: Card(color: Colors.white,child:Icon(Icons.camera_alt,)),
-                          onTap: (){
-                            print('cameraiconClick!!');
-                            onCamera();
-                          },
-            )
-                : InkWell(child: Image.network(image['path']),
-                          onTap: (){
-                            print('imageClick!!');
-                          },
-            ) ,
-            width: 64.0,
-            height: 64.0,
-          ),
-      ],
-    ),
+    return Consumer<Display>(
+        builder: (context,Display,_){
+          return Container(
+            padding: EdgeInsets.all(20),
+            child:Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                for(var image in Display.images)
+                  SizedBox(
+                    child:
+                    image['path'] == ''
+                        ? InkWell(child: Card(color: Colors.white,child:Icon(Icons.camera_alt,)),
+                      onTap: (){
+                        onCamera();
+                      },
+                    )
+                        : InkWell(child: Image.file(File(image['path'])),
+                      onTap: (){
+                        clickImage(image);
+                      },
+                    ) ,
+                    width: 64.0,
+                    height: 64.0,
+                  ),
+              ],
+            ),
+          );
+        }
     );
   }
 
