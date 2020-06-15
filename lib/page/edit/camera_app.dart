@@ -204,22 +204,17 @@ class _CameraAppState extends State<CameraApp> {
               ),
             ),
             actions: <Widget>[
-              Padding(
-                padding: EdgeInsets.all(15),
-                child:
-                InkWell(child:
-                  Text('完了',
-                    style:
-                      TextStyle(
-                        color: Colors.black,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold
-                      ),
+              FlatButton(
+                child: Text('完了',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold
                   ),
-                  onTap: (){
-                    onEdit();
-                  },
-                )
+          ),
+                onPressed: (){
+                  onEdit();
+                },
               ),
             ],
           ),
