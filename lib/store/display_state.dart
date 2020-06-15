@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 //表示ステータスの状態クラス
 class Display with ChangeNotifier{
-  var state = 0;        // 0 :一覧 1:編集 9:エラー
+  var state = 0;        // 0 :一覧 1:編集 2:詳細 9:エラー
   var id = -1;          // -1:新規 1以上:更新
   var isCamera = false; // true:カメラ起動状態 //false:カメラ未起動状態
   var images = [

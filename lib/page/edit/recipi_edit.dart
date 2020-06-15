@@ -17,13 +17,19 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   String _title;
   String _body;
+  int _selectedID;
 
   @override
   void initState() {
     super.initState();
-    //一覧情報取得処理の呼び出し
-    var id = Provider.of<Display>(context, listen: false).getId();
-    print('id:${id}');
+    //idを取得
+    _selectedID = Provider.of<Display>(context, listen: false).getId();
+    print('id:${_selectedID}');
+    //更新の場合
+    if(_selectedID != -1){
+      // http.getにて該当レコードの詳細を取得
+      print('http.getする!!!');
+    }
   }
 
   //レシピリストへ戻るボタン押下時処理
@@ -69,20 +75,20 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //画像一覧にて表示されているカメラアイコンの押下時処理
   void onCamera(){
-    //clickImage時に取得していた選択した画像情報をresetする
+    //clickImage時に取得していた選択した画像情報をreset
     Provider.of<Display>(context, listen: false).resetSelectImage();
     //カメラ起動
     Provider.of<Display>(context, listen: false).setCamera();
   }
 
-  //
+  //レシピリストへ戻るボタン押下時のダイアログ
   Future<void> _showBackDialog() async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
-        return AlertDialog(
-//          title: Text('AlertDialog Title'),
+        return CupertinoAlertDialog(
+          title: Text('確認'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
@@ -92,7 +98,7 @@ class _RecipiEditState extends State<RecipiEdit>{
           ),
           actions: <Widget>[
             FlatButton(
-              child: Text('CHANCEL'),
+              child: Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -121,37 +127,23 @@ class _RecipiEditState extends State<RecipiEdit>{
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title:
-            InkWell(
-              child:
-              RichText(
-                text: TextSpan(
-                  style: Theme.of(context).textTheme.bodyText1,
-                  children: [
-                    WidgetSpan(
-//                      child:
-//                      Padding(
-//                        padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                        child: Icon(Icons.arrow_back_ios,color: Colors.grey,size: 20,),
-//                      ),
-                    ),
-                    TextSpan(text: 'レシピリスト',
-                            style:
-                              TextStyle(
-                                color: Colors.grey,
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold
-                              )
-                    ),
-                  ],
+        title:FlatButton(
+          child: Row(
+            children: <Widget>[
+              Icon(Icons.arrow_back_ios,color: Colors.grey,),
+              Text('レシピリスト',
+                style: TextStyle(
+                    color: Colors.grey
                 ),
               ),
-              onTap: (){
-                _formCheck()
-                    ? onList()
-                    : _showBackDialog();
-              },
-            )
+            ],
+          ),
+          onPressed: (){
+            _formCheck()
+                ? onList()
+                : _showBackDialog();
+          },
+        ),
       ),
       body: showForm(),
     );

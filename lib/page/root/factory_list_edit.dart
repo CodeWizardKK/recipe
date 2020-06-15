@@ -4,10 +4,11 @@ import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/page/list/recipi_list.dart';
 import 'package:recipe_app/page/edit/factory_edit.dart';
+import 'package:recipe_app/page/detail/recipi_detail.dart';
 
 class FactoryListEdit extends StatelessWidget{
 
-  var rootPage = <Widget>[RecipiList(),FactoryEdit()];
+  var rootPage = <Widget>[RecipiList(),FactoryEdit(),RecipiDetail()];
 
 
   @override
