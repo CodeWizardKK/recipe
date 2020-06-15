@@ -12,8 +12,8 @@ class RecipiList extends StatefulWidget{
 class _RecipiListState extends State<RecipiList>{
 
   //url
-//  final String url = "https://reqres.in/api/users?page=2";
-  final String url = "";
+  final String url = "https://reqres.in/api/users?page=2";
+//  final String url = "";
 
   //リスト表示するdata
   List data;
@@ -44,10 +44,26 @@ class _RecipiListState extends State<RecipiList>{
     return "Success!!";
   }
 
-  onEdit(int id){
+  void onDetail(int id){
     print('selectId[${id}]');
+    //idをset
     Provider.of<Display>(context, listen: false).setId(id);
-    Provider.of<Display>(context, listen: false).setState(1);
+    //詳細画面へ遷移
+    Provider.of<Display>(context, listen: false).setState(2);
+  }
+
+  void onEdit(int id){
+    print('selectId[${id}]');
+    //idをset
+    Provider.of<Display>(context, listen: false).setId(id);
+//    //新規投稿以外の場合
+//    if(id != -1){
+//      //詳細画面へ遷移
+//      Provider.of<Display>(context, listen: false).setState(2);
+//    }else{
+      //編集画面へ遷移
+      Provider.of<Display>(context, listen: false).setState(1);
+//    }
   }
 
   @override
@@ -66,16 +82,14 @@ class _RecipiListState extends State<RecipiList>{
         ),
         backgroundColor: Colors.white,
       ),
-      body:
-      ListView.builder(
+      body: ListView.builder(
           itemCount: data == null ? 0 :data.length,
             itemBuilder: (BuildContext context,int index){
             return InkWell(
               onTap: (){
-                onEdit(data[index]['id']);
+                onDetail(data[index]['id']);
               },
-              child:
-              Card(
+              child: Card(
                 child: Container(
                   padding: EdgeInsets.all(15.0),
                   child: Row(
@@ -99,7 +113,6 @@ class _RecipiListState extends State<RecipiList>{
       floatingActionButton: FloatingActionButton(
         onPressed: (){
           onEdit(-1);
-
         },
         tooltip: 'Increment',
         child: Icon(Icons.create),
