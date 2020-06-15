@@ -52,6 +52,22 @@ class Display with ChangeNotifier{
     }
   }
 
+  void resetImages(){
+    for(var i=0; i < this.images.length; i++){
+      this.images[i]['path'] = '';
+    }
+  }
+
+  //imagesが空かどうかチェック
+  bool checkImages(){
+    for(var i=0; i < this.images.length; i++){
+      if(this.images[i]['path'] != ''){
+        return false;
+      }
+    }
+    return true;
+  }
+
   List<Map<String,Object>> getImages(){
     return this.images;
   }

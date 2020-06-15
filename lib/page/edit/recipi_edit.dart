@@ -26,8 +26,13 @@ class _RecipiEditState extends State<RecipiEdit>{
     print('id:${id}');
   }
 
+  //レシピリストへ戻るボタン押下時処理
   void onList(){
     Provider.of<Display>(context, listen: false).setState(0);
+    //画像情報リセット
+    Provider.of<Display>(context, listen: false).resetImages();
+    Provider.of<Display>(context, listen: false).resetSelectImage();
+
   }
 
   //入力チェック
@@ -70,7 +75,45 @@ class _RecipiEditState extends State<RecipiEdit>{
     Provider.of<Display>(context, listen: false).setCamera();
   }
 
+  //
+  Future<void> _showBackDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+//          title: Text('AlertDialog Title'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('内容が保存されていませんが、よろしいですか？'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('CHANCEL'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                onList();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
+  //内容が更新されたかチェック => true:変更なし false:変更あり
+  bool _formCheck() {
+    return Provider.of<Display>(context, listen: false).checkImages();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +147,9 @@ class _RecipiEditState extends State<RecipiEdit>{
                 ),
               ),
               onTap: (){
-                onList();
+                _formCheck()
+                    ? onList()
+                    : _showBackDialog();
               },
             )
       ),
@@ -132,6 +177,7 @@ class _RecipiEditState extends State<RecipiEdit>{
           );
   }
 
+  //画像
   Widget imageArea(){
     return Consumer<Display>(
         builder: (context,Display,_){
@@ -164,6 +210,7 @@ class _RecipiEditState extends State<RecipiEdit>{
     );
   }
 
+  //タイトル・内容
   Widget textArea(){
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -220,6 +267,7 @@ class _RecipiEditState extends State<RecipiEdit>{
     );
   }
 
+  //保存するボタン
   Widget saveButton() {
     return
       Container(
