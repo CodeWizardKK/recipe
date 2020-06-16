@@ -2,12 +2,51 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
+import 'package:recipe_app/services/recipi/recipi_item.dart' as recipiItemRepo;
 
 class RecipiDetail extends StatefulWidget{
   _RecipiDetailState createState() => _RecipiDetailState();
 }
 
 class _RecipiDetailState extends State<RecipiDetail>{
+
+  bool _isLoading = true;    //通信中:true(円形のグルグルのやつ)
+  String _errorMessage = ''; //await関連のエラーメッセージ
+  var _selectedItem = {}; //リストから選択されたレコード
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    this.getItem();
+
+  }
+
+  Future<void> getItem() async{
+    var option = {};
+    var result;
+
+    option['id'] = Provider.of<Display>(context, listen: false).getId();
+    try{
+      //該当レコード取得処理の呼び出し
+      result = await recipiItemRepo.get(option);
+    }catch(e){
+      //エラー処理
+      print('Error: $e');
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.message;
+        //ここでエラー画面へ遷移する処理を追加(state=9にセットする)
+//        Provider.of<Display>(context, listen: false).setState(9);
+      });
+    }
+//    Provider.of<Display>(context, listen: false).setSelectItem(result);
+    setState(() {
+      _selectedItem = result;
+      _isLoading = false;
+    });
+
+  }
 
 
   //レシピリストへ戻るボタン押下時処理
@@ -120,24 +159,26 @@ class _RecipiDetailState extends State<RecipiDetail>{
             },
           )
         ),],
-      body:
-//      Center(
-//        child:
-      ScrollArea(),
-//      ),
+      body:Stack(
+        children: <Widget>[
+          ScrollArea(),
+          showCircularProgress(),
+        ],
+      ),
     );
   }
 
-  Widget showDetail(){
-    return Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        ScrollArea(),
-        footerArea(),
-      ],
-    );
-  }
+//  Widget showDetail(){
+//    return Column(
+//        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//      children: <Widget>[
+//        ScrollArea(),
+//        footerArea(),
+//      ],
+//    );
+//  }
 
+  //詳細ページ全般
   Widget ScrollArea(){
     return Container(
       child:SingleChildScrollView(
@@ -157,27 +198,35 @@ class _RecipiDetailState extends State<RecipiDetail>{
     );
   }
 
-  Widget footerArea(){
-    return Padding(
-      padding: const EdgeInsets.only(top: 50.0),
-      child: SafeArea(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Icon(Icons.camera_alt)
-          ],
-        ),
-      ),
-    );
-  }
+//  Widget footerArea(){
+//    return Padding(
+//      padding: const EdgeInsets.only(top: 50.0),
+//      child: SafeArea(
+//        child: Row(
+//          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//          children: <Widget>[
+//            Icon(Icons.camera_alt)
+//          ],
+//        ),
+//      ),
+//    );
+//  }
 
   Widget imageArea(){
-    return SizedBox(
-//      child: Image.network('https://s3.amazonaws.com/uifaces/faces/twitter/follettkyle/128.jpg'),
-      child: Card(color: Colors.grey),
-      height: 400,
-      width: 350,
-    );
+    return
+      _selectedItem['avatar'] == null
+        ? Container()
+        : Container(
+        width: 350.0,
+        height: 400.0,
+        decoration: BoxDecoration(
+//          shape: BoxShape.circle,
+          image: DecorationImage(
+            fit: BoxFit.cover,
+            image: NetworkImage('${_selectedItem['avatar']}'),
+          ),
+        ),
+      );
   }
 
   Widget titleArea(){
@@ -220,5 +269,16 @@ class _RecipiDetailState extends State<RecipiDetail>{
     return Divider(
         color: Colors.grey
     );
+  }
+
+  //null参照時に落ちない用、flutterで用意されてるを実装
+  //CircularProgressIndicator() => 円形にグルグル回るタイプのやつ
+  Widget showCircularProgress() {
+    return
+      _isLoading
+      //通信中の場合
+          ? Center(child: CircularProgressIndicator())
+      //それ以外の場合
+          : Container(height: 0.0,width: 0.0,);
   }
 }

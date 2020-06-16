@@ -12,12 +12,22 @@ class Display with ChangeNotifier{
     {'no':4,'path':''},
     {'no':5,'path':''},
   ];
-  var selectImage = { //編集画面より選択した画像情報を格納
+  var selectImage = { //編集画面にてクリックした画像情報を格納
     'index':-1,
     'item':{},
     'tap':false,
   };
 
+  var selectItem = {};//リストから選択されたレコードを格納
+
+  void setSelectItem(selectedItem){
+    this.selectItem = selectedItem;
+    print('セットしたよ${this.selectItem}');
+  }
+
+  Map<dynamic,dynamic> getSelectItem(){
+    return selectItem;
+  }
 
   void setState(state){
     this.state = state;

@@ -2,8 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/page/edit/recipi_edit.dart';
-import 'package:recipe_app/page/edit/camera_app.dart';
+import 'package:recipe_app/page/recipi/edit/recipi_edit.dart';
+import 'package:recipe_app/page/recipi/edit/camera_app.dart';
 
 class FactoryEdit extends StatelessWidget{
 

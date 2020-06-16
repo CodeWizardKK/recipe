@@ -2,9 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/page/list/recipi_list.dart';
-import 'package:recipe_app/page/edit/factory_edit.dart';
-import 'package:recipe_app/page/detail/recipi_detail.dart';
+import 'package:recipe_app/page/recipi/list/recipi_list.dart';
+import 'package:recipe_app/page/recipi/edit/factory_edit.dart';
+import 'package:recipe_app/page/recipi/detail/recipi_detail.dart';
 
 class FactoryListEdit extends StatelessWidget{
 
