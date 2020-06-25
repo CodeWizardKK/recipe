@@ -1,8 +1,9 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 //表示ステータスの状態クラス
 class Display with ChangeNotifier{
-  var state = 0;        // 0 :一覧 1:編集 2:詳細 9:エラー
+  var state = 0;        // 0 :一覧 1:詳細 2:編集 9:エラー
   var id = -1;          // -1:新規 1以上:更新
   var isCamera = false; // true:カメラ起動状態 //false:カメラ未起動状態
   var images = [
@@ -18,11 +19,23 @@ class Display with ChangeNotifier{
     'tap':false,
   };
 
-  var selectItem = {};//リストから選択されたレコードを格納
+  var selectItem = { //リストから選択されたレコードを格納
+    'id':-1,
+    'email':'',
+    'first_name':'',
+    'last_name':-1,
+    'avatar': '',
+  };
+
 
   void setSelectItem(selectedItem){
-    this.selectItem = selectedItem;
-    print('セットしたよ${this.selectItem}');
+//    print('③取得したitem:${selectedItem}');
+    this.selectItem['id'] = selectedItem['id'];
+    this.selectItem['email'] = selectedItem['email'];
+    this.selectItem['first_name'] = selectedItem['first_name'];
+    this.selectItem['last_name'] = selectedItem['last_name'];
+    this.selectItem['avatar'] = selectedItem['avatar'];
+//    print('セットしたよ${this.selectItem}');
   }
 
   Map<dynamic,dynamic> getSelectItem(){
@@ -30,7 +43,10 @@ class Display with ChangeNotifier{
   }
 
   void setState(state){
-    this.state = state;
+    print('${this.state}');
+    print('${state}');
+    this.state += state;
+    print('state:${this.state}');
     notifyListeners();
   }
 
@@ -59,6 +75,15 @@ class Display with ChangeNotifier{
   void setImages(images){
     for(var i=0; i < images.length; i++){
       this.images[i]['path'] = images[i]['path'];
+    }
+    print('===============選択した画像===================');
+    print(this.images);
+    print('=============================================');
+  }
+
+  void setDetailImages(images){
+    for(var i=0; i < this.images.length; i++){
+      this.images[i]['path'] = images[i]['avatar'];
     }
   }
 

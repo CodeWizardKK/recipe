@@ -8,7 +8,7 @@ import 'package:recipe_app/page/recipi/detail/recipi_detail.dart';
 
 class FactoryListEdit extends StatelessWidget{
 
-  var rootPage = <Widget>[RecipiList(),FactoryEdit(),RecipiDetail()];
+  var rootPage = <Widget>[RecipiList(),RecipiDetail(),FactoryEdit()];
 
 
   @override

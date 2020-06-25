@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 Future<Map<String,dynamic>> get() async{
 
-  final String url = "https://reqres.in/api/users?page=2";
+  final String url = "https://reqres.in/api/users";
 
   var response = await http.get(
         Uri.encodeFull(url),//Encode the url

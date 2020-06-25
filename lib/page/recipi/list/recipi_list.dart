@@ -49,7 +49,7 @@ class _RecipiListState extends State<RecipiList>{
     //idをset
     Provider.of<Display>(context, listen: false).setId(selectedId);
     //詳細画面へ遷移
-    Provider.of<Display>(context, listen: false).setState(2);
+    Provider.of<Display>(context, listen: false).setState(1);
   }
 
   void onEdit(int selectedId){
@@ -62,7 +62,7 @@ class _RecipiListState extends State<RecipiList>{
 //      Provider.of<Display>(context, listen: false).setState(2);
 //    }else{
       //編集画面へ遷移
-      Provider.of<Display>(context, listen: false).setState(1);
+      Provider.of<Display>(context, listen: false).setState(2);
 //    }
   }
 
@@ -71,6 +71,8 @@ class _RecipiListState extends State<RecipiList>{
     // TODO: implement build
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white70,
+        elevation: 0.0,
         title: Center(
           child: Text('レシピリスト',
             style: TextStyle(
@@ -80,34 +82,41 @@ class _RecipiListState extends State<RecipiList>{
             ),
           ),
         ),
-        backgroundColor: Colors.white,
       ),
-      body: Stack(
-        children: <Widget>[
-          showList(),
-          showCircularProgress(),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: (){
-          onEdit(-1);
-        },
-        tooltip: 'Increment',
-        child: Icon(Icons.create),
-        backgroundColor: Colors.orange,
-      ),
+      body: showList(),
+      floatingActionButton: floatBtn(),
     );
   }
 
+  //新規投稿ボタン
+  Widget floatBtn(){
+    return FloatingActionButton(
+      onPressed: (){
+        onEdit(-1);
+      },
+      tooltip: 'Increment',
+      child: Icon(Icons.create,),
+      backgroundColor: Colors.orange,
+    );
+  }
+
+  //ページ全体
   Widget showList(){
+    return Stack(
+      children: <Widget>[
+        listArea(),             //リスト全体
+        showCircularProgress(), //アクティビティインジケータ
+      ],
+    );
+  }
+
+  //レシピリスト
+  Widget listArea(){
     return
       ListView.builder(
           itemCount: data == null ? 0 :data.length,
           itemBuilder: (BuildContext context,int index){
             return InkWell(
-              onTap: (){
-                onDetail(data[index]['id']);
-              },
               child: Card(
                 child: Container(
                   padding: EdgeInsets.all(15.0),
@@ -115,7 +124,7 @@ class _RecipiListState extends State<RecipiList>{
                     children: <Widget>[
                       data[index]['avatar'] == null
                         ? Container()
-                        :Container(
+                        : Container(
                             width: 90.0,
                             height: 90.0,
                             decoration: BoxDecoration(
@@ -134,6 +143,9 @@ class _RecipiListState extends State<RecipiList>{
                   ),
                 ),
               ),
+              onTap: (){
+                onDetail(data[index]['id']);
+              },
             );
           }
       );

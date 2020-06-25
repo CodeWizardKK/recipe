@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/services/recipi/recipi_item.dart' as recipiItemRepo;
+import 'package:recipe_app/services/recipi/recipi_list.dart' as recipiListRepo;
 
 class RecipiDetail extends StatefulWidget{
   _RecipiDetailState createState() => _RecipiDetailState();
@@ -13,20 +14,58 @@ class _RecipiDetailState extends State<RecipiDetail>{
   bool _isLoading = true;    //通信中:true(円形のグルグルのやつ)
   String _errorMessage = ''; //await関連のエラーメッセージ
   var _selectedItem = {}; //リストから選択されたレコード
+  int _selectedImage = 0;
+  // ページコントローラ
+  final PageController controller = PageController(viewportFraction: 0.8);
+  // ページインデックス
+  int currentPage = 0;
+  //レコード毎の画像リスト
+  var _data;
+
 
   @override
   void initState() {
-    // TODO: implement initState
-    super.initState();
-    this.getItem();
-
+   //
+   super.initState();
+   //該当レコードを取得
+   this.getItem();
+   //ページ遷移を監視
+   this.pageController();
   }
 
+  //不要になる  =====> ここから
+  //画像を取得
+  Future<void> getImage() async{
+    var images;
+    try{
+      //画像を取得
+      images = await recipiListRepo.get();
+    }catch(e){
+      //エラー処理
+      print('Error: $e');
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.message;
+        //ここでエラー画面へ遷移する処理を追加(state=9にセットする)
+//        Provider.of<Display>(context, listen: false).setState(9);
+      });
+    }
+    setState(() {
+      _data = images['data'];
+    });
+  }
+
+  //該当レコードの取得
   Future<void> getItem() async{
     var option = {};
     var result;
 
+    //画像を取得 ===> 不要になる
+    this.getImage();
+
+    //取得する為のIDを取得
     option['id'] = Provider.of<Display>(context, listen: false).getId();
+
     try{
       //該当レコード取得処理の呼び出し
       result = await recipiItemRepo.get(option);
@@ -40,18 +79,32 @@ class _RecipiDetailState extends State<RecipiDetail>{
 //        Provider.of<Display>(context, listen: false).setState(9);
       });
     }
-//    Provider.of<Display>(context, listen: false).setSelectItem(result);
+
+    //該当レコードをstoreに格納
+    Provider.of<Display>(context, listen: false).setSelectItem(result['data']);
     setState(() {
-      _selectedItem = result;
+//      _selectedItem = result;
       _isLoading = false;
     });
-
   }
 
+  // ページコントローラのページ遷移を監視しページ数を丸める
+  void pageController(){
+    controller.addListener(() {
+      int next = controller.page.round();
+//      print('currentPage:${currentPage}');
+//      print('next:${next}');
+      if (currentPage != next) {
+        setState(() {
+          currentPage = next;
+        });
+      }
+    });
+  }
 
   //レシピリストへ戻るボタン押下時処理
   void onList(){
-    Provider.of<Display>(context, listen: false).setState(0);
+    Provider.of<Display>(context, listen: false).setState(-1);
   }
 
   //削除処理
@@ -73,10 +126,12 @@ class _RecipiDetailState extends State<RecipiDetail>{
 //      Provider.of<Display>(context, listen: false).setState(2);
 //    }else{
       //編集画面へ遷移
+      Provider.of<Display>(context, listen: false).setDetailImages(_data);
       Provider.of<Display>(context, listen: false).setState(1);
 //    }
   }
 
+  //削除アイコン押下時処理
   Future<void> _showDeleteDialog() async {
     return showDialog<void>(
       context: context,
@@ -111,174 +166,241 @@ class _RecipiDetailState extends State<RecipiDetail>{
     );
   }
 
+  //ペジネーション作成し、listにして返す
+  Row _createPagination(){
+    List<Widget> page = new List<Widget>();
+    for(var i = 0 ;i<_data.length; i++){
+      if(currentPage == i){
+        page.add(Container(margin: EdgeInsets.all(5),child: Icon(Icons.brightness_1,size: 5,color: Colors.grey,)));
+      }else{
+        page.add(Container(margin: EdgeInsets.all(5),child: Icon(Icons.panorama_fish_eye,size: 5,color: Colors.grey,)));
+      }
+    }
+    print('page:${page}');
+    return
+      Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: page
+      );
+  }
+  //アニメーションカード生成
+  AnimatedContainer _createCardAnimate(Map<String,Object> images, bool active) {
+
+    // アクティブと非アクティブのアニメーション設定値
+//    final double top = active ? 100 : 200;
+//    final double side = active ? 0 : 40;
+
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 500),
+      curve: Curves.easeOutQuint,
+      margin: EdgeInsets.only(top: 0, bottom: 0, right: 30, left: 30),
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          fit: BoxFit.fitWidth,
+//          fit: BoxFit.cover,
+          image: NetworkImage('${images['avatar']}'),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
     return Scaffold(
       appBar: AppBar(
-          backgroundColor: Colors.white,
-          title:FlatButton(
-            child: Row(
-              children: <Widget>[
-                Icon(Icons.arrow_back_ios,color: Colors.grey,),
-                Text('レシピリスト',
-                  style: TextStyle(
-                    color: Colors.grey
-                  ),
-                ),
-              ],
-            ),
-            onPressed: (){
-              onList();
-            },
-          ),
+          backgroundColor: Colors.white70,
+          leading: backBtn(),
+          elevation: 0.0,
+//          title:backBtn(),
       ),
-      //フッター
+      //フッターボタン
       persistentFooterButtons: <Widget>[
-        //削除アイコン
-        Padding(
-          padding: EdgeInsets.only(right: 150),
-          child: IconButton(icon:Icon(Icons.delete,size: 30,),
-            onPressed: (){
-              _showDeleteDialog();
-            },),
-        ),
-        //レシピを編集ボタン
-        Padding(
-          padding: EdgeInsets.only(right: 10),
-          child:
-          FlatButton(
-            color: Colors.redAccent,
-            child: Text('レシピの編集',
-              style: TextStyle(color: Colors.white),),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            onPressed: (){
-              onEdit();
-            },
-          )
-        ),],
-      body:Stack(
-        children: <Widget>[
-          ScrollArea(),
-          showCircularProgress(),
-        ],
-      ),
+        //レシピの編集ボタン
+        deleteBtn(),//削除
+        editBtn(),  //レシピの編集
+      ],
+      body: showDetail(),
     );
   }
 
-//  Widget showDetail(){
-//    return Column(
-//        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//      children: <Widget>[
-//        ScrollArea(),
-//        footerArea(),
-//      ],
-//    );
-//  }
-
-  //詳細ページ全般
-  Widget ScrollArea(){
-    return Container(
-      child:SingleChildScrollView(
-        child:Padding(
-          padding: EdgeInsets.only(left: 30.0, right: 30.0, top: 10.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            imageArea(),
-            titleArea(),
-            line(),
-            ContentArea(),
-          ],
-        ),
-        ),
-      ),
-    );
-  }
-
-//  Widget footerArea(){
-//    return Padding(
-//      padding: const EdgeInsets.only(top: 50.0),
-//      child: SafeArea(
-//        child: Row(
-//          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//          children: <Widget>[
-//            Icon(Icons.camera_alt)
-//          ],
-//        ),
-//      ),
-//    );
-//  }
-
-  Widget imageArea(){
-    return
-      _selectedItem['avatar'] == null
-        ? Container()
-        : Container(
-        width: 350.0,
-        height: 400.0,
-        decoration: BoxDecoration(
-//          shape: BoxShape.circle,
-          image: DecorationImage(
-            fit: BoxFit.cover,
-            image: NetworkImage('${_selectedItem['avatar']}'),
-          ),
+  //削除ボタン
+  Widget deleteBtn(){
+    return Padding(
+        padding: EdgeInsets.only(right: 150),
+        child: IconButton(
+          icon:Icon(Icons.delete,size: 30,),
+          onPressed: (){
+            _showDeleteDialog();
+          },
         ),
       );
   }
 
-  Widget titleArea(){
+  //編集ボタン
+  Widget editBtn(){
+    return Padding(
+      padding: EdgeInsets.only(right: 10),
+      child: FlatButton(
+        color: Colors.redAccent,
+        child: Text('レシピの編集',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        onPressed: (){
+          onEdit();
+        },
+      ),
+    );
+  }
+
+  //戻るボタン
+  Widget backBtn(){
+    return IconButton(
+        icon:Icon(Icons.arrow_back_ios,color: Colors.grey,size: 35,),
+        onPressed: (){
+          onList();
+        },
+    );
+  }
+
+  //ページ全体
+  Widget showDetail(){
+    return Stack(
+      children: <Widget>[
+        scrollArea(),           //レシピ詳細全体
+        showCircularProgress(), //アクティビティインジケータ
+      ],
+    );
+  }
+
+  //レシピ詳細
+  Widget scrollArea(){
     return Container(
-      margin: EdgeInsets.all(5),
-      padding: EdgeInsets.all(5),
-      child: Text('鹿ラグーとバターとゴマのパスタパスタ',
-        style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue
+      child:SingleChildScrollView(
+        child:Padding(
+          padding: EdgeInsets.only(left: 30.0, right: 30.0, top: 10.0),
+          child: Column(
+//              crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              imageArea(),     //画像エリア
+              paginationArea(), //ペジネーションエリア
+              titleArea(),      //タイトルエリア
+              line(),           //罫線
+              contentArea(),    //テキストエリア
+              line(),           //罫線
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget ContentArea(){
-    return Column(
-      children: <Widget>[
+  //画像エリア
+  Widget imageArea(){
+//    return Consumer<Display>(
+//        builder: (context,Display,_){
+      return
         Container(
-          margin: EdgeInsets.all(5),
-          child: Text('レシピmemo',
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black
+          child: SizedBox(
+            height: 300.0,
+            child: PageView.builder(
+              controller: controller,
+              itemCount: _data == null ? 0 :_data.length,
+              itemBuilder: (context, int currentIndex){
+                // アクティブ値
+                bool active = currentIndex == currentPage;
+                // カードの生成して返す
+                return _createCardAnimate(
+                  _data[currentIndex],
+                  active,
+                );
+              },
             ),
           ),
-        ),
-        Container(
-          margin: EdgeInsets.all(5),
-          padding: EdgeInsets.all(5),
-          child:Text('テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。')
-        ),
-      ],
+        );
+  }
+
+  //ペジネーションエリア( ○○○○○○ )
+  Widget paginationArea(){
+    return
+      _data == null
+      ? Container()
+      //作成したペジネーションを表示
+      : _createPagination();
+  }
+
+  //タイトルエリア
+  Widget titleArea(){
+    return Consumer<Display>(
+      builder: (context,Display,_) {
+        return
+          Display.selectItem['first_name'] == null
+            ? Container()
+            : Container(
+                margin: EdgeInsets.all(5),
+                padding: EdgeInsets.all(5),
+                child: Text('${Display.selectItem['first_name']}',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue
+                  ),
+                ),
+              );
+      },
     );
   }
 
+  //テキストエリア
+  Widget contentArea(){
+    return Consumer<Display>(
+        builder: (context,Display,_) {
+          return Column(
+            children: <Widget>[
+              Container(
+                margin: EdgeInsets.all(5),
+                child: Text('レシピmemo',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black
+                  ),
+                ),
+              ),
+              Display.selectItem == null
+                  ? Container()
+                  : Container(
+                  margin: EdgeInsets.all(5),
+                  padding: EdgeInsets.all(5),
+                  child:Text('${Display.selectItem}テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。')
+              ),
+            ],
+          );
+        }
+        );
+  }
+
+  //罫線
   Widget line(){
     return Divider(
         color: Colors.grey
     );
   }
 
+  //アクティビティインジケータ
   //null参照時に落ちない用、flutterで用意されてるを実装
-  //CircularProgressIndicator() => 円形にグルグル回るタイプのやつ
   Widget showCircularProgress() {
     return
       _isLoading
       //通信中の場合
-          ? Center(child: CircularProgressIndicator())
-      //それ以外の場合
-          : Container(height: 0.0,width: 0.0,);
+        //CircularProgressIndicator() => 円形にグルグル回るタイプのやつ
+        ? Center(child: CircularProgressIndicator())
+      //上記以外の場合
+        : Container(height: 0.0,width: 0.0,);
   }
 }
