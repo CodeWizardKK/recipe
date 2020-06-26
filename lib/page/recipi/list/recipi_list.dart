@@ -122,8 +122,15 @@ class _RecipiListState extends State<RecipiList>{
 //                  padding: EdgeInsets.all(15.0),
                   child: Row(
                     children: <Widget>[
-                      _data[index]['avatar'] == null
-                        ? Container()
+                      _data[index]['media_path'] == null
+                        ? Container(
+                        width: 90.0,
+                        height: 90.0,
+                        child: Icon(Icons.camera_alt,color: Colors.white,),
+                        decoration: BoxDecoration(
+                        color: Colors.grey,
+                        ),
+                      )
                         : Container(
                             width: 90.0,
                             height: 90.0,
@@ -131,7 +138,7 @@ class _RecipiListState extends State<RecipiList>{
 //                            shape: BoxShape.circle, //表示する画像の形
                               image: DecorationImage(
                                 fit: BoxFit.cover,
-                                image: NetworkImage('${_data[index]['avatar']}'),
+                                image: NetworkImage('${_data[index]['media_path']}'),
                               ),
                             ),
                           ),
