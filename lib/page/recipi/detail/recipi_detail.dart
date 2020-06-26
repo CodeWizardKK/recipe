@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/services/recipi/recipi_item.dart' as recipiItemRepo;
-import 'package:recipe_app/services/recipi/recipi_list.dart' as recipiListRepo;
 
 class RecipiDetail extends StatefulWidget{
   _RecipiDetailState createState() => _RecipiDetailState();
@@ -11,8 +10,7 @@ class RecipiDetail extends StatefulWidget{
 
 class _RecipiDetailState extends State<RecipiDetail>{
 
-
-  var _data;                 //該当レコードの画像リスト
+  var _resultData = new Map<String,dynamic>(); //serverからgetした値を格納
   var _isLoading = true;     //通信中:true(円形のグルグルのやつ)
   var _currentPage = 0;      // ページインデックス
   var _errorMessage = '';    //await関連のエラーメッセージ
@@ -28,42 +26,16 @@ class _RecipiDetailState extends State<RecipiDetail>{
    _pageController();
   }
 
-  //不要になる  =====> ここから
-  //画像を取得
-  Future<void> _getImage() async{
-    var images;
-    try{
-      //画像を取得
-      images = await recipiListRepo.get();
-    }catch(e){
-      //エラー処理
-      print('Error: $e');
-      setState(() {
-        _isLoading = false;
-        _errorMessage = e.message;
-        //ここでエラー画面へ遷移する処理を追加(state=9にセットする)
-//        Provider.of<Display>(context, listen: false).setState(9);
-      });
-    }
-    setState(() {
-      _data = images['data'];
-    });
-  }
-
   //該当レコードの取得
   Future<void> _getItem() async{
     var option = {};
-    var result;
-
-    //画像を取得 ===> 不要になる
-    _getImage();
-
     //取得する為のIDを取得
     option['id'] = Provider.of<Display>(context, listen: false).getId();
 
     try{
       //該当レコード取得処理の呼び出し
-      result = await recipiItemRepo.get(option);
+//      _resultData = await recipiItemRepo.get(option);　//本番用
+      _resultData = await recipiItemRepo.getLocal();    //mock用
     }catch(e){
       //エラー処理
       print('Error: $e');
@@ -75,8 +47,6 @@ class _RecipiDetailState extends State<RecipiDetail>{
       });
     }
 
-    //該当レコードをstoreに格納
-    Provider.of<Display>(context, listen: false).setSelectItem(result['data']);
     setState(() {
       _isLoading = false;
     });
@@ -112,9 +82,12 @@ class _RecipiDetailState extends State<RecipiDetail>{
 
   //レシピの編集ボタン押下時処理
   void _onEdit(){
-      //編集画面へ遷移
-      Provider.of<Display>(context, listen: false).setDetailImages(_data);
-      Provider.of<Display>(context, listen: false).setState(1);
+    //該当レコードをstoreに格納
+    Provider.of<Display>(context, listen: false).setSelectItem(_resultData);
+    //
+    Provider.of<Display>(context, listen: false).setImages(_resultData['images']);
+    //編集画面へ遷移
+    Provider.of<Display>(context, listen: false).setState(1);
   }
 
   //削除アイコン押下時処理
@@ -155,7 +128,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
   //ペジネーション作成し、listにして返す
   Row _createPagination(){
     List<Widget> page = new List<Widget>();
-    for(var i = 0 ;i<_data.length; i++){
+    for(var i = 0 ;i<_resultData['images'].length; i++){
       //表示しているページとindexが一致している場合
       if(_currentPage == i){
         //●を追加する
@@ -187,7 +160,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
         image: DecorationImage(
           fit: BoxFit.fitWidth,
 //          fit: BoxFit.cover,
-          image: NetworkImage('${images['avatar']}'),
+          image: NetworkImage('${images['path']}'),
         ),
       ),
     );
@@ -195,7 +168,6 @@ class _RecipiDetailState extends State<RecipiDetail>{
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return Scaffold(
       appBar: AppBar(
           backgroundColor: Colors.white70,
@@ -250,7 +222,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
   //戻るボタン
   Widget backBtn(){
     return IconButton(
-        icon:Icon(Icons.arrow_back_ios,color: Colors.grey,size: 35,),
+        icon:Icon(Icons.arrow_back_ios,color: Colors.grey,size: 20,),
         onPressed: (){
           _onList();
         },
@@ -269,7 +241,10 @@ class _RecipiDetailState extends State<RecipiDetail>{
 
   //レシピ詳細
   Widget scrollArea(){
-    return Container(
+    return
+      _resultData == null
+      ? Container()
+      : Container(
       child:SingleChildScrollView(
         child:Padding(
           padding: EdgeInsets.only(left: 30.0, right: 30.0, top: 10.0),
@@ -291,21 +266,21 @@ class _RecipiDetailState extends State<RecipiDetail>{
 
   //画像エリア
   Widget imageArea(){
-//    return Consumer<Display>(
-//        builder: (context,Display,_){
       return
-        Container(
+        _resultData['images'] == null
+        ? Container()
+        : Container(
           child: SizedBox(
             height: 300.0,
             child: PageView.builder(
               controller: _controller,
-              itemCount: _data == null ? 0 :_data.length,
+              itemCount: _resultData['images'] == null ? 0 :_resultData['images'].length,
               itemBuilder: (context, int currentIndex){
                 // アクティブ値
                 bool active = currentIndex == _currentPage;
                 // カードの生成して返す
                 return _createCardAnimate(
-                  _data[currentIndex],
+                  _resultData['images'][currentIndex],
                   active,
                 );
               },
@@ -317,7 +292,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
   //ペジネーションエリア( ○○○○○○ )
   Widget paginationArea(){
     return
-      _data == null
+      _resultData['images'] == null
       ? Container()
       //作成したペジネーションを表示
       : _createPagination();
@@ -325,53 +300,45 @@ class _RecipiDetailState extends State<RecipiDetail>{
 
   //タイトルエリア
   Widget titleArea(){
-    return Consumer<Display>(
-      builder: (context,Display,_) {
         return
-          Display.selectItem['first_name'] == null
+          _resultData['title'] == null
             ? Container()
             : Container(
-//                margin: EdgeInsets.all(5),
-//                padding: EdgeInsets.all(5),
-                child: Text('${Display.selectItem['first_name']}',
+//                margin: EdgeInsets.only(right: 10),
+//                padding: EdgeInsets.only(right: 20),
+                child: Text('${_resultData['title']}',
                   style: TextStyle(
-//                    fontSize: 20,
+                    fontSize: 18,
 //                    fontWeight: FontWeight.bold,
                     color: Colors.grey
                   ),
                 ),
               );
-      },
-    );
   }
 
   //テキストエリア
   Widget contentArea(){
-    return Consumer<Display>(
-        builder: (context,Display,_) {
-          return Column(
-            children: <Widget>[
-              Container(
-                margin: EdgeInsets.all(5),
-                child: Text('レシピmemo',
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black
-                  ),
-                ),
-              ),
-              Display.selectItem == null
-                  ? Container()
-                  : Container(
-                  margin: EdgeInsets.all(5),
-                  padding: EdgeInsets.all(5),
-                  child:Text('${Display.selectItem}テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。テキストが入ります。')
-              ),
-            ],
-          );
-        }
-        );
+    return Column(
+      children: <Widget>[
+        Container(
+          margin: EdgeInsets.all(5),
+          child: Text('レシピmemo',
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black
+            ),
+          ),
+        ),
+        _resultData['body'] == null
+            ? Container()
+            : Container(
+            margin: EdgeInsets.all(5),
+            padding: EdgeInsets.all(5),
+            child:Text('${_resultData['body']}')
+        ),
+      ],
+    );
   }
 
   //罫線

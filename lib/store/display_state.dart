@@ -21,25 +21,23 @@ class Display with ChangeNotifier{
 
   var selectItem = { //リストから選択されたレコードを格納
     'id':-1,
-    'email':'',
-    'first_name':'',
-    'last_name':-1,
-    'avatar': '',
+    'title':'',
+    'body':'',
+    'images': [],
   };
 
 
   void setSelectItem(selectedItem){
 //    print('③取得したitem:${selectedItem}');
     this.selectItem['id'] = selectedItem['id'];
-    this.selectItem['email'] = selectedItem['email'];
-    this.selectItem['first_name'] = selectedItem['first_name'];
-    this.selectItem['last_name'] = selectedItem['last_name'];
-    this.selectItem['avatar'] = selectedItem['avatar'];
-//    print('セットしたよ${this.selectItem}');
+    this.selectItem['title'] = selectedItem['title'];
+    this.selectItem['body'] = selectedItem['body'];
+    this.selectItem['images'] = selectedItem['images'];
+    print('セットしたよ${this.selectItem}');
   }
 
   Map<dynamic,dynamic> getSelectItem(){
-    return selectItem;
+    return this.selectItem;
   }
 
   void setState(state){
@@ -76,7 +74,7 @@ class Display with ChangeNotifier{
     for(var i=0; i < images.length; i++){
       this.images[i]['path'] = images[i]['path'];
     }
-    print('===============選択した画像===================');
+    print('===============セットした画像===================');
     print(this.images);
     print('=============================================');
   }
