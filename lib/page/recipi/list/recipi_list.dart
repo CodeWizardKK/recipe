@@ -25,7 +25,8 @@ class _RecipiListState extends State<RecipiList>{
     var result;
     try{
       //レシピリスト取得処理の呼び出し
-      result = await recipiListRepo.get();
+//      result = await recipiListRepo.get();
+      result = await recipiListRepo.getLocal(); //不要
     }catch(e){
       //エラー処理
       print('Error: $e');
@@ -72,11 +73,12 @@ class _RecipiListState extends State<RecipiList>{
         backgroundColor: Colors.white70,
         elevation: 0.0,
         title: Center(
-          child: Text('レシピリスト',
+          child: Text('レシピ',
             style: TextStyle(
                 color: Colors.black,
                 fontSize: 25,
-                fontWeight: FontWeight.bold
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Roboto',
             ),
           ),
         ),
@@ -117,7 +119,7 @@ class _RecipiListState extends State<RecipiList>{
             return InkWell(
               child: Card(
                 child: Container(
-                  padding: EdgeInsets.all(15.0),
+//                  padding: EdgeInsets.all(15.0),
                   child: Row(
                     children: <Widget>[
                       _data[index]['avatar'] == null
@@ -133,10 +135,25 @@ class _RecipiListState extends State<RecipiList>{
                               ),
                             ),
                           ),
-                      Container(
-                        padding: EdgeInsets.all(20),
-                        child:Text(_data[index]['first_name'],style: TextStyle(fontSize: 17,fontWeight:FontWeight.bold),),
-                      )
+                        Container(
+                          child: SizedBox(
+                            width: 230.0,
+                            child:
+                            ListTile(
+                              title: Text(_data[index]['title']),
+//                              subtitle: Text('Music by Julie Gable. Lyrics by Sidney Stein.'),
+                            ),
+                          ),
+                        ),
+//                      Container(
+//                        padding: EdgeInsets.all(20),
+//                        child:Text(_data[index]['title'],
+//                          style: TextStyle(
+////                              fontSize: 17,
+////                              fontWeight:FontWeight.bold
+//                          ),
+//                        ),
+//                      )
                     ],
                   ),
                 ),
