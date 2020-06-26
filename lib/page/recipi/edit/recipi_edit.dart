@@ -41,14 +41,17 @@ class _RecipiEditState extends State<RecipiEdit>{
   void _onList(){
     var state = _getBackState();
     Provider.of<Display>(context, listen: false).setState(state);
-    //初期化
     _init();
   }
 
+  //初期化処理
   void _init(){
-    //画像情報リセット
+    //詳細画面 => 編集画面　の画像のみ情報をリセット
     Provider.of<Display>(context, listen: false).resetImages();
+    //編集画面 <=>　撮影画面 の画像情報をリセット
     Provider.of<Display>(context, listen: false).resetSelectImage();
+    //編集formで使用したレコード情報をリセット
+    Provider.of<Display>(context, listen: false).resetSelectItem();
   }
 
   //戻り先の状態を取得
@@ -316,44 +319,52 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //タイトル
   Widget titleArea(){
-    return Container(
-      padding: EdgeInsets.all(5),
-      child: TextFormField(
-//            initialValue: UserStore.address,
-        maxLines: 1,
-        keyboardType: TextInputType.text,
-        autofocus: false,
-        decoration: InputDecoration(
-            border: OutlineInputBorder(borderSide: BorderSide()),
-            labelText: 'タイトル(必須)'
-        ),
-        //入力チェックとなる条件、メッセージを定義
-        validator: (value) => value.isEmpty ? 'タイトルを入力してください' : null,
-        //_formKey.currentState.save()で呼ばれる
-        onSaved: (value) => _title = value.trim(),
-      ),
+    return Consumer<Display>(
+      builder: (context,Display,_) {
+        return Container(
+          padding: EdgeInsets.all(5),
+          child: TextFormField(
+            initialValue: Display.selectItem['title'],
+            maxLines: 1,
+            keyboardType: TextInputType.text,
+            autofocus: false,
+            decoration: InputDecoration(
+                border: OutlineInputBorder(borderSide: BorderSide()),
+                labelText: 'タイトル(必須)'
+            ),
+            //入力チェックとなる条件、メッセージを定義
+            validator: (value) => value.isEmpty ? 'タイトルを入力してください' : null,
+            //_formKey.currentState.save()で呼ばれる
+            onSaved: (value) => _title = value.trim(),
+          ),
+        );
+      },
     );
   }
 
   //内容
   Widget bodyArea(){
-    return Container(
-      padding: EdgeInsets.all(5),
-      child: TextFormField(
-//            initialValue: UserStore.address,
-        minLines: 18,
-        maxLines: 50,
-        keyboardType: TextInputType.text,
-        autofocus: false,
-        decoration: InputDecoration(
-            border: OutlineInputBorder(borderSide: BorderSide()),
-            labelText: '内容(必須)'
-        ),
-        //入力チェックとなる条件、メッセージを定義
-        validator: (value) => value.isEmpty ? '内容を入力してください' : null,
-        //_formKey.currentState.save()で呼ばれる
-        onSaved: (value) => _body = value.trim(),
-      ),
+    return Consumer<Display>(
+      builder: (context,Display,_) {
+        return Container(
+          padding: EdgeInsets.all(5),
+          child: TextFormField(
+            initialValue: Display.selectItem['body'],
+            minLines: 18,
+            maxLines: 50,
+            keyboardType: TextInputType.text,
+            autofocus: false,
+            decoration: InputDecoration(
+                border: OutlineInputBorder(borderSide: BorderSide()),
+                labelText: '内容(必須)'
+            ),
+            //入力チェックとなる条件、メッセージを定義
+            validator: (value) => value.isEmpty ? '内容を入力してください' : null,
+            //_formKey.currentState.save()で呼ばれる
+            onSaved: (value) => _body = value.trim(),
+          ),
+        );
+      },
     );
   }
 

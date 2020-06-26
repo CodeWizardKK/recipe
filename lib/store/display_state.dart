@@ -40,11 +40,18 @@ class Display with ChangeNotifier{
     return this.selectItem;
   }
 
+  void resetSelectItem(){
+    this.selectItem['id'] = -1;
+    this.selectItem['title'] = '';
+    this.selectItem['body'] = '';
+    this.selectItem['images'] = [];
+  }
+
   void setState(state){
-    print('${this.state}');
-    print('${state}');
+//    print('${this.state}');
+//    print('${state}');
     this.state += state;
-    print('state:${this.state}');
+//    print('state:${this.state}');
     notifyListeners();
   }
 
