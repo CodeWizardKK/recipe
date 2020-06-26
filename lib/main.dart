@@ -14,15 +14,16 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      //日本語対応 ここから==>
+      //多言語対応 ここから==>
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate, //ダイアログ用messageの日本語対応で必須
       ],
       supportedLocales: [
         Locale('ja', 'JP'),
       ],
-      //<== 日本語対応 ここまで
+      //<== 多言語対応 ここまで
       home: MultiProvider(
         providers:[
           ChangeNotifierProvider<Display>(create: (_) => Display()),
