@@ -3,75 +3,45 @@
     {
       "id":1,
       "title":"海老入りチャーハン",
-      "email":"george.bluth@reqres.in",
-      "first_name":"George",
-      "last_name":"Bluth",
       "avatar":"https://www.foodiesfeed.com/wp-content/uploads/2019/04/mae-mu-fried-rice-600x480.jpg"
     },
     {
       "id":2,
       "title":"クルミとパンケーキに蜂蜜を注ぐ",
-      "email":"janet.weaver@reqres.in",
-      "first_name":"Janet",
-      "last_name":"Weaver",
       "avatar":"https://www.foodiesfeed.com/wp-content/uploads/2019/04/mae-mu-pancakes.jpg"
     },
     {
       "id":3,
       "title":"健康的なインゲン豆のサラダ",
-      "email":"emma.wong@reqres.in",
-      "first_name":"Emma",
-      "last_name":"Wong",
       "avatar":"https://www.foodiesfeed.com/wp-content/uploads/2018/12/green-salad-with-hemp-seeds-600x900.jpg"
     },
     {
       "id":4,
       "title":"フレッシュトマトとバジルの葉のスパゲッティ",
-      "email":"eve.holt@reqres.in",
-      "first_name":"Eve",
-      "last_name":"Holt",
       "avatar":"https://www.foodiesfeed.com/wp-content/uploads/2017/07/spaghetti-600x900.jpg"
     },{
       "id":5,
       "title":"パンのグリーンサラダ",
-      "email":"charles.morris@reqres.in",
-      "first_name":"Charles",
-      "last_name":"Morris",
       "avatar":"https://www.foodiesfeed.com/wp-content/uploads/2018/12/green-salad-600x900.jpg"
     },{
       "id":6,
       "title":"スペアリブ",
-      "email":"tracey.ramos@reqres.in",
-      "first_name":"Tracey",
-      "last_name":"Ramos",
       "avatar":"https://www.foodiesfeed.com/wp-content/uploads/2020/05/costela-de-porco-assada-1-600x400.jpg"
     },{
       "id":7,
       "title":"エビとクスクスの野菜",
-      "email":"tracey.ramos@reqres.in",
-      "first_name":"Tracey",
-      "last_name":"Ramos",
       "avatar":"https://www.foodiesfeed.com/wp-content/uploads/2020/06/tambaqui-grelhado-com-cuscuz-marroquino-600x450.jpg"
     },{
       "id":8,
       "title":"なすカネロニ",
-      "email":"tracey.ramos@reqres.in",
-      "first_name":"Tracey",
-      "last_name":"Ramos",
       "avatar":"https://www.foodiesfeed.com/wp-content/uploads/2020/06/cannelloni-de-beringela.jpg"
     },{
       "id":9,
       "title":"卵と野菜の麺",
-      "email":"tracey.ramos@reqres.in",
-      "first_name":"Tracey",
-      "last_name":"Ramos",
       "avatar":"https://www.foodiesfeed.com/wp-content/uploads/2019/04/mae-mu-noodles-vegetables-egg.jpg"
     },{
       "id":10,
       "title":"豚バラ肉のロースト",
-      "email":"tracey.ramos@reqres.in",
-      "first_name":"Tracey",
-      "last_name":"Ramos",
       "avatar":"https://www.foodiesfeed.com/wp-content/uploads/2020/06/roasted-pork-belly-600x450.jpg"
     }
   ],

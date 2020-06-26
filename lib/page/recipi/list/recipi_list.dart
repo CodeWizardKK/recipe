@@ -138,22 +138,12 @@ class _RecipiListState extends State<RecipiList>{
                         Container(
                           child: SizedBox(
                             width: 230.0,
-                            child:
-                            ListTile(
+                            child: ListTile(
                               title: Text(_data[index]['title']),
-//                              subtitle: Text('Music by Julie Gable. Lyrics by Sidney Stein.'),
+//                              subtitle: Text(),
                             ),
                           ),
                         ),
-//                      Container(
-//                        padding: EdgeInsets.all(20),
-//                        child:Text(_data[index]['title'],
-//                          style: TextStyle(
-////                              fontSize: 17,
-////                              fontWeight:FontWeight.bold
-//                          ),
-//                        ),
-//                      )
                     ],
                   ),
                 ),
