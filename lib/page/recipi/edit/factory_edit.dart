@@ -9,7 +9,6 @@ class FactoryEdit extends StatelessWidget{
 
 //  var editPages = <Widget>[RecipiEdit(),CameraApp()];
 
-
   @override
   Widget build(BuildContext context) {
     return Consumer<Display>(

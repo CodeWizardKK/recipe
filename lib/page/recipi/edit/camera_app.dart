@@ -16,59 +16,43 @@ class CameraApp extends StatefulWidget {
 }
 class _CameraAppState extends State<CameraApp> {
 
-  List<CameraDescription> cameras;
-  CameraController controller;
-  int imageCount = 0;
-  var selectedImage;  //クリックした画像を格納する
-  var images = [
+  List<CameraDescription> _cameras;
+  CameraController _controller;
+  int _imageCount = 0;//セットされている画像をカウント
+  var _images = [
     {'no':1,'path':''},
     {'no':2,'path':''},
     {'no':3,'path':''},
     {'no':4,'path':''},
     {'no':5,'path':''},
   ];
-  int selectNo; //クリックした画像のnoを格納する
-  int selectIndex; //クリックした画像のindex番号を格納する
-  int maxImage = 5; //撮影可能枚数
-//  List<String> imageList;
-  bool cameraRear = true; //true:アウトカメラ
-  bool flashOn = false; //true:アウトカメラ
-  int index = 0; //0:アウトカメラ 1:インカメラ
-  bool imageTap = false;
+  //クリックした画像、index,tap状況を格納する ===> Ex.{index: 0, item: {no: 1, path: ''}, tap: true}
+  var _selected = new Map<String,dynamic>();
+  //フラッシュ、カメラの切り替え
+  var _cameraOption = new Map<String,dynamic>();
+
+//  var test = new List<Map<String,dynamic>>();
 
   @override
   void initState() {
     super.initState();
-    init();
-    setImage();
-  }
-
-  //編集画面より画像アイコンがtapされた場合に該当が画像が表示された状態にする処理
-  setImage(){
-    var result = Provider.of<Display>(context, listen: false).getImages();
-    var selectImage = Provider.of<Display>(context, listen: false).getSelectImage();
-    setState(() {
-      for(var i=0; i<result.length;i++){
-        if(result[i]['path'] != ''){
-          images[i]['path'] = result[i]['path'];
-          imageCount++;
-        }
-      }
-      selectIndex = selectImage['index'];
-      selectedImage = selectImage['item'];
-      imageTap = selectImage['tap'];
-    });
-  }
-
-  Future<void> getCameras() async {
-    cameras = await availableCameras();
-    controller = CameraController(cameras[index], ResolutionPreset.medium);
+    _init();
+    _initCamera();
+    _setImage();
+//    test.add(_images[1]);
   }
 
   //初期処理
-  init(){
-    getCameras().then((_) {
-      controller.initialize().then((_) {
+  void _init(){
+    _cameraOption['flash'] = false;     //true:フラッシュオン
+    _cameraOption['cameraRear'] = true; //true:アウトカメラ
+    _cameraOption['cameraIndex'] = 0; //0:アウトカメラ 1:インカメラ
+  }
+
+  //カメラ用初期処理
+  void _initCamera(){
+    _getCameras().then((_) {
+      _controller.initialize().then((_) {
         if (!mounted) {
           return;
         }
@@ -77,50 +61,75 @@ class _CameraAppState extends State<CameraApp> {
     });
   }
 
+  //編集画面より画像アイコンがtapされた場合に該当が画像が表示された状態にする処理
+  void _setImage(){
+    var result = Provider.of<Display>(context, listen: false).getImages();
+    var selectImage = Provider.of<Display>(context, listen: false).getSelectImage();
+    setState(() {
+      for(var i=0; i<result.length;i++){
+        if(result[i]['path'] != ''){
+          _images[i]['path'] = result[i]['path'];
+          _imageCount++;
+        }
+      }
+      _selected['index'] = selectImage['index'];
+      _selected['item'] = selectImage['item'];
+      _selected['tap'] = selectImage['tap'];
+    });
+  }
+
+  Future<void> _getCameras() async {
+    _cameras = await availableCameras();
+    _controller = CameraController(_cameras[_cameraOption['cameraIndex']], ResolutionPreset.medium);
+  }
+
   //カメラ切り替えアイコン押下時処理
-  changeCamera(){
+  void _changeCamera(){
     setState(() {
       //インカメラ、アウトカメラのアイコン切り替え
-      cameraRear = !cameraRear;
+      _cameraOption['cameraRear'] = !_cameraOption['cameraRear'];
       //indexをsetする
-      if(cameraRear){
+      if(_cameraOption['cameraRear']){
         //アウトカメラ
-        index = 0;
+        _cameraOption['cameraIndex'] = 0;
       }else{
         //インカメラ
-        index = 1;
+        _cameraOption['cameraIndex'] = 1;
       }
     });
     //setしたindexを元にカメラ切り替え
-    init();
+    _initCamera();
   }
 
   //フラッシュアイコン押下時
-  changeFlash(){
+  void _changeFlash(){
     setState(() {
-      flashOn = !flashOn;
+      _cameraOption['flash'] = !_cameraOption['flash'];
     });
   }
 
-  String timestamp() => new DateTime.now().millisecondsSinceEpoch.toString();
+  //現在時刻の取得
+  String _timestamp(){
+    return DateTime.now().millisecondsSinceEpoch.toString();
+  }
 
   //カメラアイコン押下時処理 => カメラで撮影した画像を保存する関数(非同期)
-  Future<String> takePicture() async {
-    if (!controller.value.isInitialized) {
+  Future<String> _takePicture() async {
+    if (!_controller.value.isInitialized) {
       return null;
     }
 
     final Directory extDir = await getApplicationDocumentsDirectory();
     final String dirPath = '${extDir.path}/Pictures/recipi_app';
     await new Directory(dirPath).create(recursive: true);
-    final String filePath = '$dirPath/${timestamp()}.jpg';
+    final String filePath = '$dirPath/${_timestamp()}.jpg';
 
-    if (controller.value.isTakingPicture) {
+    if (_controller.value.isTakingPicture) {
       return null;
     }
 
     try {
-      await controller.takePicture(filePath);
+      await _controller.takePicture(filePath);
     } on CameraException catch (e) {
       return null;
     }
@@ -128,28 +137,26 @@ class _CameraAppState extends State<CameraApp> {
   }
 
   //撮影した画像アイコンクリック時処理
-  clickImage(image){
+  void _clickImage(int index,Map<String,dynamic> item){
     setState(() {
       //画像番号からindex番号を取得
-      selectNo = image['no'];
-      selectIndex = selectNo -1;
-      selectedImage = images[selectIndex];
-      imageTap = true;
+      _selected['index'] = index;
+      _selected['item'] = item;
+      _selected['tap'] = true;
     });
   }
 
   //<-(戻る)アイコン押下時処理
-  backToShot(){
+  void _backToShot(){
     setState(() {
-      imageTap = !imageTap;
+      _selected['tap'] = !_selected['tap'];
     });
   }
 
   //削除アイコン押下時処理
-  deleteImage(){
+  void _deleteImage(){
     //removeAt用
     var removeImages = [];
-    //
     var newImages = [
       {'no':1,'path':''},
       {'no':2,'path':''},
@@ -157,27 +164,27 @@ class _CameraAppState extends State<CameraApp> {
       {'no':4,'path':''},
       {'no':5,'path':''},
     ];
-    for(var i=0; i < images.length;i++){
-      removeImages.add(images[i]);
+    for(var i=0; i < _images.length;i++){
+      removeImages.add(_images[i]);
     }
 //    print('削除前：formImages${removeImages}');
-    removeImages.removeAt(selectIndex);
+    removeImages.removeAt(_selected['index']);
 //    print('削除後：formImages${removeImages}');
     for(var i=0; i < removeImages.length;i++){
       newImages[i]['path'] = removeImages[i]['path'];
     }
 //    print('削除後：newImages${newImages}');
     setState(() {
-      images = newImages;
-      imageTap = !imageTap;
+      _images = newImages;
+      _selected['tap'] = !_selected['tap'];
       //削除した際のカウントダウンの処理を追加
-      imageCount--;
+      _imageCount--;
     });
   }
 
-  onEdit(){
+  void _onEdit(){
     //撮影した画像をstoreへ格納する
-    Provider.of<Display>(context, listen: false).setImages(images);
+    Provider.of<Display>(context, listen: false).setImages(_images);
     //編集画面に戻る
     Provider.of<Display>(context, listen: false).setCamera();
   }
@@ -186,8 +193,8 @@ class _CameraAppState extends State<CameraApp> {
   SizedBox _createCameraAria(){
     var imagePath;
     //画像がtapされた場合
-    if(imageTap){
-      imagePath = selectedImage['path'];
+    if(_selected['tap']){
+      imagePath = _selected['item']['path'];
       //事前読み込み画像ありの場合
       if(imagePath.startsWith('http')){
         return
@@ -215,8 +222,8 @@ class _CameraAppState extends State<CameraApp> {
       return
         SizedBox(
           child: AspectRatio(
-            aspectRatio: controller.value.aspectRatio,
-            child: CameraPreview(controller),
+            aspectRatio: _controller.value.aspectRatio,
+            child: CameraPreview(_controller),
           ),
           height: 400,
         );
@@ -227,8 +234,8 @@ class _CameraAppState extends State<CameraApp> {
   Row _createImageAria(){
     List<Widget> row = new List<Widget>();
     var imagePath;
-    for(var i = 0; i<images.length; i++){
-      imagePath = images[i]['path'];
+    for(var i = 0; i < _images.length; i++){
+      imagePath = _images[i]['path'];
       //新規投稿の場合
       if(imagePath.isEmpty){
         row.add(
@@ -258,7 +265,7 @@ class _CameraAppState extends State<CameraApp> {
                 ),
               ),
               onTap: (){
-                clickImage(images[i]);
+                _clickImage(i,_images[i]);
               },
             ),
             width: 64.0,
@@ -274,7 +281,7 @@ class _CameraAppState extends State<CameraApp> {
                 child: Image.file(File(imagePath)),
               ),
               onTap: (){
-                clickImage(images[i]);
+                _clickImage(i,_images[i]);
               },
             ),
             width: 64.0,
@@ -289,10 +296,9 @@ class _CameraAppState extends State<CameraApp> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
-    if (controller == null || !controller.value.isInitialized) {
+    if (_controller == null || !_controller.value.isInitialized) {
       return Container();
     } else {
       return Scaffold(
@@ -335,7 +341,7 @@ class _CameraAppState extends State<CameraApp> {
             ),
           ),
           onPressed: (){
-            onEdit();
+            _onEdit();
           },
         );
   }
@@ -366,7 +372,7 @@ class _CameraAppState extends State<CameraApp> {
   //ボタンエリア
   Widget iconChangeArea(){
     return
-      !imageTap
+      !_selected['tap']
           //カメラアイコンがtapされた場合
           ? shotIconArea()
           //画像がtapされた場合
@@ -407,7 +413,7 @@ class _CameraAppState extends State<CameraApp> {
         icon: Icon( Icons.arrow_back),
         iconSize: 40,
         onPressed: () {
-          backToShot();
+          _backToShot();
         }
     );
   }
@@ -418,7 +424,7 @@ class _CameraAppState extends State<CameraApp> {
         icon: Icon( Icons.delete),
         iconSize: 40,
         onPressed: () {
-          deleteImage();
+          _deleteImage();
         }
     );
   }
@@ -426,10 +432,10 @@ class _CameraAppState extends State<CameraApp> {
   //フラッシュ切り替えボタン
   Widget flashChangeBtn(){
     return IconButton(
-        icon: Icon( flashOn ? Icons.flash_off : Icons.flash_on),
+        icon: Icon( _cameraOption['flash'] ? Icons.flash_off : Icons.flash_on),
         iconSize: 40,
-        onPressed: imageCount >= maxImage ? null : () {
-          changeFlash();
+        onPressed: _imageCount >= _images.length ? null : () {
+          _changeFlash();
         }
     );
   }
@@ -439,11 +445,11 @@ class _CameraAppState extends State<CameraApp> {
     return IconButton(
         icon: Icon(Icons.camera),
         iconSize: 80,
-        onPressed: imageCount >= maxImage ? null : () async {
-          var filePath = await takePicture();
+        onPressed: _imageCount >= _images.length ? null : () async {
+          var filePath = await _takePicture();
           setState(() {
-            images[imageCount]["path"] = filePath;
-            imageCount++;
+            _images[_imageCount]["path"] = filePath;
+            _imageCount++;
           });
         },
       );
@@ -452,10 +458,10 @@ class _CameraAppState extends State<CameraApp> {
   //カメラ切り替えボタン
   Widget cameraChangeBtn(){
     return IconButton(
-      icon: Icon( cameraRear ? Icons.camera_front : Icons.camera_rear),
+      icon: Icon( _cameraOption['cameraRear'] ? Icons.camera_front : Icons.camera_rear),
       iconSize: 40,
-      onPressed: imageCount >= maxImage ? null : () {
-        changeCamera();
+      onPressed: _imageCount >= _images.length ? null : () {
+        _changeCamera();
       }
     );
   }

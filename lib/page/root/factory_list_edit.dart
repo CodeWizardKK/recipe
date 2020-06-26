@@ -8,7 +8,7 @@ import 'package:recipe_app/page/recipi/detail/recipi_detail.dart';
 
 class FactoryListEdit extends StatelessWidget{
 
-  var rootPage = <Widget>[RecipiList(),RecipiDetail(),FactoryEdit()];
+  var _rootPage = <Widget>[RecipiList(),RecipiDetail(),FactoryEdit()];
 
 
   @override
@@ -18,7 +18,7 @@ class FactoryListEdit extends StatelessWidget{
 //        if(DisplayState.edit >= rootPage.length){
 //          return ErrorPage();
 //        }
-        return rootPage[Display.state];
+        return _rootPage[Display.state];
       },
     );
   }

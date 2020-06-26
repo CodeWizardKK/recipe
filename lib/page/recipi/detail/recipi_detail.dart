@@ -11,31 +11,26 @@ class RecipiDetail extends StatefulWidget{
 
 class _RecipiDetailState extends State<RecipiDetail>{
 
-  bool _isLoading = true;    //通信中:true(円形のグルグルのやつ)
-  String _errorMessage = ''; //await関連のエラーメッセージ
-  var _selectedItem = {}; //リストから選択されたレコード
-  int _selectedImage = 0;
-  // ページコントローラ
-  final PageController controller = PageController(viewportFraction: 0.8);
-  // ページインデックス
-  int currentPage = 0;
-  //レコード毎の画像リスト
-  var _data;
 
+  var _data;                 //該当レコードの画像リスト
+  var _isLoading = true;     //通信中:true(円形のグルグルのやつ)
+  var _currentPage = 0;      // ページインデックス
+  var _errorMessage = '';    //await関連のエラーメッセージ
+  final PageController _controller
+                = PageController(viewportFraction: 0.8); // ページコントローラ
 
   @override
   void initState() {
-   //
    super.initState();
    //該当レコードを取得
-   this.getItem();
+   _getItem();
    //ページ遷移を監視
-   this.pageController();
+   _pageController();
   }
 
   //不要になる  =====> ここから
   //画像を取得
-  Future<void> getImage() async{
+  Future<void> _getImage() async{
     var images;
     try{
       //画像を取得
@@ -56,12 +51,12 @@ class _RecipiDetailState extends State<RecipiDetail>{
   }
 
   //該当レコードの取得
-  Future<void> getItem() async{
+  Future<void> _getItem() async{
     var option = {};
     var result;
 
     //画像を取得 ===> 不要になる
-    this.getImage();
+    _getImage();
 
     //取得する為のIDを取得
     option['id'] = Provider.of<Display>(context, listen: false).getId();
@@ -83,52 +78,43 @@ class _RecipiDetailState extends State<RecipiDetail>{
     //該当レコードをstoreに格納
     Provider.of<Display>(context, listen: false).setSelectItem(result['data']);
     setState(() {
-//      _selectedItem = result;
       _isLoading = false;
     });
   }
 
   // ページコントローラのページ遷移を監視しページ数を丸める
-  void pageController(){
-    controller.addListener(() {
-      int next = controller.page.round();
-//      print('currentPage:${currentPage}');
+  void _pageController(){
+    _controller.addListener(() {
+      int next = _controller.page.round();
+//      print('currentPage:${_currentPage}');
 //      print('next:${next}');
-      if (currentPage != next) {
+      if (_currentPage != next) {
         setState(() {
-          currentPage = next;
+          _currentPage = next;
         });
       }
     });
   }
 
   //レシピリストへ戻るボタン押下時処理
-  void onList(){
+  void _onList(){
     Provider.of<Display>(context, listen: false).setState(-1);
   }
 
   //削除処理
-  void onDelete(){
+  void _onDelete(){
    //該当レコード削除処理(IDをpushする)
 
    //レシピリストへ戻る
-   this.onList();
+   _onList();
+
   }
 
   //レシピの編集ボタン押下時処理
-  void onEdit(){
-//    print('selectId[${id}]');
-//    //idをset
-//    Provider.of<Display>(context, listen: false).setId(id);
-//    //新規投稿以外の場合
-//    if(id != -1){
-//      //詳細画面へ遷移
-//      Provider.of<Display>(context, listen: false).setState(2);
-//    }else{
+  void _onEdit(){
       //編集画面へ遷移
       Provider.of<Display>(context, listen: false).setDetailImages(_data);
       Provider.of<Display>(context, listen: false).setState(1);
-//    }
   }
 
   //削除アイコン押下時処理
@@ -157,7 +143,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
               child: Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
-                onDelete();
+                _onDelete();
               },
             ),
           ],
@@ -170,13 +156,16 @@ class _RecipiDetailState extends State<RecipiDetail>{
   Row _createPagination(){
     List<Widget> page = new List<Widget>();
     for(var i = 0 ;i<_data.length; i++){
-      if(currentPage == i){
+      //表示しているページとindexが一致している場合
+      if(_currentPage == i){
+        //●を追加する
         page.add(Container(margin: EdgeInsets.all(5),child: Icon(Icons.brightness_1,size: 5,color: Colors.grey,)));
       }else{
+        //○を追加する
         page.add(Container(margin: EdgeInsets.all(5),child: Icon(Icons.panorama_fish_eye,size: 5,color: Colors.grey,)));
       }
     }
-    print('page:${page}');
+//    print('page:${page}');
     return
       Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -212,7 +201,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
           backgroundColor: Colors.white70,
           leading: backBtn(),
           elevation: 0.0,
-//          title:backBtn(),
+          title:titleArea(),
       ),
       //フッターボタン
       persistentFooterButtons: <Widget>[
@@ -252,7 +241,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
           borderRadius: BorderRadius.circular(10.0),
         ),
         onPressed: (){
-          onEdit();
+          _onEdit();
         },
       ),
     );
@@ -263,7 +252,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
     return IconButton(
         icon:Icon(Icons.arrow_back_ios,color: Colors.grey,size: 35,),
         onPressed: (){
-          onList();
+          _onList();
         },
     );
   }
@@ -289,7 +278,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
             children: <Widget>[
               imageArea(),     //画像エリア
               paginationArea(), //ペジネーションエリア
-              titleArea(),      //タイトルエリア
+//              titleArea(),      //タイトルエリア
               line(),           //罫線
               contentArea(),    //テキストエリア
               line(),           //罫線
@@ -309,11 +298,11 @@ class _RecipiDetailState extends State<RecipiDetail>{
           child: SizedBox(
             height: 300.0,
             child: PageView.builder(
-              controller: controller,
+              controller: _controller,
               itemCount: _data == null ? 0 :_data.length,
               itemBuilder: (context, int currentIndex){
                 // アクティブ値
-                bool active = currentIndex == currentPage;
+                bool active = currentIndex == _currentPage;
                 // カードの生成して返す
                 return _createCardAnimate(
                   _data[currentIndex],
@@ -342,13 +331,13 @@ class _RecipiDetailState extends State<RecipiDetail>{
           Display.selectItem['first_name'] == null
             ? Container()
             : Container(
-                margin: EdgeInsets.all(5),
-                padding: EdgeInsets.all(5),
+//                margin: EdgeInsets.all(5),
+//                padding: EdgeInsets.all(5),
                 child: Text('${Display.selectItem['first_name']}',
                   style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue
+//                    fontSize: 20,
+//                    fontWeight: FontWeight.bold,
+                    color: Colors.grey
                   ),
                 ),
               );

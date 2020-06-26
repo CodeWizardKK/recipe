@@ -10,20 +10,18 @@ class RecipiList extends StatefulWidget{
 
 class _RecipiListState extends State<RecipiList>{
 
-  bool _isLoading = true;    //通信中:true(円形のグルグルのやつ)
-  String _errorMessage = ''; //await関連のエラーメッセージ
-
-  //リスト表示するdata
-  List data;
+  var _data;                 //リスト表示用データ
+  var _isLoading = true;    //通信中:true(円形のグルグルのやつ)
+  var _errorMessage = ''; //await関連のエラーメッセージ
 
   @override
   void initState() {
     super.initState();
-    this.getList();
+    _getList();
   }
 
   //一覧情報取得処理
-  void getList() async{
+  void _getList() async{
     var result;
     try{
       //レシピリスト取得処理の呼び出し
@@ -39,12 +37,12 @@ class _RecipiListState extends State<RecipiList>{
       });
     }
     setState(() {
-      data = result['data'];
+      _data = result['data'];
       _isLoading = false;
     });
   }
 
-  void onDetail(int selectedId){
+  void _onDetail(int selectedId){
 //    print('selectId[${selectedId}]');
     //idをset
     Provider.of<Display>(context, listen: false).setId(selectedId);
@@ -52,7 +50,7 @@ class _RecipiListState extends State<RecipiList>{
     Provider.of<Display>(context, listen: false).setState(1);
   }
 
-  void onEdit(int selectedId){
+  void _onEdit(int selectedId){
     print('selectId[${selectedId}]');
     //idをset
     Provider.of<Display>(context, listen: false).setId(selectedId);
@@ -92,7 +90,7 @@ class _RecipiListState extends State<RecipiList>{
   Widget floatBtn(){
     return FloatingActionButton(
       onPressed: (){
-        onEdit(-1);
+        _onEdit(-1);
       },
       tooltip: 'Increment',
       child: Icon(Icons.create,),
@@ -114,7 +112,7 @@ class _RecipiListState extends State<RecipiList>{
   Widget listArea(){
     return
       ListView.builder(
-          itemCount: data == null ? 0 :data.length,
+          itemCount: _data == null ? 0 :_data.length,
           itemBuilder: (BuildContext context,int index){
             return InkWell(
               child: Card(
@@ -122,7 +120,7 @@ class _RecipiListState extends State<RecipiList>{
                   padding: EdgeInsets.all(15.0),
                   child: Row(
                     children: <Widget>[
-                      data[index]['avatar'] == null
+                      _data[index]['avatar'] == null
                         ? Container()
                         : Container(
                             width: 90.0,
@@ -131,20 +129,20 @@ class _RecipiListState extends State<RecipiList>{
 //                            shape: BoxShape.circle, //表示する画像の形
                               image: DecorationImage(
                                 fit: BoxFit.cover,
-                                image: NetworkImage('${data[index]['avatar']}'),
+                                image: NetworkImage('${_data[index]['avatar']}'),
                               ),
                             ),
                           ),
                       Container(
                         padding: EdgeInsets.all(20),
-                        child:Text(data[index]['first_name'],style: TextStyle(fontSize: 17,fontWeight:FontWeight.bold),),
+                        child:Text(_data[index]['first_name'],style: TextStyle(fontSize: 17,fontWeight:FontWeight.bold),),
                       )
                     ],
                   ),
                 ),
               ),
               onTap: (){
-                onDetail(data[index]['id']);
+                _onDetail(_data[index]['id']);
               },
             );
           }

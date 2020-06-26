@@ -13,12 +13,11 @@ class RecipiEdit extends StatefulWidget{
 
 class _RecipiEditState extends State<RecipiEdit>{
 
-  final _formKey = new GlobalKey<FormState>();
+  final _formKey = new GlobalKey<FormState>(); //入力form
+  String _title;                //入力値 タイトル
+  String _body;                 //入力値　内容
+  int _selectedID;              //編集するID
 //  bool _isLoading = true;    //通信中:true(円形のグルグルのやつ)
-
-  String _title;
-  String _body;
-  int _selectedID;
 
   @override
   void initState() {
@@ -39,21 +38,21 @@ class _RecipiEditState extends State<RecipiEdit>{
   }
 
   //閉じるボタン押下 => ダイアロクのOKボタン押下時処理
-  void onList(){
-    var state = getBackState();
+  void _onList(){
+    var state = _getBackState();
     Provider.of<Display>(context, listen: false).setState(state);
     //初期化
-    this.init();
+    _init();
   }
 
-  void init(){
+  void _init(){
     //画像情報リセット
     Provider.of<Display>(context, listen: false).resetImages();
     Provider.of<Display>(context, listen: false).resetSelectImage();
   }
 
   //戻り先の状態を取得
-  int getBackState(){
+  int _getBackState(){
     //新規投稿の場合
     if(_selectedID == -1){
       return -2;
@@ -64,7 +63,7 @@ class _RecipiEditState extends State<RecipiEdit>{
   }
 
   //入力チェック
-  bool validateAndSave() {
+  bool _validateAndSave() {
     //formが有効かどうかを確認
     if (_formKey.currentState.validate()) {
       //true => エラーなし
@@ -75,31 +74,32 @@ class _RecipiEditState extends State<RecipiEdit>{
   }
 
   //保存する押下時処理
-  void validateAndSubmit() async {
+  void _validateAndSubmit() async {
     //入力チェックでエラーにならなかった場合
-    if (validateAndSave()) {
+    if (_validateAndSave()) {
       //エラーとならなかった場合
-      var state = getBackState();
+      var state = _getBackState();
       Provider.of<Display>(context, listen: false).setState(state);
       print('タイトル：${_title}');
       print('内容：${_body}');
       //初期化
-      this.init();
+      _init();
     }
   }
 
   //画像一覧にて表示されている画像アイコンの押下時処理
-  void clickImage(image){
-    var selectNo = image['no'];
-    var selectIndex = selectNo -1;
-    var selectImage = image;
-    var imageTap = true;
-    Provider.of<Display>(context, listen: false).setSelectImage(selectIndex, selectImage, imageTap);
+  void _clickImage(int index,Map<String,dynamic> item){
+    var selected = new Map<String,dynamic>();
+    selected['index'] = index;
+    selected['item'] = item;
+    selected['tap'] = true;
+
+    Provider.of<Display>(context, listen: false).setSelectImage(selected['index'], selected['item'], selected['tap']);
     Provider.of<Display>(context, listen: false).setCamera();
   }
 
   //画像一覧にて表示されているカメラアイコンの押下時処理
-  void onCamera(){
+  void _onCamera(){
     //clickImage時に取得していた選択した画像情報をreset
     Provider.of<Display>(context, listen: false).resetSelectImage();
     //カメラ起動
@@ -132,7 +132,7 @@ class _RecipiEditState extends State<RecipiEdit>{
               child: Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
-                onList();
+                _onList();
               },
             ),
           ],
@@ -168,7 +168,7 @@ class _RecipiEditState extends State<RecipiEdit>{
                   child: Icon(Icons.camera_alt),
                 ),
                 onTap: (){
-                  onCamera();
+                  _onCamera();
                 },
               ),
             );
@@ -188,7 +188,7 @@ class _RecipiEditState extends State<RecipiEdit>{
                   ),
                 ),
                 onTap: (){
-                  clickImage(images[index]);
+                  _clickImage(index,images[index]);
                 },
               ),
             );
@@ -201,7 +201,7 @@ class _RecipiEditState extends State<RecipiEdit>{
                   child: Image.file(File(imagePath)),
                 ),
                 onTap: (){
-                  clickImage(images[index]);
+                  _clickImage(index,images[index]);
                 },
               ),
             );
@@ -230,7 +230,7 @@ class _RecipiEditState extends State<RecipiEdit>{
       icon: Icon(Icons.close,color: Colors.grey,size: 35,),
       onPressed: (){
         _formCheck()
-            ? onList()
+            ? _onList()
             : _showBackDialog();
       },
     );
@@ -341,7 +341,7 @@ class _RecipiEditState extends State<RecipiEdit>{
       padding: EdgeInsets.all(5),
       child: TextFormField(
 //            initialValue: UserStore.address,
-        minLines: 30,
+        minLines: 18,
         maxLines: 50,
         keyboardType: TextInputType.text,
         autofocus: false,
@@ -372,7 +372,7 @@ class _RecipiEditState extends State<RecipiEdit>{
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10.0),
             ),
-            onPressed: validateAndSubmit,
+            onPressed: _validateAndSubmit,
           ),
         ),
       );
