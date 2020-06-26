@@ -25,8 +25,8 @@ class _RecipiListState extends State<RecipiList>{
     var result;
     try{
       //レシピリスト取得処理の呼び出し
-//      result = await recipiListRepo.get();
-      result = await recipiListRepo.getLocal(); //不要
+//      result = await recipiListRepo.get(); //本番用
+      result = await recipiListRepo.getLocal(); //mock用
     }catch(e){
       //エラー処理
       print('Error: $e');
