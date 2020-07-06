@@ -3,24 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/page/recipi/list/recipi_list.dart';
-import 'package:recipe_app/page/recipi/list/factory_list.dart';
-import 'package:recipe_app/page/recipi/edit/factory_edit.dart';
-import 'package:recipe_app/page/recipi/detail/recipi_detail.dart';
+import 'package:recipe_app/page/recipi/list/diary_list.dart';
+import 'package:recipe_app/page/recipi/list/home_list.dart';
+import 'package:recipe_app/page/recipi/list/album_list.dart';
 
-class FactoryListEdit extends StatelessWidget{
+class FactoryList extends StatelessWidget{
 
-  var _rootPage = <Widget>[ FactoryList(),RecipiDetail(),FactoryEdit()];
-
+  var _listPages = <Widget>[HomeList(),RecipiList(),DiaryList(),AlbumList()];
 
   @override
   Widget build(BuildContext context) {
     return Consumer<Display>(
       key: GlobalKey(),
       builder: (context,Display,_){
-//        if(DisplayState.edit >= rootPage.length){
+//        if(Display.currentIndex >= _listPages.length){
 //          return ErrorPage();
 //        }
-        return _rootPage[Display.state];
+        return _listPages[Display.currentIndex];
       },
     );
   }
