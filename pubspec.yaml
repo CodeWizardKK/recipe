@@ -32,8 +32,12 @@ dependencies:
   path_provider: ^1.6.9
   flutter_bloc: ^4.0.0
   http: ^0.12.1
+  cached_network_image: ^2.2.0+1
 
 dev_dependencies:
+#  analysis_tool:
+#    path: ../analysis_tool
+  linter: any
   flutter_test:
     sdk: flutter
 
