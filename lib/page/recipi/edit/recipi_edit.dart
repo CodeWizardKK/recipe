@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class RecipiEdit extends StatefulWidget{
 
@@ -116,23 +117,23 @@ class _RecipiEditState extends State<RecipiEdit>{
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return CupertinoAlertDialog(
-          title: Text('確認'),
+          title: const Text('確認'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('内容が保存されていませんが、よろしいですか？'),
+                const Text('内容が保存されていませんが、よろしいですか？'),
               ],
             ),
           ),
           actions: <Widget>[
             FlatButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             FlatButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
                 _onList();
@@ -156,6 +157,7 @@ class _RecipiEditState extends State<RecipiEdit>{
     return SizedBox(
       height: 64.0,
       child: ListView.builder(
+        key: GlobalKey(),
         itemCount: images == null ? 0 :images.length,
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, int index) {
@@ -163,10 +165,11 @@ class _RecipiEditState extends State<RecipiEdit>{
           //新規投稿の場合
           if(imagePath.isEmpty){
             return Container(
+              key: GlobalKey(),
               width: 64.0,
 //            color: Colors.grey[300],
               child:InkWell(
-                child: Card(
+                child: const Card(
                   color: Colors.white,
                   child: Icon(Icons.camera_alt),
                 ),
@@ -178,16 +181,24 @@ class _RecipiEditState extends State<RecipiEdit>{
           //事前読み込み画像ありの場合
           }else if(imagePath.startsWith('http')){
             return Container(
+              key: GlobalKey(),
               width: 64.0,
               child:InkWell(
                 child: Card(
                   child: Container(
-                    decoration: BoxDecoration(
-                      image:DecorationImage(
-                        fit:BoxFit.cover,
-                        image:NetworkImage('${imagePath}'),
-                      ),
+                    child: CachedNetworkImage(
+                      key: GlobalKey(),
+                      imageUrl: '${imagePath}',
+                      progressIndicatorBuilder: (context, url, downloadProgress) =>
+                          CircularProgressIndicator(value: downloadProgress.progress),
+                      errorWidget: (context, url, error) => const Icon(Icons.error),
                     ),
+//                    decoration: BoxDecoration(
+//                      image:DecorationImage(
+//                        fit:BoxFit.cover,
+//                        image:NetworkImage('${imagePath}'),
+//                      ),
+//                    ),
                   ),
                 ),
                 onTap: (){
@@ -198,6 +209,7 @@ class _RecipiEditState extends State<RecipiEdit>{
         //事前読み込みなしアップロード画像ありの場合
           }else{
             return Container(
+              key: GlobalKey(),
               width: 64.0,
               child:InkWell(
                 child: Card(
@@ -230,7 +242,7 @@ class _RecipiEditState extends State<RecipiEdit>{
   //閉じるボタン
   Widget closeBtn(){
     return IconButton(
-      icon: Icon(Icons.close,color: Colors.grey,size: 35,),
+      icon: const Icon(Icons.close,color: Colors.grey,size: 35,),
       onPressed: (){
         _formCheck()
             ? _onList()
@@ -252,8 +264,10 @@ class _RecipiEditState extends State<RecipiEdit>{
   //レシピ編集
   Widget scrollArea(){
     return Container(
+      key: GlobalKey(),
       child: SingleChildScrollView(
-        padding: EdgeInsets.only(left: 10.0, right: 10.0),
+        key: GlobalKey(),
+        padding: const EdgeInsets.only(left: 10.0, right: 10.0),
         child: showForm(),
       ),
     );
@@ -262,6 +276,7 @@ class _RecipiEditState extends State<RecipiEdit>{
   //ページ全体
   Widget showForm(){
         return Container(
+          key: GlobalKey(),
           //入力フィールドをformでグループ化し、key:_formKey(グローバルキー)と
           child: Form(
             key: _formKey,
@@ -284,7 +299,8 @@ class _RecipiEditState extends State<RecipiEdit>{
 //    return Consumer<Display>(
 //        builder: (context,Display,_) {
           return Container(
-            padding: EdgeInsets.only(left:20,top: 20,right: 20,bottom: 40),
+            key: GlobalKey(),
+            padding: const EdgeInsets.only(left:20,top: 20,right: 20,bottom: 40),
             child:_createImageAria(),
           );
 //        }
@@ -306,8 +322,9 @@ class _RecipiEditState extends State<RecipiEdit>{
   //レシピ詳細
   Widget detail(){
     return Container(
-        padding: EdgeInsets.only(right: 250),
-        child: Text('レシピ詳細',
+      key: GlobalKey(),
+        padding: const EdgeInsets.only(right: 220),
+        child: const Text('タイトルと説明',
           style: TextStyle(
               fontSize: 15,
               color: Colors.grey,
@@ -322,15 +339,25 @@ class _RecipiEditState extends State<RecipiEdit>{
     return Consumer<Display>(
       builder: (context,Display,_) {
         return Container(
-          padding: EdgeInsets.all(5),
+          key: GlobalKey(),
+//          height: 45,
+//          padding: EdgeInsets.all(5),
           child: TextFormField(
+            style: const TextStyle(
+              fontSize: 15.0
+            ),
             initialValue: Display.selectItem['title'],
             maxLines: 1,
             keyboardType: TextInputType.text,
             autofocus: false,
-            decoration: InputDecoration(
-                border: OutlineInputBorder(borderSide: BorderSide()),
-                labelText: 'タイトル(必須)'
+            decoration: const InputDecoration(
+              focusColor: Colors.redAccent,
+              contentPadding: EdgeInsets.all(10),
+              hintText: 'タイトル',
+//              border: OutlineInputBorder(
+//                  borderSide: BorderSide()
+//              ),
+//                labelText: 'タイトル(必須)',
             ),
             //入力チェックとなる条件、メッセージを定義
             validator: (value) => value.isEmpty ? 'タイトルを入力してください' : null,
@@ -347,16 +374,24 @@ class _RecipiEditState extends State<RecipiEdit>{
     return Consumer<Display>(
       builder: (context,Display,_) {
         return Container(
-          padding: EdgeInsets.all(5),
+          key: GlobalKey(),
+//          padding: EdgeInsets.all(5),
           child: TextFormField(
+            style: const TextStyle(
+                fontSize: 15.0
+            ),
             initialValue: Display.selectItem['body'],
             minLines: 18,
             maxLines: 50,
             keyboardType: TextInputType.text,
             autofocus: false,
-            decoration: InputDecoration(
-                border: OutlineInputBorder(borderSide: BorderSide()),
-                labelText: '内容(必須)'
+            decoration: const InputDecoration(
+                contentPadding: EdgeInsets.all(10),
+                hintText: 'レシピの説明',
+//                border: OutlineInputBorder(
+//                    borderSide: BorderSide()
+//                ),
+//                labelText: '内容(必須)'
             ),
             //入力チェックとなる条件、メッセージを定義
             validator: (value) => value.isEmpty ? '内容を入力してください' : null,
@@ -372,13 +407,13 @@ class _RecipiEditState extends State<RecipiEdit>{
   Widget saveButton() {
     return
       Container(
-        padding: EdgeInsets.all(10),
-        child:
-        SizedBox(
+        key: GlobalKey(),
+        padding: const EdgeInsets.all(10),
+        child: SizedBox(
           width: 100,
           height: 50,
           child: RaisedButton(
-            child: Text('保存する',style: TextStyle(color: Colors.white),),
+            child: const Text('保存する',style: TextStyle(color: Colors.white),),
             color: Colors.redAccent,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10.0),

@@ -12,6 +12,7 @@ class FactoryEdit extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     return Consumer<Display>(
+      key: GlobalKey(),
       builder: (context,Display,_){
         if(Display.isCamera){
           return CameraApp();

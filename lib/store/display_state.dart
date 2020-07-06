@@ -25,6 +25,7 @@ class Display with ChangeNotifier{
     'body':'',
     'images': [],
   };
+  var currentIndex = 1;
 
 
   void setSelectItem(selectedItem){
@@ -84,12 +85,14 @@ class Display with ChangeNotifier{
     print('===============セットした画像===================');
     print(this.images);
     print('=============================================');
+    notifyListeners();
   }
 
   void setDetailImages(images){
     for(var i=0; i < this.images.length; i++){
       this.images[i]['path'] = images[i]['avatar'];
     }
+    notifyListeners();
   }
 
   void resetImages(){
@@ -116,15 +119,27 @@ class Display with ChangeNotifier{
     this.selectImage['index'] = index;
     this.selectImage['item'] = item;
     this.selectImage['tap'] = tap;
+    notifyListeners();
   }
 
   void resetSelectImage(){
     this.selectImage['index'] = -1;
     this.selectImage['item'] = {};
     this.selectImage['tap'] = false;
+    notifyListeners();
   }
 
   Map<String,Object> getSelectImage(){
     return this.selectImage;
+  }
+
+  void setCurrentIndex(index){
+    this.currentIndex = index;
+    print('##currentIndex:${this.currentIndex}');
+    notifyListeners();
+  }
+
+  int getCurrentIndex(){
+    return this.currentIndex;
   }
 }

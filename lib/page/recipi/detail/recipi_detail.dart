@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/services/recipi/recipi_item.dart' as recipiItemRepo;
+import 'package:cached_network_image/cached_network_image.dart';
 
 class RecipiDetail extends StatefulWidget{
   _RecipiDetailState createState() => _RecipiDetailState();
@@ -97,7 +98,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return CupertinoAlertDialog(
-          title: Text('確認'),
+          title: const Text('確認'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
@@ -107,13 +108,13 @@ class _RecipiDetailState extends State<RecipiDetail>{
           ),
           actions: <Widget>[
             FlatButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             FlatButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
                 _onDelete();
@@ -132,10 +133,10 @@ class _RecipiDetailState extends State<RecipiDetail>{
       //表示しているページとindexが一致している場合
       if(_currentPage == i){
         //●を追加する
-        page.add(Container(margin: EdgeInsets.all(5),child: Icon(Icons.brightness_1,size: 5,color: Colors.grey,)));
+        page.add(Container(key: GlobalKey(),margin: const EdgeInsets.all(5),child: const Icon(Icons.brightness_1,size: 5,color: Colors.grey,)));
       }else{
         //○を追加する
-        page.add(Container(margin: EdgeInsets.all(5),child: Icon(Icons.panorama_fish_eye,size: 5,color: Colors.grey,)));
+        page.add(Container(key: GlobalKey(),margin: const EdgeInsets.all(5),child: const Icon(Icons.panorama_fish_eye,size: 5,color: Colors.grey,)));
       }
     }
 //    print('page:${page}');
@@ -148,21 +149,32 @@ class _RecipiDetailState extends State<RecipiDetail>{
   //アニメーションカード生成
   AnimatedContainer _createCardAnimate(Map<String,Object> images, bool active) {
 
+//    print('${images['path']}');
+
     // アクティブと非アクティブのアニメーション設定値
 //    final double top = active ? 100 : 200;
 //    final double side = active ? 0 : 40;
 
     return AnimatedContainer(
-      duration: Duration(milliseconds: 500),
+      key: GlobalKey(),
+      duration: const Duration(milliseconds: 500),
       curve: Curves.easeOutQuint,
-      margin: EdgeInsets.only(top: 0, bottom: 0, right: 30, left: 30),
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          fit: BoxFit.fitWidth,
-//          fit: BoxFit.cover,
-          image: NetworkImage('${images['path']}'),
-        ),
+      margin: const EdgeInsets.only(top: 0, bottom: 0, right: 30, left: 30),
+      child: CachedNetworkImage(
+        key: GlobalKey(),
+        imageUrl: '${images['path']}',
+        progressIndicatorBuilder: (context, url, downloadProgress) =>
+            CircularProgressIndicator(value: downloadProgress.progress),
+        errorWidget: (context, url, error) => const Icon(Icons.error),
       ),
+
+//      decoration: BoxDecoration(
+//        image: DecorationImage(
+//          fit: BoxFit.fitWidth,
+////          fit: BoxFit.cover,
+//          image: NetworkImage('${images['path']}'),
+//        ),
+//      ),
     );
   }
 
@@ -188,9 +200,9 @@ class _RecipiDetailState extends State<RecipiDetail>{
   //削除ボタン
   Widget deleteBtn(){
     return Padding(
-        padding: EdgeInsets.only(right: 150),
+        padding: const EdgeInsets.only(right: 150),
         child: IconButton(
-          icon:Icon(Icons.delete,size: 30,),
+          icon: const Icon(Icons.delete,size: 30,),
           onPressed: (){
             _showDeleteDialog();
           },
@@ -201,10 +213,11 @@ class _RecipiDetailState extends State<RecipiDetail>{
   //編集ボタン
   Widget editBtn(){
     return Padding(
-      padding: EdgeInsets.only(right: 10),
+      padding: const EdgeInsets.only(right: 10),
       child: FlatButton(
+        key: GlobalKey(),
         color: Colors.redAccent,
-        child: Text('レシピの編集',
+        child: const Text('レシピの編集',
           style: TextStyle(
             color: Colors.white,
           ),
@@ -222,7 +235,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
   //戻るボタン
   Widget backBtn(){
     return IconButton(
-        icon:Icon(Icons.arrow_back_ios,color: Colors.grey,size: 20,),
+        icon: const Icon(Icons.arrow_back_ios,color: Colors.grey,size: 20,),
         onPressed: (){
           _onList();
         },
@@ -247,7 +260,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
       : Container(
       child:SingleChildScrollView(
         child:Padding(
-          padding: EdgeInsets.only(left: 30.0, right: 30.0, top: 10.0),
+          padding: const EdgeInsets.only(left: 30.0, right: 30.0, top: 10.0),
           child: Column(
 //              crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
@@ -293,7 +306,9 @@ class _RecipiDetailState extends State<RecipiDetail>{
   Widget paginationArea(){
     return
       _resultData['images'] == null
-      ? Container()
+      ? Container(
+          key: GlobalKey(),
+        )
       //作成したペジネーションを表示
       : _createPagination();
   }
@@ -307,7 +322,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
 //                margin: EdgeInsets.only(right: 10),
 //                padding: EdgeInsets.only(right: 20),
                 child: Text('${_resultData['title']}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
 //                    fontWeight: FontWeight.bold,
                     color: Colors.grey
@@ -321,8 +336,8 @@ class _RecipiDetailState extends State<RecipiDetail>{
     return Column(
       children: <Widget>[
         Container(
-          margin: EdgeInsets.all(5),
-          child: Text('レシピmemo',
+          margin: const EdgeInsets.all(5),
+          child: const Text('レシピmemo',
             style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -333,8 +348,8 @@ class _RecipiDetailState extends State<RecipiDetail>{
         _resultData['body'] == null
             ? Container()
             : Container(
-            margin: EdgeInsets.all(5),
-            padding: EdgeInsets.all(5),
+            margin: const EdgeInsets.all(5),
+            padding: const EdgeInsets.all(5),
             child:Text('${_resultData['body']}')
         ),
       ],
@@ -343,7 +358,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
 
   //罫線
   Widget line(){
-    return Divider(
+    return const Divider(
         color: Colors.grey
     );
   }
@@ -355,7 +370,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
       _isLoading
       //通信中の場合
         //CircularProgressIndicator() => 円形にグルグル回るタイプのやつ
-        ? Center(child: CircularProgressIndicator())
+        ? const Center(child: CircularProgressIndicator())
       //上記以外の場合
         : Container(height: 0.0,width: 0.0,);
   }

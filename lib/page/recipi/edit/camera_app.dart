@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:camera/camera.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CameraApp extends StatefulWidget {
 
@@ -200,12 +201,19 @@ class _CameraAppState extends State<CameraApp> {
         return
           SizedBox(
             child: Container(
-              decoration: BoxDecoration(
-                image:DecorationImage(
-                  fit:BoxFit.cover,
-                  image:NetworkImage('${imagePath}'),
-                ),
+              child: CachedNetworkImage(
+                key: GlobalKey(),
+                imageUrl: '${imagePath}',
+                progressIndicatorBuilder: (context, url, downloadProgress) =>
+                    CircularProgressIndicator(value: downloadProgress.progress),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
               ),
+//              decoration: BoxDecoration(
+//                image:DecorationImage(
+//                  fit:BoxFit.cover,
+//                  image:NetworkImage('${imagePath}'),
+//                ),
+//              ),
             ),
             height: 400,
           );
@@ -256,12 +264,19 @@ class _CameraAppState extends State<CameraApp> {
             child:InkWell(
               child: Card(
                 child: Container(
-                  decoration: BoxDecoration(
-                    image:DecorationImage(
-                      fit:BoxFit.cover,
-                      image:NetworkImage('${imagePath}'),
-                    ),
+                  child: CachedNetworkImage(
+                    key: GlobalKey(),
+                    imageUrl: '${imagePath}',
+                    progressIndicatorBuilder: (context, url, downloadProgress) =>
+                        CircularProgressIndicator(value: downloadProgress.progress),
+                    errorWidget: (context, url, error) => const Icon(Icons.error),
                   ),
+//                  decoration: BoxDecoration(
+//                    image:DecorationImage(
+//                      fit:BoxFit.cover,
+//                      image:NetworkImage('${imagePath}'),
+//                    ),
+//                  ),
                 ),
               ),
               onTap: (){
@@ -395,8 +410,7 @@ class _CameraAppState extends State<CameraApp> {
 
   //戻る、削除ボタン表示
   Widget previewIconArea(){
-    return
-      Container(
+    return Container(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
