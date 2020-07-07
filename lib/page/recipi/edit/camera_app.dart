@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:camera/camera.dart';
+//import 'package:camera/camera.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -17,8 +17,8 @@ class CameraApp extends StatefulWidget {
 }
 class _CameraAppState extends State<CameraApp> {
 
-  List<CameraDescription> _cameras;
-  CameraController _controller;
+//  List<CameraDescription> _cameras;
+//  CameraController _controller;
   int _imageCount = 0;//セットされている画像をカウント
   var _images = [
     {'no':1,'path':''},
@@ -52,14 +52,14 @@ class _CameraAppState extends State<CameraApp> {
 
   //カメラ用初期処理
   void _initCamera(){
-    _getCameras().then((_) {
-      _controller.initialize().then((_) {
-        if (!mounted) {
-          return;
-        }
-        setState(() {});
-      });
-    });
+//    _getCameras().then((_) {
+//      _controller.initialize().then((_) {
+//        if (!mounted) {
+//          return;
+//        }
+//        setState(() {});
+//      });
+//    });
   }
 
   //編集画面より画像アイコンがtapされた場合に該当が画像が表示された状態にする処理
@@ -80,8 +80,8 @@ class _CameraAppState extends State<CameraApp> {
   }
 
   Future<void> _getCameras() async {
-    _cameras = await availableCameras();
-    _controller = CameraController(_cameras[_cameraOption['cameraIndex']], ResolutionPreset.medium);
+//    _cameras = await availableCameras();
+//    _controller = CameraController(_cameras[_cameraOption['cameraIndex']], ResolutionPreset.medium);
   }
 
   //カメラ切り替えアイコン押下時処理
@@ -116,24 +116,24 @@ class _CameraAppState extends State<CameraApp> {
 
   //カメラアイコン押下時処理 => カメラで撮影した画像を保存する関数(非同期)
   Future<String> _takePicture() async {
-    if (!_controller.value.isInitialized) {
-      return null;
-    }
+//    if (!_controller.value.isInitialized) {
+//      return null;
+//    }
 
     final Directory extDir = await getApplicationDocumentsDirectory();
     final String dirPath = '${extDir.path}/Pictures/recipi_app';
     await new Directory(dirPath).create(recursive: true);
     final String filePath = '$dirPath/${_timestamp()}.jpg';
 
-    if (_controller.value.isTakingPicture) {
-      return null;
-    }
+//    if (_controller.value.isTakingPicture) {
+//      return null;
+//    }
 
-    try {
-      await _controller.takePicture(filePath);
-    } on CameraException catch (e) {
-      return null;
-    }
+//    try {
+//      await _controller.takePicture(filePath);
+//    } on CameraException catch (e) {
+//      return null;
+//    }
     return filePath;
   }
 
@@ -230,8 +230,8 @@ class _CameraAppState extends State<CameraApp> {
       return
         SizedBox(
           child: AspectRatio(
-            aspectRatio: _controller.value.aspectRatio,
-            child: CameraPreview(_controller),
+//            aspectRatio: _controller.value.aspectRatio,
+//            child: CameraPreview(_controller),
           ),
           height: 400,
         );
@@ -313,9 +313,9 @@ class _CameraAppState extends State<CameraApp> {
 
   @override
   Widget build(BuildContext context) {
-    if (_controller == null || !_controller.value.isInitialized) {
-      return Container();
-    } else {
+//    if (_controller == null || !_controller.value.isInitialized) {
+//      return Container();
+//    } else {
       return Scaffold(
           appBar: AppBar(
             backgroundColor: Colors.white,
@@ -327,7 +327,7 @@ class _CameraAppState extends State<CameraApp> {
           ),
           body: showCamera(),
         );
-    }
+//    }
   }
 
   //タイトル

@@ -116,6 +116,42 @@ class _RecipiListState extends State<RecipiList>{
     Provider.of<Display>(context, listen: false).setCurrentIndex(index);
   }
 
+  Future<void> _onAdd() async {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoActionSheet(
+//          title: const Text('Choose Options'),
+//          message: const Text('Your options are '),
+            actions: <Widget>[
+              CupertinoActionSheetAction(
+                child: const Text('MYレシピを追加'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _onEdit(-1);
+                },
+              ),
+              CupertinoActionSheetAction(
+                child: const Text('写真レシピを追加'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _onEdit(-1);
+                },
+              )
+            ],
+            cancelButton: CupertinoActionSheetAction(
+              child: const Text('キャンセル'),
+              isDefaultAction: true,
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            )
+        );
+      },
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,6 +180,7 @@ class _RecipiListState extends State<RecipiList>{
     );
   }
 
+  //メニューボタン
   Widget menuBtn(){
     return IconButton(
       icon: const Icon(Icons.list,color: Colors.white,size:30,),
@@ -153,6 +190,7 @@ class _RecipiListState extends State<RecipiList>{
     );
   }
 
+  //チェックボタン
   Widget checkBtn(){
     return IconButton(
       icon: const Icon(Icons.check_circle_outline,color: Colors.white,size:30),
@@ -162,15 +200,18 @@ class _RecipiListState extends State<RecipiList>{
     );
   }
 
+  //追加ボタン
   Widget addBtn(){
     return IconButton(
       icon: const Icon(Icons.add_circle_outline,color: Colors.white,size:30),
       onPressed: (){
-        _onEdit(-1);
+        _onAdd();
+//        _onEdit(-1);
       },
     );
   }
 
+  //ナビゲーション
   Widget bottomNavigationBar(){
     return Consumer<Display>(
         key: GlobalKey(),

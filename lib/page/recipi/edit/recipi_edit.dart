@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:recipe_app/services/recipi/file_controller.dart';
 
 class RecipiEdit extends StatefulWidget{
 
@@ -18,7 +20,10 @@ class _RecipiEditState extends State<RecipiEdit>{
   String _title;                //入力値 タイトル
   String _body;                 //入力値　内容
   int _selectedID;              //編集するID
-//  bool _isLoading = true;    //通信中:true(円形のグルグルのやつ)
+//  bool _isLoading = true;     //通信中:true(円形のグルグルのやつ)
+  File imageFile;               //トップに表示する写真
+  List<File> imageFiles = new List<File>();
+  final _picker = ImagePicker();
 
   @override
   void initState() {
@@ -226,23 +231,178 @@ class _RecipiEditState extends State<RecipiEdit>{
     );
   }
 
+  Future<void> _showImgSelectModal(bool topImage) async {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoActionSheet(
+//          title: const Text('Choose Options'),
+//          message: const Text('Your options are '),
+            actions: <Widget>[
+              CupertinoActionSheetAction(
+                child: const Text('写真を撮影'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _getAndSaveImageFromDevice(ImageSource.camera,topImage);
+                },
+              ),
+              CupertinoActionSheetAction(
+                child: const Text('写真を選択'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _getAndSaveImageFromDevice(ImageSource.gallery,topImage);
+                },
+              )
+            ],
+            cancelButton: CupertinoActionSheetAction(
+              child: const Text('キャンセル'),
+              isDefaultAction: true,
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            )
+        );
+      },
+    );
+  }
+
+  // カメラまたはライブラリから画像を取得
+  void _getAndSaveImageFromDevice(ImageSource source,bool topImage) async {
+    // 撮影/選択したFileが返ってくる
+    var imageFile = await _picker.getImage(source: source);
+    print('###imageFile:${imageFile}');
+    // 撮影せずに閉じた場合はnullになる
+    if (imageFile == null) {
+      return;
+    }
+
+    var savedFile = await FileController.saveLocalImage(imageFile); //追加
+
+    setState(() {
+      print('${topImage}');
+      if(topImage){
+        this.imageFile = savedFile;
+      }else{
+        this.imageFiles.add(savedFile);
+      }
+
+      print('#####imageFile:${this.imageFile}');
+      print('#####imageFile:${this.imageFiles}');
+      print('#####imageFiles:${this.imageFiles.length}');
+
+    });
+  }
+
+  Column _createPhotoArea(){
+    List<Widget> column = new List<Widget>();
+    //追加したイメージを展開する
+    for(var i=0; i < imageFiles.length; i++){
+      column.add(
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.40,
+            width: MediaQuery.of(context).size.width,
+            child: Container(
+              child: InkWell(
+                  child: Image.memory(imageFiles[i].readAsBytesSync()),
+                  onTap: (){
+                    print('###tap!!!!${imageFiles[i]}');
+//                    _showImgSelectModal(false);
+                  }
+              ),
+            ),
+      ));
+    }
+    // + 写真を追加 ボタン
+    column.add(
+      SizedBox(
+        height: MediaQuery.of(context).size.height * 0.08,
+        width: MediaQuery.of(context).size.width,
+        child: Container(
+          color: Colors.white,
+          child: InkWell(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Container(
+                      child: Icon(Icons.add_circle_outline,color: Colors.cyan,)
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    child: Text('写真を追加',style: TextStyle(
+                        color: Colors.cyan,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold
+                    ),),
+                  ),
+                ],
+              ),
+              onTap: (){
+                _showImgSelectModal(false);
+              }
+          ),
+        ),
+      ),
+    );
+    print('###column:${column}');
+    return Column(
+      children: column,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white70,
+        backgroundColor: Colors.cyan,
         leading: closeBtn(),
         elevation: 0.0,
-//        title:backBtn(),
+        title: Center(
+          child: Text( _selectedID == -1 ? 'レシピを作成' :'レシピを編集',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 25,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Roboto',
+            ),
+          ),
+        ),
+        actions: <Widget>[
+          completeBtn(),
+        ],
       ),
       body: showEdit(),
+    );
+  }
+
+  //完了ボタン
+  Widget completeBtn(){
+    return Container(
+      width: 90,
+      child: Padding(
+        padding: EdgeInsets.all(10),
+        child: FlatButton(
+          color: Colors.white,
+//          shape: RoundedRectangleBorder(
+//            borderRadius: BorderRadius.circular(10.0),
+//          ),
+          child: Text('完了',
+            style: TextStyle(
+              color: Colors.cyan,
+              fontSize: 15,
+            ),
+          ),
+          onPressed: (){
+            _validateAndSubmit();
+          },
+        ),
+      ),
     );
   }
 
   //閉じるボタン
   Widget closeBtn(){
     return IconButton(
-      icon: const Icon(Icons.close,color: Colors.grey,size: 35,),
+      icon: const Icon(Icons.close,color: Colors.white,size: 35,),
       onPressed: (){
         _formCheck()
             ? _onList()
@@ -267,7 +427,7 @@ class _RecipiEditState extends State<RecipiEdit>{
       key: GlobalKey(),
       child: SingleChildScrollView(
         key: GlobalKey(),
-        padding: const EdgeInsets.only(left: 10.0, right: 10.0),
+//        padding: const EdgeInsets.only(left: 10.0, right: 10.0),
         child: showForm(),
       ),
     );
@@ -280,32 +440,260 @@ class _RecipiEditState extends State<RecipiEdit>{
           //入力フィールドをformでグループ化し、key:_formKey(グローバルキー)と
           child: Form(
             key: _formKey,
-//          child: Center(
+          child: Container(
+            alignment: Alignment.center,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
 //              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                imageArea(), //画像
-                textArea(),  //テキスト入力欄
-                saveButton(),//保存ボタン
+//                imageArea(), //画像
+//                saveButton(),//保存ボタン
+//                textArea(),  //テキスト入力欄
+                imageFileArea(),      //トップ画像
+                textTitleArea(),      //タイトル
+                materialArea(),       //材料
+                materialInputArea(),  //材料入力欄
+                howToArea(),          //作り方
+                howToInputArea(),     //作り方入力欄
+                photoArea(),          //写真
+                photoInputArea(),     //写真入力欄
               ],
             ),
-//          ),
+          ),
           ),
         );
   }
 
-  //画像
-  Widget imageArea(){
-//    return Consumer<Display>(
-//        builder: (context,Display,_) {
-          return Container(
-            key: GlobalKey(),
-            padding: const EdgeInsets.only(left:20,top: 20,right: 20,bottom: 40),
-            child:_createImageAria(),
-          );
-//        }
-//    );
+  //トップ画像
+  Widget imageFileArea(){
+    return
+          (imageFile == null)
+              ? SizedBox(
+            height: MediaQuery.of(context).size.height * 0.40,
+            width: MediaQuery.of(context).size.width,
+            child: Container(
+              color: Colors.grey,
+              child: InkWell(
+                  child: Icon(Icons.camera_alt,color: Colors.white,size: 100,),
+                  onTap: (){
+                    _showImgSelectModal(true);
+                  }
+              ),
+            ),
+          )
+              : SizedBox(
+            height: MediaQuery.of(context).size.height * 0.40,
+            width: MediaQuery.of(context).size.width,
+            child: Container(
+              child: InkWell(
+                  child: Image.memory(imageFile.readAsBytesSync()),
+                  onTap: (){
+                    _showImgSelectModal(true);
+                  }
+              ),
+            ),
+    );
   }
+
+  //レシピタイトル
+  Widget textTitleArea(){
+    return
+      SizedBox(
+            height: MediaQuery.of(context).size.height * 0.1,
+            width: MediaQuery.of(context).size.width,
+            child: Container(
+              color: Colors.white,
+              child: InkWell(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        child: Text('タイトルを入力',style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold
+                        ),),
+                      ),
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        child: Text('レシピの説明やメモを入力',style: TextStyle(
+                          fontSize: 15,
+//                        fontWeight: FontWeight.bold
+                        ),),
+                      ),
+                    ],
+                  ),
+                  onTap: (){
+//                    _showImgSelectModal();
+                  }
+              ),
+            ),
+    );
+  }
+
+  //材料
+  Widget materialArea(){
+    return
+      SizedBox(
+            height: MediaQuery.of(context).size.height * 0.05,
+            width: MediaQuery.of(context).size.width,
+            child: Container(
+              color: Colors.white30,
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,                    children: <Widget>[
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        child: Text('材料',style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold
+                        ),),
+                      ),
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        child: Text('1人分',style: TextStyle(
+                          fontSize: 15,
+                        fontWeight: FontWeight.bold
+                        ),),
+                      ),
+                    ],
+                  ),
+            ),
+    );
+  }
+
+  //材料追加
+  Widget materialInputArea(){
+    return
+      SizedBox(
+        height: MediaQuery.of(context).size.height * 0.08,
+        width: MediaQuery.of(context).size.width,
+        child: Container(
+          color: Colors.white,
+          child: InkWell(
+              child: Row(
+//                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Container(
+//                    padding: EdgeInsets.all(10),
+                    child: Icon(Icons.add_circle_outline,color: Colors.cyan,)
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    child: Text('材料を追加',style: TextStyle(
+                        color: Colors.cyan,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold
+                    ),),
+                  ),
+                ],
+              ),
+              onTap: (){
+//                    _showImgSelectModal();
+              }
+          ),
+        ),
+      );
+  }
+
+  //作り方
+  Widget howToArea(){
+    return
+      SizedBox(
+        height: MediaQuery.of(context).size.height * 0.05,
+        width: MediaQuery.of(context).size.width,
+        child: Container(
+          color: Colors.white30,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,                    children: <Widget>[
+            Container(
+              padding: EdgeInsets.all(10),
+              child: Text('作り方',style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold
+              ),),
+            ),
+          ],
+          ),
+        ),
+      );
+  }
+
+  //作り方追加
+  Widget howToInputArea(){
+    return
+      SizedBox(
+        height: MediaQuery.of(context).size.height * 0.08,
+        width: MediaQuery.of(context).size.width,
+        child: Container(
+          color: Colors.white,
+          child: InkWell(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Container(
+                      child: Icon(Icons.add_circle_outline,color: Colors.cyan,)
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    child: Text('作り方を追加',style: TextStyle(
+                        color: Colors.cyan,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold
+                    ),),
+                  ),
+                ],
+              ),
+              onTap: (){
+//                    _showImgSelectModal();
+              }
+          ),
+        ),
+      );
+  }
+
+  //写真エリア
+  Widget photoArea(){
+    return
+      SizedBox(
+        height: MediaQuery.of(context).size.height * 0.05,
+        width: MediaQuery.of(context).size.width,
+        child: Container(
+          color: Colors.white30,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,                    children: <Widget>[
+            Container(
+              padding: EdgeInsets.all(10),
+              child: Text('1人分',style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold
+              ),),
+            ),
+          ],
+          ),
+        ),
+      );
+  }
+
+  //写真追加
+  Widget photoInputArea(){
+    return Container(
+      child: _createPhotoArea(),
+    );
+  }
+
+  //画像
+//  Widget imageArea(){
+////    return Consumer<Display>(
+////        builder: (context,Display,_) {
+//          return Container(
+//            key: GlobalKey(),
+//            padding: const EdgeInsets.only(left:20,top: 20,right: 20,bottom: 40),
+//            child:_createImageAria(),
+//          );
+////        }
+////    );
+//  }
 
   //タイトル・内容
   Widget textArea(){
@@ -323,7 +711,7 @@ class _RecipiEditState extends State<RecipiEdit>{
   Widget detail(){
     return Container(
       key: GlobalKey(),
-        padding: const EdgeInsets.only(right: 220),
+        padding: const EdgeInsets.only(top:10,right: 220),
         child: const Text('タイトルと説明',
           style: TextStyle(
               fontSize: 15,

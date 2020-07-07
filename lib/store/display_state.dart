@@ -25,6 +25,7 @@ class Display with ChangeNotifier{
     'body':'',
     'images': [],
   };
+  //0:ホーム 1:レシピ 2:ご飯日記 3:アルバム
   var currentIndex = 1;
 
 
