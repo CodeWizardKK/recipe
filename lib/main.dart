@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:recipe_app/page/root/factory_list_edit.dart';
+import 'package:recipe_app/page/recipi/list/factory_list.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';//日本語対応
 import 'package:flutter/services.dart';
@@ -16,6 +16,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -38,7 +39,7 @@ class MyApp extends StatelessWidget {
         providers:[
           ChangeNotifierProvider<Display>(create: (_) => Display()),
         ],
-        child: FactoryListEdit(),
+        child: FactoryList(),
       )
     );
   }

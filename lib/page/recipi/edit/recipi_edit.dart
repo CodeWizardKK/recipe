@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +9,7 @@ import 'package:recipe_app/store/display_state.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:recipe_app/services/recipi/file_controller.dart';
+import 'package:recipe_app/services/database/database.dart';
 
 class RecipiEdit extends StatefulWidget{
 
@@ -22,8 +25,11 @@ class _RecipiEditState extends State<RecipiEdit>{
   int _selectedID;              //編集するID
 //  bool _isLoading = true;     //通信中:true(円形のグルグルのやつ)
   File imageFile;               //トップに表示する写真
+  Future<File> FimageFile;               //トップに表示する写真
   List<File> imageFiles = new List<File>();
   final _picker = ImagePicker();
+  var _savedFileString;
+  MyDatabase db = MyDatabase();
 
   @override
   void initState() {
@@ -94,6 +100,16 @@ class _RecipiEditState extends State<RecipiEdit>{
       //初期化
       _init();
     }
+  }
+
+  //保存する押下時処理
+  void _onSubmit() async {
+    var my = My(-1,this._savedFileString);
+    await db.insert(my);
+    var state = _getBackState();
+    Provider.of<Display>(context, listen: false).setState(state);
+      //初期化
+      _init();
   }
 
   //画像一覧にて表示されている画像アイコンの押下時処理
@@ -266,11 +282,23 @@ class _RecipiEditState extends State<RecipiEdit>{
     );
   }
 
+//  static Future<String> Base64String(Future<Uint8List> data) async{
+//    return base64Encode(data);
+//  }
+
+
   // カメラまたはライブラリから画像を取得
-  void _getAndSaveImageFromDevice(ImageSource source,bool topImage) async {
+  Future<void> _getAndSaveImageFromDevice(ImageSource source,bool topImage) async {
+
     // 撮影/選択したFileが返ってくる
     var imageFile = await _picker.getImage(source: source);
-    print('###imageFile:${imageFile}');
+
+    //変換
+    var imageByte = await imageFile.readAsBytes();
+    var imgString = await base64Encode(imageByte);
+
+
+//    print('###imageFile:${imageFile}');
     // 撮影せずに閉じた場合はnullになる
     if (imageFile == null) {
       return;
@@ -279,17 +307,19 @@ class _RecipiEditState extends State<RecipiEdit>{
     var savedFile = await FileController.saveLocalImage(imageFile); //追加
 
     setState(() {
-      print('${topImage}');
+      _savedFileString = imgString;
       if(topImage){
         this.imageFile = savedFile;
       }else{
         this.imageFiles.add(savedFile);
       }
 
-      print('#####imageFile:${this.imageFile}');
-      print('#####imageFile:${this.imageFiles}');
-      print('#####imageFiles:${this.imageFiles.length}');
-
+      print('###imageByte:${imageByte}');
+      print('###imgString:${imgString}');
+      print('###_savedFileString:${_savedFileString}');
+//      print('#####imageFile:${this.imageFile}');
+//      print('#####imageFile:${this.imageFiles}');
+//      print('#####imageFiles:${this.imageFiles.length}');
     });
   }
 
@@ -343,7 +373,7 @@ class _RecipiEditState extends State<RecipiEdit>{
         ),
       ),
     );
-    print('###column:${column}');
+//    print('###column:${column}');
     return Column(
       children: column,
     );
@@ -392,7 +422,7 @@ class _RecipiEditState extends State<RecipiEdit>{
             ),
           ),
           onPressed: (){
-            _validateAndSubmit();
+            _onSubmit();
           },
         ),
       ),

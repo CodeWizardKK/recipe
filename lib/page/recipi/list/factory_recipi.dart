@@ -1,14 +1,13 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/page/recipi/list/factory_list.dart';
-import 'package:recipe_app/page/recipi/edit/factory_edit.dart';
+import 'package:recipe_app/page/recipi/edit/recipi_edit.dart';
 import 'package:recipe_app/page/recipi/detail/recipi_detail.dart';
+import 'package:recipe_app/page/recipi/list/recipi_list.dart';
 
-class FactoryListEdit extends StatelessWidget {
+class FactoryRecipi extends StatelessWidget{
 
-  var _rootPage = <Widget>[ FactoryList(), RecipiDetail(), FactoryEdit()];
+  var _rootPages = <Widget>[ RecipiList(), RecipiDetail(), RecipiEdit()];
 
   @override
   Widget build(BuildContext context) {
@@ -18,8 +17,9 @@ class FactoryListEdit extends StatelessWidget {
 //        if(DisplayState.edit >= rootPage.length){
 //          return ErrorPage();
 //        }
-        return _rootPage[Display.state];
+        return _rootPages[Display.state];
       },
     );
   }
+
 }

@@ -26,7 +26,7 @@ class Display with ChangeNotifier{
     'images': [],
   };
   //0:ホーム 1:レシピ 2:ご飯日記 3:アルバム
-  var currentIndex = 1;
+  var currentIndex = 0;
 
 
   void setSelectItem(selectedItem){

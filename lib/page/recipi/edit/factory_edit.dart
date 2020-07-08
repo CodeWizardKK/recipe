@@ -7,8 +7,6 @@ import 'package:recipe_app/page/recipi/edit/camera_app.dart';
 
 class FactoryEdit extends StatelessWidget{
 
-//  var editPages = <Widget>[RecipiEdit(),CameraApp()];
-
   @override
   Widget build(BuildContext context) {
     return Consumer<Display>(

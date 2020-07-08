@@ -1,9 +1,74 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:recipe_app/page/recipi/list/Photo.dart';
 import 'package:recipe_app/store/display_state.dart';
+import 'DBHelper.dart';
+import 'package:image_picker/image_picker.dart';
+import 'Photo.dart';
 
-class DiaryList extends StatelessWidget{
+class DiaryList extends StatefulWidget {
+
+  @override
+  _DiaryListState createState() => _DiaryListState();
+}
+
+class _DiaryListState extends State<DiaryList>{
+
+  Future<File> imageFile;
+  Image image;
+  DBHelper dbHelper;
+  List<Photo> images; //DBから取得したレコードを格納
+
+  @override
+  void initState() {
+    super.initState();
+    images = [];
+    dbHelper = DBHelper();
+  }
+
+  pickImageFromGallery() async {
+     var imgFile = await ImagePicker().getImage(source: ImageSource.gallery);
+     var imageByte = await imgFile.readAsBytes();
+     String imgString = await base64Encode(imageByte);
+     Photo photo = Photo(id:0, photoName:imgString);
+     await dbHelper.save(photo);
+     refreshImages();
+  }
+  refreshImages(){
+    //レコードと取得
+    dbHelper.getPhotos().then((imgs){
+      setState(() {
+        images.clear();
+        images.addAll(imgs);
+      });
+    });
+  }
+
+  gridView(){
+    return Padding(
+      padding: EdgeInsets.all(5.0),
+      child: GridView.count(
+          crossAxisCount: 2,
+          childAspectRatio: 1.0,
+          mainAxisSpacing: 4.0,
+          crossAxisSpacing: 4.0,
+          children:images.map((photo){
+            return imageFromBase64String(photo.photoName);
+          }).toList(),
+      ),
+    );
+  }
+
+  Image imageFromBase64String(String base64String){
+    return Image.memory(
+      base64Decode(base64String),
+      fit: BoxFit.fill,
+    );
+  }
 
   void _changeBottomNavigation(int index,BuildContext context){
     Provider.of<Display>(context, listen: false).setCurrentIndex(index);
@@ -45,7 +110,16 @@ class DiaryList extends StatelessWidget{
           addBtn(context),
         ],
       ),
-      body:Text('ごはん日記'),
+      body:Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Flexible(
+              child: gridView(),
+            )
+          ],
+        ),
+      ),
       bottomNavigationBar: bottomNavigationBar(context),
 //      floatingActionButton: floatBtn(),
     );
@@ -73,7 +147,8 @@ class DiaryList extends StatelessWidget{
     return IconButton(
       icon: const Icon(Icons.add_circle_outline,color: Colors.white,size:30),
       onPressed: (){
-        _onEdit(-1,context);
+        pickImageFromGallery();
+//        _onEdit(-1,context);
       },
     );
   }
