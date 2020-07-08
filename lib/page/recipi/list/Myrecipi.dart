@@ -1,20 +1,21 @@
-class Photo{
+class Myrecipi{
   int id;
-  String photoName;
+  String topImage;
 
-  Photo({this.id,this.photoName});
+  Myrecipi({this.id,this.topImage});
 
   //DBへ送る形式へ変換
   Map<String,dynamic> toMap(){
     var map = <String,dynamic>{
-      'photoName':photoName,
+      'topImage':topImage,
     };
     return map;
   }
 
   //Widgetへ展開する形式へ変換
-  Photo.fromMap(Map<String,dynamic> map){
+  Myrecipi.fromMap(Map<String,dynamic> map){
     id = map['id'];
-    photoName = map['photoName'];
+    topImage = map['topImage'];
   }
+
 }

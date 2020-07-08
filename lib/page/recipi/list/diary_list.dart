@@ -4,10 +4,10 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:recipe_app/page/recipi/list/Photo.dart';
+//import 'package:recipe_app/page/recipi/list/Photo.dart';
 import 'package:recipe_app/store/display_state.dart';
-import 'DBHelper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'DBHelper.dart';
 import 'Photo.dart';
 
 class DiaryList extends StatefulWidget {
@@ -28,22 +28,27 @@ class _DiaryListState extends State<DiaryList>{
     super.initState();
     images = [];
     dbHelper = DBHelper();
+    refreshImages();
   }
 
   pickImageFromGallery() async {
      var imgFile = await ImagePicker().getImage(source: ImageSource.gallery);
      var imageByte = await imgFile.readAsBytes();
      String imgString = await base64Encode(imageByte);
-     Photo photo = Photo(id:0, photoName:imgString);
-     await dbHelper.save(photo);
+     Photo photo = Photo(id:-1, photoName:imgString);
+     await dbHelper.insetrtPhoto(photo);
      refreshImages();
   }
+
   refreshImages(){
-    //レコードと取得
+    //レコード取得
     dbHelper.getPhotos().then((imgs){
       setState(() {
         images.clear();
         images.addAll(imgs);
+        for(var i=0;i < images.length; i++){
+          print('images[${i}]ID:${images[i].id},NAME:${images[i].photoName}');
+        }
       });
     });
   }

@@ -1,12 +1,11 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:recipe_app/services/database/database.dart';
+import 'DBHelper.dart';
+import 'Myrecipi.dart';
 
 class HomeList extends StatefulWidget{
 
@@ -15,62 +14,57 @@ class HomeList extends StatefulWidget{
 }
 
 class _HomeListState extends State<HomeList>{
-//  File imageFile;
-//  final _picker = ImagePicker();
-  List<My> images;
-  MyDatabase db = MyDatabase();
+
+  DBHelper dbHelper;
+  List<Myrecipi> images; //DBから取得したレコードを格納
 
   @override
   void initState() {
     super.initState();
     images = [];
-    init();
-//    selected();
+    dbHelper = DBHelper();
+    refreshImages(); //レコードリフレッシュ
   }
 
-  Future<void> init()async{
-    await db.initDB();
-    await selected();
-
-  }
-
-  Future<void> selected() async{
-    await db.getAllMys().then((imgs){
+  //表示しているレコードのリセットし、最新のレコードを取得し、表示
+  refreshImages(){
+    //レコード取得
+    dbHelper.getMyRecipis().then((imgs){
       setState(() {
+        images.clear();
         images.addAll(imgs);
+        for(var i=0;i < images.length; i++){
+          print('images[${i}]ID:${images[i].id},NAME:${images[i].topImage}');
+        }
       });
     });
-    print('#####images:${images}');
-    print('#####imageslength:${images.length}');
   }
 
   void _changeBottomNavigation(int index,BuildContext context){
     Provider.of<Display>(context, listen: false).setCurrentIndex(index);
   }
 
-  gridView(){
-    return Padding(
-      padding: EdgeInsets.all(5.0),
-      child: GridView.count(
-        crossAxisCount: 2,
-        childAspectRatio: 1.0,
-        mainAxisSpacing: 4.0,
-        crossAxisSpacing: 4.0,
-        children: images.map((my){
-          return Text('${my.id}');
-//          return imageFromBase64String(my.topImage);
+//  gridView(){
+//    return Padding(
+//      padding: EdgeInsets.all(5.0),
+//      child: GridView.count(
+//        crossAxisCount: 2,
+//        childAspectRatio: 1.0,
+//        mainAxisSpacing: 4.0,
+//        crossAxisSpacing: 4.0,
+//        children:images.map((myrecipi){
+//          return imageFromBase64String(myrecipi.topImage);
 //        }).toList(),
-        }).toList(),
-      ),
-    );
-  }
-
-  Image imageFromBase64String(String base64String){
-    return Image.memory(
-        base64Decode(base64String),
-        fit: BoxFit.fill,
-    );
-  }
+//      ),
+//    );
+//  }
+//
+//  Image imageFromBase64String(String base64String){
+//    return Image.memory(
+//        base64Decode(base64String),
+//        fit: BoxFit.fill,
+//    );
+//  }
 
     @override
   Widget build(BuildContext context) {
@@ -94,24 +88,60 @@ class _HomeListState extends State<HomeList>{
           addBtn(),
         ],
       ),
-//      body: FutureBuilder(
-//        future: widget.db.initDB(),
-//        builder: (BuildContext context,snapshot){
-//          if(snapshot.connectionState == ConnectionState.done){
-//            return _showList(context);
-//          }else{
-//            return Center(
-//              child: CircularProgressIndicator(),
-//            );
-//          }
-//        },
-//      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Flexible(
-              child: gridView(),
+//              child: gridView(),
+              child: ListView.builder(
+                  itemCount: images == null ? 0: images.length,
+                  itemBuilder: (BuildContext contect,int index){
+                    return InkWell(
+                      child: Card(
+                        child: Container(
+                          height: MediaQuery.of(context).size.height * 0.10,
+                          child: Row(
+                            children: <Widget>[
+                              images[index].topImage == null
+                              ? Container(
+                                width: MediaQuery.of(context).size.width * 0.25,
+                                height: 90.0,
+                                child: const Icon(Icons.camera_alt,color: Colors.white,),
+                                decoration: const BoxDecoration(
+                                  color: Colors.grey,
+                                ),
+                              )
+                              :Container(
+                                width: MediaQuery.of(context).size.width * 0.25,
+                                height: 90.0,
+                                child: Image.memory(
+                                  base64Decode(images[index].topImage),
+                                  fit: BoxFit.fill,
+                                ),
+                                decoration: const BoxDecoration(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              Container(
+                                child: SizedBox(
+                                  width: MediaQuery.of(context).size.width * 0.7,
+                                  child: ListTile(
+                                    title: Text('${images[index].id}'),
+//                                    title: Text('あいうえおあいうえおあいうえおあいうえお'),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      onTap: (){
+                        print('${images[index].topImage}');
+                      },
+                    );
+                  }
+              ),
             )
           ],
         ),
@@ -121,39 +151,6 @@ class _HomeListState extends State<HomeList>{
     );
   }
 
-  //テーブルの一覧表示
-  _showList(BuildContext context){
-    return FutureBuilder(
-      future: db.getAllMys(),
-      initialData: List<My>(),
-      builder: (BuildContext context, AsyncSnapshot<List<My>> snapshot){
-        debugPrint('######snapshot.hasData;;;${snapshot.hasData}');
-//        if(snapshot.hasData){
-          return ListView(
-            children: <Widget>[
-              for (My my in snapshot.data)
-                ListTile(
-                  onTap: () {
-                    print('###my:${my}');
-//                    _clickTask(task);
-                  },
-                  title: Text('${my.id}'),
-//                  leading: Icon(
-//                      my.completed
-//                          ? Icons.check_box
-//                          : Icons.check_box_outline_blank
-//                  ),
-                )
-            ],
-          );
-//        } else {
-//          return Center(
-//            child: Text('Add tasks!!!!!!!!!!'),
-//          );
-//        }
-      },
-    );
-  }
 
   Widget menuBtn(){
     return IconButton(

@@ -5,11 +5,14 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:recipe_app/page/recipi/list/Myrecipi.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:recipe_app/services/recipi/file_controller.dart';
-import 'package:recipe_app/services/database/database.dart';
+import 'package:recipe_app/page/recipi/list/DBHelper.dart';
+import 'package:recipe_app/page/recipi/list/Photo.dart';
+
 
 class RecipiEdit extends StatefulWidget{
 
@@ -24,16 +27,15 @@ class _RecipiEditState extends State<RecipiEdit>{
   String _body;                 //入力値　内容
   int _selectedID;              //編集するID
 //  bool _isLoading = true;     //通信中:true(円形のグルグルのやつ)
-  File imageFile;               //トップに表示する写真
-  Future<File> FimageFile;               //トップに表示する写真
-  List<File> imageFiles = new List<File>();
-  final _picker = ImagePicker();
-  var _savedFileString;
-  MyDatabase db = MyDatabase();
+  File topImageFile;            //トップに表示する写真
+  List<File> imageFiles = new List<File>(); //詳細の内容の写真(写真を追加欄)
+  String _topImageString;       //DB送信用
+  DBHelper dbHelper;
 
   @override
   void initState() {
     super.initState();
+    dbHelper = DBHelper();
     //idを取得
     _selectedID = Provider.of<Display>(context, listen: false).getId();
     print('ID:${_selectedID}');
@@ -104,8 +106,9 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //保存する押下時処理
   void _onSubmit() async {
-    var my = My(-1,this._savedFileString);
-    await db.insert(my);
+    Myrecipi myrecipi = Myrecipi(id:-1,topImage:_topImageString);
+    await dbHelper.insertMyRecipi(myrecipi);
+    //一覧リストへ遷移
     var state = _getBackState();
     Provider.of<Display>(context, listen: false).setState(state);
       //初期化
@@ -291,35 +294,30 @@ class _RecipiEditState extends State<RecipiEdit>{
   Future<void> _getAndSaveImageFromDevice(ImageSource source,bool topImage) async {
 
     // 撮影/選択したFileが返ってくる
-    var imageFile = await _picker.getImage(source: source);
-
+    var imageFile = await ImagePicker().getImage(source: source);
     //変換
     var imageByte = await imageFile.readAsBytes();
-    var imgString = await base64Encode(imageByte);
+    String imgString = await base64Encode(imageByte);
 
-
-//    print('###imageFile:${imageFile}');
     // 撮影せずに閉じた場合はnullになる
     if (imageFile == null) {
       return;
     }
 
+    //一時的にローカル保存
     var savedFile = await FileController.saveLocalImage(imageFile); //追加
 
     setState(() {
-      _savedFileString = imgString;
+      _topImageString = imgString;
       if(topImage){
-        this.imageFile = savedFile;
+        this.topImageFile = savedFile;
       }else{
         this.imageFiles.add(savedFile);
       }
 
-      print('###imageByte:${imageByte}');
-      print('###imgString:${imgString}');
-      print('###_savedFileString:${_savedFileString}');
-//      print('#####imageFile:${this.imageFile}');
-//      print('#####imageFile:${this.imageFiles}');
-//      print('#####imageFiles:${this.imageFiles.length}');
+//      print('###imageByte:${imageByte}');
+//      print('###imgString:${imgString}');
+//      print('###_topImageString:${_topImageString}');
     });
   }
 
@@ -497,7 +495,7 @@ class _RecipiEditState extends State<RecipiEdit>{
   //トップ画像
   Widget imageFileArea(){
     return
-          (imageFile == null)
+          (topImageFile == null)
               ? SizedBox(
             height: MediaQuery.of(context).size.height * 0.40,
             width: MediaQuery.of(context).size.width,
@@ -516,7 +514,7 @@ class _RecipiEditState extends State<RecipiEdit>{
             width: MediaQuery.of(context).size.width,
             child: Container(
               child: InkWell(
-                  child: Image.memory(imageFile.readAsBytesSync()),
+                  child: Image.memory(topImageFile.readAsBytesSync()),
                   onTap: (){
                     _showImgSelectModal(true);
                   }
