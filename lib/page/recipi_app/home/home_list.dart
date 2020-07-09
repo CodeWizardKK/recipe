@@ -4,8 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
-import 'DBHelper.dart';
-import 'Myrecipi.dart';
+import '../../../services/database/DBHelper.dart';
+import '../../../model/Myrecipi.dart';
 
 class HomeList extends StatefulWidget{
 
@@ -21,9 +21,9 @@ class _HomeListState extends State<HomeList>{
   @override
   void initState() {
     super.initState();
-    images = [];
-    dbHelper = DBHelper();
-    refreshImages(); //レコードリフレッシュ
+//    images = [];
+//    dbHelper = DBHelper();
+//    refreshImages(); //レコードリフレッシュ
   }
 
   //表示しているレコードのリセットし、最新のレコードを取得し、表示
@@ -89,63 +89,66 @@ class _HomeListState extends State<HomeList>{
         ],
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Flexible(
-//              child: gridView(),
-              child: ListView.builder(
-                  itemCount: images == null ? 0: images.length,
-                  itemBuilder: (BuildContext contect,int index){
-                    return InkWell(
-                      child: Card(
-                        child: Container(
-                          height: MediaQuery.of(context).size.height * 0.10,
-                          child: Row(
-                            children: <Widget>[
-                              images[index].topImage == null
-                              ? Container(
-                                width: MediaQuery.of(context).size.width * 0.25,
-                                height: 90.0,
-                                child: const Icon(Icons.camera_alt,color: Colors.white,),
-                                decoration: const BoxDecoration(
-                                  color: Colors.grey,
-                                ),
-                              )
-                              :Container(
-                                width: MediaQuery.of(context).size.width * 0.25,
-                                height: 90.0,
-                                child: Image.memory(
-                                  base64Decode(images[index].topImage),
-                                  fit: BoxFit.fill,
-                                ),
-                                decoration: const BoxDecoration(
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              Container(
-                                child: SizedBox(
-                                  width: MediaQuery.of(context).size.width * 0.7,
-                                  child: ListTile(
-                                    title: Text('${images[index].id}'),
-//                                    title: Text('あいうえおあいうえおあいうえおあいうえお'),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      onTap: (){
-                        print('${images[index].topImage}');
-                      },
-                    );
-                  }
-              ),
-            )
-          ],
-        ),
+        child: Text('home'),
       ),
+//      Center(
+//        child: Column(
+//          mainAxisAlignment: MainAxisAlignment.start,
+//          children: <Widget>[
+//            Flexible(
+////              child: gridView(),
+//              child: ListView.builder(
+//                  itemCount: images == null ? 0: images.length,
+//                  itemBuilder: (BuildContext contect,int index){
+//                    return InkWell(
+//                      child: Card(
+//                        child: Container(
+//                          height: MediaQuery.of(context).size.height * 0.10,
+//                          child: Row(
+//                            children: <Widget>[
+//                              images[index].topImage == null
+//                              ? Container(
+//                                width: MediaQuery.of(context).size.width * 0.25,
+//                                height: 90.0,
+//                                child: const Icon(Icons.camera_alt,color: Colors.white,),
+//                                decoration: const BoxDecoration(
+//                                  color: Colors.grey,
+//                                ),
+//                              )
+//                              :Container(
+//                                width: MediaQuery.of(context).size.width * 0.25,
+//                                height: 90.0,
+//                                child: Image.memory(
+//                                  base64Decode(images[index].topImage),
+//                                  fit: BoxFit.fill,
+//                                ),
+//                                decoration: const BoxDecoration(
+//                                  color: Colors.grey,
+//                                ),
+//                              ),
+//                              Container(
+//                                child: SizedBox(
+//                                  width: MediaQuery.of(context).size.width * 0.7,
+//                                  child: ListTile(
+//                                    title: Text('${images[index].id}'),
+////                                    title: Text('あいうえおあいうえおあいうえおあいうえお'),
+//                                  ),
+//                                ),
+//                              ),
+//                            ],
+//                          ),
+//                        ),
+//                      ),
+//                      onTap: (){
+//                        print('${images[index].topImage}');
+//                      },
+//                    );
+//                  }
+//              ),
+//            )
+//          ],
+//        ),
+//      ),
       bottomNavigationBar: bottomNavigationBar(context),
 //      floatingActionButton: floatBtn(),
     );

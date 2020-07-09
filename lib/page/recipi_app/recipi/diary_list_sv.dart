@@ -4,11 +4,10 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-//import 'package:recipe_app/page/recipi/list/Photo.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:image_picker/image_picker.dart';
-import 'DBHelper.dart';
-import 'Photo.dart';
+import 'package:recipe_app/services/database/DBHelper.dart';
+import 'package:recipe_app/model/Photo.dart';
 
 class DiaryList extends StatefulWidget {
 
@@ -115,7 +114,8 @@ class _DiaryListState extends State<DiaryList>{
           addBtn(context),
         ],
       ),
-      body:Center(
+      body:
+      Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[

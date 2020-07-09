@@ -1,12 +1,71 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../../services/database/DBHelper.dart';
+//import 'Photo.dart';
 
-class AlbumList extends StatelessWidget{
+class DiaryList extends StatefulWidget {
+
+  @override
+  _DiaryListState createState() => _DiaryListState();
+}
+
+class _DiaryListState extends State<DiaryList>{
+
+  Future<File> imageFile;
+  Image image;
+  DBHelper dbHelper;
+//  List<Photo> images; //DBから取得したレコードを格納
+
+  @override
+  void initState() {
+    super.initState();
+//    images = [];
+//    dbHelper = DBHelper();
+//    refreshImages();
+  }
+
+//  refreshImages(){
+//    //レコード取得
+//    dbHelper.getPhotos().then((imgs){
+//      setState(() {
+//        images.clear();
+//        images.addAll(imgs);
+//        for(var i=0;i < images.length; i++){
+//          print('images[${i}]ID:${images[i].id},NAME:${images[i].photoName}');
+//        }
+//      });
+//    });
+//  }
+
+  Image imageFromBase64String(String base64String){
+    return Image.memory(
+      base64Decode(base64String),
+      fit: BoxFit.fill,
+    );
+  }
 
   void _changeBottomNavigation(int index,BuildContext context){
     Provider.of<Display>(context, listen: false).setCurrentIndex(index);
+  }
+
+  void _onEdit(int selectedId,BuildContext context){
+    print('selectId[${selectedId}]');
+    //idをset
+    Provider.of<Display>(context, listen: false).setId(selectedId);
+//    //新規投稿以外の場合
+//    if(id != -1){
+//      //詳細画面へ遷移
+//      Provider.of<Display>(context, listen: false).setState(2);
+//    }else{
+    //編集画面へ遷移
+    Provider.of<Display>(context, listen: false).setState(2);
+//    }
   }
 
   @override
@@ -28,10 +87,13 @@ class AlbumList extends StatelessWidget{
         ),
         actions: <Widget>[
           checkBtn(),
-          addBtn(),
+          addBtn(context),
         ],
       ),
-      body:Text('アルバム'),
+      body:
+      Center(
+          child:Text('diary'),
+      ),
       bottomNavigationBar: bottomNavigationBar(context),
 //      floatingActionButton: floatBtn(),
     );
@@ -48,15 +110,19 @@ class AlbumList extends StatelessWidget{
 
   Widget checkBtn(){
     return IconButton(
-        icon: const Icon(Icons.check_circle_outline,color: Colors.cyan,size:30,),
-        onPressed: null
+      icon: const Icon(Icons.check_circle_outline,color: Colors.white,size:30),
+      onPressed: (){
+//        _onList();
+      },
     );
   }
 
-  Widget addBtn(){
+  Widget addBtn(BuildContext context){
     return IconButton(
-        icon: const Icon(Icons.add_circle_outline,color: Colors.cyan,size:30,),
-        onPressed: null
+      icon: const Icon(Icons.add_circle_outline,color: Colors.white,size:30),
+      onPressed: (){
+//        _onEdit(-1,context);
+      },
     );
   }
 

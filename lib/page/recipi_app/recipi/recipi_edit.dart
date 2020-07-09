@@ -5,13 +5,12 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:recipe_app/page/recipi/list/Myrecipi.dart';
+import 'package:recipe_app/model/Myrecipi.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:recipe_app/services/recipi/file_controller.dart';
-import 'package:recipe_app/page/recipi/list/DBHelper.dart';
-import 'package:recipe_app/page/recipi/list/Photo.dart';
+import 'package:recipe_app/services/database/DBHelper.dart';
 
 
 class RecipiEdit extends StatefulWidget{
@@ -318,6 +317,8 @@ class _RecipiEditState extends State<RecipiEdit>{
 //      print('###imageByte:${imageByte}');
 //      print('###imgString:${imgString}');
 //      print('###_topImageString:${_topImageString}');
+      print('###imageFile:${imageFile.path}');
+      print('###savedFile:${savedFile}');
     });
   }
 

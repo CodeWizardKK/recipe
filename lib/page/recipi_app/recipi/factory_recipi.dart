@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/page/recipi/edit/recipi_edit.dart';
-import 'package:recipe_app/page/recipi/detail/recipi_detail.dart';
-import 'package:recipe_app/page/recipi/list/recipi_list.dart';
+import 'package:recipe_app/page/recipi_app/recipi/recipi_edit.dart';
+import 'package:recipe_app/page/recipi_app/recipi/recipi_detail.dart';
+import 'package:recipe_app/page/recipi_app/recipi/recipi_list.dart';
 
 class FactoryRecipi extends StatelessWidget{
 

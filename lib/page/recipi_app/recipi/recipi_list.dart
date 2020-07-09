@@ -6,8 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/services/recipi/recipi_list.dart' as recipiListRepo;
 import 'package:cached_network_image/cached_network_image.dart';
-import 'DBHelper.dart';
-import 'Myrecipi.dart';
+import '../../../services/database/DBHelper.dart';
+import '../../../model/Myrecipi.dart';
 
 class RecipiList extends StatefulWidget{
 

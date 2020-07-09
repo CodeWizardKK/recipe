@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:async';
 
-import 'package:recipe_app/page/recipi/list/Photo.dart';
-import 'package:recipe_app/page/recipi/list/Myrecipi.dart';
+import 'package:recipe_app/model/Photo.dart';
+import 'package:recipe_app/model/Myrecipi.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
@@ -13,6 +13,7 @@ class DBHelper{
   static const String ID = 'id';            //カラム
   static const String NAME = 'photoName';   //カラム
   static const String TOPIMAGE ='topImage'; //カラム
+
 
 //  static const String TABLE = 'PhotosTable';  //テーブル名を定義
   static final String TABLE = 'myrecipis';  //テーブル名を定義
