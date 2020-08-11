@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/page/recipi_app/factory_recipi_app.dart';
 import 'package:recipe_app/store/display_state.dart';
+import 'package:recipe_app/store/detail_state.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';//日本語対応
 import 'package:flutter/services.dart';
 
@@ -38,6 +39,7 @@ class MyApp extends StatelessWidget {
       home: MultiProvider(
         providers:[
           ChangeNotifierProvider<Display>(create: (_) => Display()),
+          ChangeNotifierProvider<Detail>(create: (_) => Detail()),
         ],
         child: FactoryRecipiApp(),
       )

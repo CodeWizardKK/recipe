@@ -27,7 +27,7 @@ class FileController {
     // その画像をドキュメントへ保存し直す。
     var savedFile = await imageFile.writeAsBytes(await image.readAsBytes());
     // もしくは
-    // var savedFile = await image.copy(imagePath);
+//     String savedFileString = await image.copy(imagePath);
     // でもOK
 
     return savedFile;

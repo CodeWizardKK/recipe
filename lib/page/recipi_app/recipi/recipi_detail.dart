@@ -1,377 +1,573 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/services/recipi/recipi_item.dart' as recipiItemRepo;
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:recipe_app/store/detail_state.dart';
+import 'package:recipe_app/model/edit/Ingredient.dart';
+import 'package:recipe_app/model/edit/Howto.dart';
+import 'package:recipe_app/model/edit/Photo.dart';
+import 'package:recipe_app/model/Myrecipi.dart';
+import 'package:recipe_app/services/database/DBHelper.dart';
+import 'package:recipe_app/model/edit/Titleform.dart';
 
 class RecipiDetail extends StatefulWidget{
+
+  @override
   _RecipiDetailState createState() => _RecipiDetailState();
 }
 
 class _RecipiDetailState extends State<RecipiDetail>{
 
-  var _resultData = new Map<String,dynamic>(); //serverからgetした値を格納
-  var _isLoading = true;     //通信中:true(円形のグルグルのやつ)
-  var _currentPage = 0;      // ページインデックス
-  var _errorMessage = '';    //await関連のエラーメッセージ
-  final PageController _controller
-                = PageController(viewportFraction: 0.8); // ページコントローラ
+  DBHelper dbHelper;
+  Myrecipi _recipi = Myrecipi();
+  List<Ingredient> _ingredients;      //レシピIDに紐づく材料リスト
+  List<HowTo> _howTos;                //レシピIDに紐づく作り方リスト
+  List<Photo> _photos;                //レシピIDに紐づく写真
+  bool _isFolderBy = false;       //true:フォルダ別レシピ一覧へ遷移
+
 
   @override
   void initState() {
    super.initState();
-   //該当レコードを取得
-   _getItem();
-   //ページ遷移を監視
-   _pageController();
+    _getItem();
   }
 
-  //該当レコードの取得
-  Future<void> _getItem() async{
-    var option = {};
-    //取得する為のIDを取得
-    option['id'] = Provider.of<Display>(context, listen: false).getId();
-
-    try{
-      //該当レコード取得処理の呼び出し
-//      _resultData = await recipiItemRepo.get(option);　//本番用
-      _resultData = await recipiItemRepo.getLocal();    //mock用
-    }catch(e){
-      //エラー処理
-      print('Error: $e');
-      setState(() {
-        _isLoading = false;
-        _errorMessage = e.message;
-        //ここでエラー画面へ遷移する処理を追加(state=9にセットする)
-//        Provider.of<Display>(context, listen: false).setState(9);
-      });
-    }
-
-    setState(() {
-      _isLoading = false;
+  _getItem() async {
+    dbHelper = DBHelper();
+    this._ingredients = [];
+    this._howTos = [];
+    this._photos = [];
+    //選択したrecipiを取得
+    setState((){
+      this._recipi = Provider.of<Detail>(context, listen: false).getRecipi();
     });
-  }
-
-  // ページコントローラのページ遷移を監視しページ数を丸める
-  void _pageController(){
-    _controller.addListener(() {
-      int next = _controller.page.round();
-//      print('currentPage:${_currentPage}');
-//      print('next:${next}');
-      if (_currentPage != next) {
-        setState(() {
-          _currentPage = next;
-        });
-      }
-    });
+    //戻る画面を取得
+    this._isFolderBy = Provider.of<Display>(context, listen: false).getIsFolderBy();
   }
 
   //レシピリストへ戻るボタン押下時処理
   void _onList(){
-    Provider.of<Display>(context, listen: false).setState(-1);
+    if(this._isFolderBy){
+      //フォルダ別一覧リストへ遷移
+      Provider.of<Display>(context, listen: false).setState(4);
+    }else{
+      //一覧リストへ遷移
+      Provider.of<Display>(context, listen: false).setState(0);
+    }
+    _init();
   }
 
-  //削除処理
-  void _onDelete(){
-   //該当レコード削除処理(IDをpushする)
-
-   //レシピリストへ戻る
-   _onList();
-
+  void _init(){
+    Provider.of<Detail>(context, listen: false).reset();
   }
 
   //レシピの編集ボタン押下時処理
   void _onEdit(){
-    //該当レコードをstoreに格納
-    Provider.of<Display>(context, listen: false).setSelectItem(_resultData);
-    //
-    Provider.of<Display>(context, listen: false).setImages(_resultData['images']);
+    //レシピIDをセットする
+    Provider.of<Display>(context, listen: false).setId(this._recipi.id);
+    //レシピ種別をセットする
+    Provider.of<Display>(context, listen: false).setType(this._recipi.type);
+    //サムネイル画像をセットする
+    Provider.of<Display>(context, listen: false).setThumbnail(this._recipi.thumbnail);
+    //タイトル、メモ、分量、調理時間をセットする
+    TitleForm titleForm = TitleForm(title: this._recipi.title, description: this._recipi.description, unit: this._recipi.unit, quantity: this._recipi.quantity, time: this._recipi.time);
+    Provider.of<Display>(context, listen: false).setTitleForm(titleForm);
+    //材料、作り方、写真エリアをセットする
+    if(this._recipi.type == 2){
+      //MYレシピの場合
+      Provider.of<Display>(context, listen: false).setIngredients(this._ingredients);
+      Provider.of<Display>(context, listen: false).setHowTos(this._howTos);
+    }else{
+      //写真レシピの場合
+      Provider.of<Display>(context, listen: false).setPhotos(this._photos);
+    }
     //編集画面へ遷移
-    Provider.of<Display>(context, listen: false).setState(1);
+    Provider.of<Display>(context, listen: false).setState(2);
   }
 
-  //削除アイコン押下時処理
-  Future<void> _showDeleteDialog() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return CupertinoAlertDialog(
-          title: const Text('確認'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('削除してもよろしいですか？'),
-              ],
+  //材料編集エリア
+  Column _addIngredient(){
+    List<Widget> column = new List<Widget>();
+    setState(() {
+      this._ingredients = Provider.of<Detail>(context, listen: false).getIngredients();
+    });
+    //材料リストを展開する
+    for(var i=0; i < this._ingredients.length; i++){
+      column.add(
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.06,
+          width: MediaQuery.of(context).size.width,
+          child: Container(
+            color: Colors.white,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      child: Text('${_ingredients[i].name}',
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 15,
+                        ),),
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      child: Text('${this._ingredients[i].quantity}',
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 15,
+                        ),),
+                    ),
+                  ],
+                ),
+          ),
+        ),
+      );
+      column.add(
+        Divider(
+          color: Colors.grey,
+          height: 0.5,
+          thickness: 0.5,
+        ),
+      );
+    }
+    // 空
+    column.add(
+      SizedBox(
+        height: MediaQuery.of(context).size.height * 0.06,
+        width: MediaQuery.of(context).size.width,
+        child: Container(
+          color: Colors.white,
+        ),
+      ),
+    );
+    return Column(
+      children: column,
+    );
+  }
+
+  //作り方編集エリア
+  Column _addHowTo(){
+    List<Widget> column = new List<Widget>();
+    setState(() {
+      this._howTos = Provider.of<Detail>(context, listen: false).getHowTos();
+    });
+    //作り方リストを展開する
+    for(var i=0; i < this._howTos.length; i++){
+      column.add(
+        SizedBox(
+          width: MediaQuery.of(context).size.width,
+          height: 200,
+          child: Container(
+            color: Colors.white,
+            padding: EdgeInsets.all(10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    SizedBox(
+                      child: Container(
+                        width: 250,
+                        child: Text('${_howTos[i].memo}',
+                          maxLines: 10,
+                          style: TextStyle(
+                            fontSize: 15,
+                          ),),
+                      ),
+                    ),
+                    _howTos[i].photo.isNotEmpty
+                        ? SizedBox(
+                      height: 100,
+                      width: 100,
+                      child: Container(
+                          child: Image.file(File(_howTos[i].photo)),
+                      ),
+                    )
+                        : Container(),
+                  ],
+                ),
+          ),
+        ),
+      );
+      //線
+      column.add(
+        Divider(
+          color: Colors.grey,
+          height: 0.5,
+          thickness: 0.5,
+        ),
+      );
+    }
+    // 空
+    column.add(
+      SizedBox(
+        height: MediaQuery.of(context).size.height * 0.06,
+        width: MediaQuery.of(context).size.width,
+        child: Container(
+          color: Colors.white,
+        ),
+      ),
+    );
+    return Column(
+      children: column,
+    );
+  }
+
+  //写真編集エリア
+  Column _addPhoto(){
+    List<Widget> column = new List<Widget>();
+    setState(() {
+      this._photos = Provider.of<Detail>(context, listen: false).getPhotos();
+    });
+    //追加したイメージを展開する
+    for(var i=0; i < _photos.length; i++){
+      column.add(
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.40,
+          width: MediaQuery.of(context).size.width,
+          child: Container(
+            child: InkWell(
+                child: Image.file(File(_photos[i].path)),
+                onTap: (){
+//                  print('###tap!!!!');
+//                  print('no:${_photos[i].no},path:${_photos[i].path}');
+//                  _showImgSelectModal(thumbnail: false,edit: true,photo: _photos[i],index: i);
+                }
             ),
           ),
-          actions: <Widget>[
-            FlatButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            FlatButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _onDelete();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  //ペジネーション作成し、listにして返す
-  Row _createPagination(){
-    List<Widget> page = new List<Widget>();
-    for(var i = 0 ;i<_resultData['images'].length; i++){
-      //表示しているページとindexが一致している場合
-      if(_currentPage == i){
-        //●を追加する
-        page.add(Container(key: GlobalKey(),margin: const EdgeInsets.all(5),child: const Icon(Icons.brightness_1,size: 5,color: Colors.grey,)));
-      }else{
-        //○を追加する
-        page.add(Container(key: GlobalKey(),margin: const EdgeInsets.all(5),child: const Icon(Icons.panorama_fish_eye,size: 5,color: Colors.grey,)));
-      }
-    }
-//    print('page:${page}');
-    return
-      Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: page
+        ),
       );
-  }
-  //アニメーションカード生成
-  AnimatedContainer _createCardAnimate(Map<String,Object> images, bool active) {
-
-//    print('${images['path']}');
-
-    // アクティブと非アクティブのアニメーション設定値
-//    final double top = active ? 100 : 200;
-//    final double side = active ? 0 : 40;
-
-    return AnimatedContainer(
-      key: GlobalKey(),
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeOutQuint,
-      margin: const EdgeInsets.only(top: 0, bottom: 0, right: 30, left: 30),
-      child: CachedNetworkImage(
-        key: GlobalKey(),
-        imageUrl: '${images['path']}',
-        progressIndicatorBuilder: (context, url, downloadProgress) =>
-            CircularProgressIndicator(value: downloadProgress.progress),
-        errorWidget: (context, url, error) => const Icon(Icons.error),
+      //線
+      column.add(
+        Divider(
+          color: Colors.grey,
+          height: 0.5,
+          thickness: 0.5,
+        ),
+      );
+    }
+    // 空
+    column.add(
+      SizedBox(
+        height: MediaQuery.of(context).size.height * 0.06,
+        width: MediaQuery.of(context).size.width,
+        child: Container(
+          color: Colors.white,
+        ),
       ),
-
-//      decoration: BoxDecoration(
-//        image: DecorationImage(
-//          fit: BoxFit.fitWidth,
-////          fit: BoxFit.cover,
-//          image: NetworkImage('${images['path']}'),
-//        ),
-//      ),
     );
+    return Column(
+      children: column,
+    );
+  }
+
+  //単位 表示用
+  String _displayUnit(unit){
+    if(unit == 1){
+      return '人分';
+    }
+    if(unit == 2){
+      return '個分';
+    }
+    if(unit == 3){
+      return '枚分';
+    }
+    if(unit == 4){
+      return '杯分';
+    }
+    if(unit == 5){
+      return '皿分';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          backgroundColor: Colors.white70,
-          leading: backBtn(),
-          elevation: 0.0,
-          title:titleArea(),
+        backgroundColor: Colors.cyan,
+        leading: backBtn(),
+        elevation: 0.0,
+        title: Center(
+          child: Text('レシピ',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 25,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Roboto',
+            ),
+          ),
+        ),
+        actions: <Widget>[
+          shareBtn(),
+          editBtn(),
+        ],
       ),
-      //フッターボタン
-      persistentFooterButtons: <Widget>[
-        //レシピの編集ボタン
-        deleteBtn(),//削除
-        editBtn(),  //レシピの編集
-      ],
-      body: showDetail(),
+      body: scrollArea(),
     );
   }
 
-  //削除ボタン
-  Widget deleteBtn(){
-    return Padding(
-        padding: const EdgeInsets.only(right: 150),
-        child: IconButton(
-          icon: const Icon(Icons.delete,size: 30,),
-          onPressed: (){
-            _showDeleteDialog();
-          },
-        ),
-      );
+  //シェアボタン
+  Widget shareBtn() {
+    return IconButton(
+      icon: const Icon(Icons.share, color: Colors.white, size: 30,),
+      onPressed: () {
+//        _onList();
+      },
+    );
   }
 
   //編集ボタン
   Widget editBtn(){
-    return Padding(
-      padding: const EdgeInsets.only(right: 10),
-      child: FlatButton(
-        key: GlobalKey(),
-        color: Colors.redAccent,
-        child: const Text('レシピの編集',
-          style: TextStyle(
-            color: Colors.white,
-          ),
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        onPressed: (){
-          _onEdit();
-        },
-      ),
+    return IconButton(
+      icon: const Icon(Icons.edit,color: Colors.white,size: 30,),
+      onPressed: (){
+        _onEdit();
+      },
     );
   }
 
   //戻るボタン
   Widget backBtn(){
     return IconButton(
-        icon: const Icon(Icons.arrow_back_ios,color: Colors.grey,size: 20,),
+        icon: const Icon(Icons.arrow_back_ios,color: Colors.white,size: 30,),
         onPressed: (){
           _onList();
         },
     );
   }
 
-  //ページ全体
-  Widget showDetail(){
-    return Stack(
-      children: <Widget>[
-        scrollArea(),           //レシピ詳細全体
-        showCircularProgress(), //アクティビティインジケータ
-      ],
+  //レシピ詳細
+  Widget scrollArea(){
+    return Container(
+      key: GlobalKey(),
+      child: SingleChildScrollView(
+        key: GlobalKey(),
+        child: showForm(),
+      ),
     );
   }
 
-  //レシピ詳細
-  Widget scrollArea(){
-    return
-      _resultData == null
-      ? Container()
-      : Container(
-      child:SingleChildScrollView(
-        child:Padding(
-          padding: const EdgeInsets.only(left: 30.0, right: 30.0, top: 10.0),
+  //ページ全体
+  Widget showForm(){
+    return Container(
+      alignment: Alignment.center,
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children:
+            _recipi.type == 2
+              ? <Widget>[
+                thumbnailArea(), //トップ画像
+                titleArea(), //タイトル
+                line(),
+                ingredientArea(), //材料
+                line(),
+                ingredientAddArea(), //材料入力欄
+                line(),
+                howToArea(), //作り方
+                line(),
+                howToAddArea(), //作り方入力欄
+                line(),
+              ]
+              : <Widget>[
+                thumbnailArea(), //トップ画像
+                titleArea(), //タイトル
+                line(),
+                photoArea(), //写真
+                line(),
+                photoAddArea(), //写真入力欄
+                line(),
+              ]
+      ),
+    );
+  }
+
+  //線
+  Widget line(){
+    return Divider(
+      color: Colors.grey,
+      height: 0.5,
+      thickness: 0.5,
+    );
+  }
+
+  //トップ画像
+  Widget thumbnailArea(){
+          return
+            _recipi.thumbnail.isEmpty
+                ? SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.40,
+                  width: MediaQuery.of(context).size.width,
+                  child: Container(
+                    color: Colors.grey,
+                        child: Icon(Icons.camera_alt,color: Colors.white,size: 100,),
+                  ),
+                  )
+                : SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.40,
+                  width: MediaQuery.of(context).size.width,
+                  child: Container(
+                    child: InkWell(
+                    child: Image.file((File(_recipi.thumbnail))),
+                    onTap: (){
+//                      _showImgSelectModal(thumbnail: true);
+                    }
+                ),
+              ),
+            );
+  }
+
+  //レシピタイトル
+  Widget titleArea(){
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.1,
+      width: MediaQuery.of(context).size.width,
+      child: Container(
+        color: Colors.white,
           child: Column(
-//              crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              imageArea(),     //画像エリア
-              paginationArea(), //ペジネーションエリア
-//              titleArea(),      //タイトルエリア
-              line(),           //罫線
-              contentArea(),    //テキストエリア
-              line(),           //罫線
+              Container(
+                padding: EdgeInsets.all(10),
+                child: Text('${_recipi.title}',
+                  maxLines: 1,
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold
+                  ),),
+              ),
+              Container(
+                padding: EdgeInsets.all(10),
+                child: Text('${_recipi.description}',
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 15,
+                  ),),
+              ),
             ],
           ),
+      ),
+    );
+  }
+
+  //材料
+  Widget ingredientArea(){
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.05,
+      width: MediaQuery.of(context).size.width,
+      child: Container(
+        color: Colors.white30,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Container(
+              padding: EdgeInsets.all(10),
+              child: Text('材料', style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold
+              ),),
+            ),
+            Container(
+              padding: EdgeInsets.all(10),
+              child: Text('${_recipi.quantity}${_displayUnit(_recipi.unit)}', style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold
+              ),),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  //画像エリア
-  Widget imageArea(){
-      return
-        _resultData['images'] == null
-        ? Container()
-        : Container(
-          child: SizedBox(
-            height: 300.0,
-            child: PageView.builder(
-              controller: _controller,
-              itemCount: _resultData['images'] == null ? 0 :_resultData['images'].length,
-              itemBuilder: (context, int currentIndex){
-                // アクティブ値
-                bool active = currentIndex == _currentPage;
-                // カードの生成して返す
-                return _createCardAnimate(
-                  _resultData['images'][currentIndex],
-                  active,
-                );
-              },
+  //材料追加
+  Widget ingredientAddArea(){
+    return Container(
+      child: _addIngredient(),
+    );
+  }
+
+  //作り方
+  Widget howToArea(){
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.05,
+      width: MediaQuery.of(context).size.width,
+      child: Container(
+        color: Colors.white30,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Container(
+              padding: EdgeInsets.all(10),
+              child: Text('作り方',style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold
+              ),),
             ),
-          ),
-        );
+            _recipi.time != 0
+              ? Container(
+                  padding: EdgeInsets.all(10),
+                  child: Text('${_recipi.time}分', style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold
+                  ),),
+                )
+              : Container()
+          ],
+        ),
+      ),
+    );
   }
 
-  //ペジネーションエリア( ○○○○○○ )
-  Widget paginationArea(){
-    return
-      _resultData['images'] == null
-      ? Container(
-          key: GlobalKey(),
-        )
-      //作成したペジネーションを表示
-      : _createPagination();
+  //材料追加
+  Widget howToAddArea(){
+    return Container(
+      child: _addHowTo(),
+    );
   }
 
-  //タイトルエリア
-  Widget titleArea(){
-        return
-          _resultData['title'] == null
-            ? Container()
-            : Container(
-//                margin: EdgeInsets.only(right: 10),
-//                padding: EdgeInsets.only(right: 20),
-                child: Text('${_resultData['title']}',
-                  style: const TextStyle(
-                    fontSize: 18,
-//                    fontWeight: FontWeight.bold,
-                    color: Colors.grey
+  //写真エリア
+  Widget photoArea(){
+    return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.05,
+        width: MediaQuery.of(context).size.width,
+        child: Container(
+          color: Colors.white30,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.all(10),
+                child: Text('${_recipi.quantity}${_displayUnit(_recipi.unit)}',
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold
                   ),
                 ),
-              );
-  }
-
-  //テキストエリア
-  Widget contentArea(){
-    return Column(
-      children: <Widget>[
-        Container(
-          margin: const EdgeInsets.all(5),
-          child: const Text('レシピmemo',
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black
-            ),
+              ),
+              _recipi.time != 0
+                ? Container(
+                    padding: EdgeInsets.all(10),
+                    child: Text('${_recipi.time}分', style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold
+                    ),),
+                  )
+                : Container()
+            ],
           ),
         ),
-        _resultData['body'] == null
-            ? Container()
-            : Container(
-            margin: const EdgeInsets.all(5),
-            padding: const EdgeInsets.all(5),
-            child:Text('${_resultData['body']}')
-        ),
-      ],
-    );
+      );
   }
 
-  //罫線
-  Widget line(){
-    return const Divider(
-        color: Colors.grey
-    );
-  }
-
-  //アクティビティインジケータ
-  //null参照時に落ちない用、flutterで用意されてるを実装
-  Widget showCircularProgress() {
+  //写真追加
+  Widget photoAddArea(){
+//    return Consumer<Display>(
+//        builder: (context,Display,_) {
     return
-      _isLoading
-      //通信中の場合
-        //CircularProgressIndicator() => 円形にグルグル回るタイプのやつ
-        ? const Center(child: CircularProgressIndicator())
-      //上記以外の場合
-        : Container(height: 0.0,width: 0.0,);
+      Container(
+        child: _addPhoto(),
+      );
+//    });
   }
 }
