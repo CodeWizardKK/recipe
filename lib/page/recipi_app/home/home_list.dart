@@ -62,6 +62,7 @@ class _HomeListState extends State<HomeList>{
         ],
       ),
       body: Container(
+        padding: EdgeInsets.only(top: 20),
         width: MediaQuery.of(context).size.width,
         child:Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -70,7 +71,7 @@ class _HomeListState extends State<HomeList>{
               child: Container(
                 color: Colors.white70,
                 padding: EdgeInsets.all(15),
-                width: 100,
+                width: MediaQuery.of(context).size.width * 0.25,
                 height: 100,
                 child: InkWell(
                   child: Column(
@@ -98,7 +99,7 @@ class _HomeListState extends State<HomeList>{
               child: Container(
                 color: Colors.white70,
                 padding: EdgeInsets.all(15),
-                width: 100,
+                width: MediaQuery.of(context).size.width * 0.25,
                 height: 100,
                 child: InkWell(
                   child: Column(
@@ -126,7 +127,35 @@ class _HomeListState extends State<HomeList>{
               child: Container(
                 color: Colors.white70,
                 padding: EdgeInsets.all(15),
-                width: 100,
+                width: MediaQuery.of(context).size.width * 0.25,
+                height: 100,
+                child: InkWell(
+                    child: Column(
+//                    mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Icon(Icons.photo_album,size: 40,),
+                        Text('写真レシピ',
+                          style: TextStyle(
+                              fontSize: 12
+                          ),),
+                        Text('を追加',
+                          style: TextStyle(
+                              fontSize: 12
+                          ),),
+                      ],
+                    ),
+                    onTap:(){
+                      print('写真レシピを追加');
+                      _onEdit(selectedId:-1,type: 1);
+                    }
+                ),
+              ),
+            ),
+            SizedBox(
+              child: Container(
+                color: Colors.white70,
+                padding: EdgeInsets.all(15),
+                width: MediaQuery.of(context).size.width * 0.25,
                 height: 100,
                 child: InkWell(
                     child: Column(
