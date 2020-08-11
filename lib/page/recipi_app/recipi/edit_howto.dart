@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/model/edit/Howto.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:recipe_app/services/recipi/file_controller.dart';
 
 
 class EditHowTo extends StatefulWidget{
