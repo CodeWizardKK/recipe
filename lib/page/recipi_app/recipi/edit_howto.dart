@@ -339,22 +339,15 @@ class _EditHowToState extends State<EditHowTo>{
         child: SizedBox(
           width: 200,
           height: 50,
-          child: RaisedButton(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                const Icon(Icons.delete,color: Colors.white,),
-                const Text('材料を削除する',style: TextStyle(color: Colors.white),),
-              ],
-            ),
+          child: RaisedButton.icon(
+            icon: Icon(Icons.delete,color: Colors.white,),
+            label: Text('作り方を削除する'),
+            textColor: Colors.white,
             color: Colors.redAccent,
-//            shape: RoundedRectangleBorder(
-//              borderRadius: BorderRadius.circular(10.0),
-//            ),
             onPressed:(){
               _onDelete();
               _changeEditType(0); //編集TOP
-            } ,
+            },
           ),
         ),
       )

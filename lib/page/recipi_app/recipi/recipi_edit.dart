@@ -698,7 +698,10 @@ class _RecipiEditState extends State<RecipiEdit>{
           message: const Text('このレシピを削除しますか?'),
             actions: <Widget>[
               CupertinoActionSheetAction(
-                child: const Text('削除する'),
+                child: const Text('削除する',
+                  style: TextStyle(
+                      color: Colors.red
+                  ),),
                 onPressed: () {
                   Navigator.pop(context);
                   _onDelete();
@@ -1081,14 +1084,10 @@ class _RecipiEditState extends State<RecipiEdit>{
         child: SizedBox(
           width: 200,
           height: 50,
-          child: RaisedButton(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                const Icon(Icons.delete,color: Colors.white,),
-                const Text('レシピを削除する',style: TextStyle(color: Colors.white),),
-              ],
-            ),
+          child: RaisedButton.icon(
+            icon: Icon(Icons.delete,color: Colors.white,),
+            label: Text('レシピを削除する'),
+            textColor: Colors.white,
             color: Colors.redAccent,
 //            shape: RoundedRectangleBorder(
 //              borderRadius: BorderRadius.circular(10.0),
