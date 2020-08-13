@@ -96,8 +96,8 @@ class _RecipiListState extends State<RecipiList>{
         _ingredients.addAll(item);
       });
     });
-//    //取得した材料をstoreに保存
-//    Provider.of<Display>(context, listen: false).setIngredients(this._ingredients);
+    //取得した材料をstoreに保存
+    Provider.of<Display>(context, listen: false).setIngredients(this._ingredients);
 
     //フォルダマスタの取得
     await dbHelper.getMstFolders().then((item){
@@ -133,7 +133,9 @@ class _RecipiListState extends State<RecipiList>{
         _tags.addAll(item);
       });
     });
-
+    //取得したタグをstoreに保存
+    Provider.of<Display>(context, listen: false).setTags(_tags);
+    //チェックボックス付きタグリスト
     this._displayTags = Provider.of<Display>(context, listen: false).createCheckList(type: 2);
     this._oldTags = Provider.of<Display>(context, listen: false).createCheckList(type: 2);
 
@@ -328,10 +330,10 @@ class _RecipiListState extends State<RecipiList>{
     print('folderID:${this._folders[index].id},name:${this._folders[index].name},isCheck:${this._folders[index].isCheck}');
     //フォルダ情報をset
     Provider.of<Display>(context, listen: false).setFolder(this._folders[index]);
-    //取得したタグをstoreに保存
-    Provider.of<Display>(context, listen: false).setTags(_tags);
-    //取得した材料をstoreに保存
-    Provider.of<Display>(context, listen: false).setIngredients(this._ingredients);
+//    //取得したタグをstoreに保存
+//    Provider.of<Display>(context, listen: false).setTags(_tags);
+//    //取得した材料をstoreに保存
+//    Provider.of<Display>(context, listen: false).setIngredients(this._ingredients);
     //フォルダ別レシピ一覧
     Provider.of<Display>(context, listen: false).setIsFolderBy(true);
     //4:フォルダ別レシピ一覧へ遷移
