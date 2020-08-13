@@ -16,7 +16,7 @@ class Display with ChangeNotifier{
   int type = 0;           //レシピ種別 1:写真レシピ 2:MYレシピ
   int state = 0;          // 0 :一覧 1:詳細 2:編集 3:レシピの整理 4:フォルダ別レシピ一覧 9:エラー
   int currentIndex = 0;   //0:ホーム 1:レシピ 2:ご飯日記 3:アルバム
-  int editType = 0;       //0:編集画面TOP 1:タイトル編集欄 2:材料編集欄 3:作り方編集欄
+  int editType = 0;       //0:編集画面TOP 1:タイトル編集欄orレシピの追加編集欄 2:材料編集欄or写真の追加編集欄 3:作り方編集欄
   bool isHome = false;    //true:ホーム画面に戻る
   List<Myrecipi> recipis = List<Myrecipi>();     //レシピ全件
   List<Myrecipi> searchs = List<Myrecipi>();     //レシピ検索結果

@@ -10,49 +10,70 @@ import 'package:recipe_app/model/MyrecipiGroupFolder.dart';
 import 'package:recipe_app/model/edit/Howto.dart';
 import 'package:recipe_app/model/edit/Ingredient.dart';
 import 'package:recipe_app/model/edit/Photo.dart';
+import 'package:recipe_app/model/diary/Diary.dart';
+import 'package:recipe_app/model/diary/edit/Photo.dart' as DPhoto;
+import 'package:recipe_app/model/diary/edit/Recipi.dart';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 
 class DBHelper{
 
-  static Database _db;                            //DBのインスタンスを定義
+  static Database _db;//DBのインスタンスを定義
 
-  static const String RECIPI_ID = 'recipi_id';    //カラム
+  //////////
+  //DB//////
+  //////////
+  static const String DB_NAME ='recipi.db';
+
+  //////////
+  //column//
+  //////////
+  static const String RECIPI_ID = 'recipi_id';
   //recipi
-  static const String ID = 'id';                  //カラム
-  static const String TYPE = 'type';              //カラム
-  static const String THUMBNAIL ='thumbnail';     //カラム
-  static const String TITLE ='title';             //カラム
-  static const String DESCRIPTION ='description'; //カラム
-  static const String QUANTITY ='quantity';       //カラム
-  static const String UNIT ='unit';               //カラム
-  static const String TIME ='time';               //カラム
-  static const String FOLDER_ID ='folder_id';               //カラム
-//  static const String PHOTOS ='photos';           //カラム
-//  static const String INGREDIENTS ='ingredients'; //カラム
-//  static const String HOWTO ='howto';             //カラム
-
+  static const String ID = 'id';
+  static const String TYPE = 'type';
+  static const String THUMBNAIL ='thumbnail';
+  static const String TITLE ='title';
+  static const String DESCRIPTION ='description';
+  static const String QUANTITY ='quantity';
+  static const String UNIT ='unit';
+  static const String TIME ='time';
+  static const String FOLDER_ID ='folder_id';
   //recipi_photo
-  static const String NO ='no';               //カラム
-  static const String PATH ='path';           //カラム
-
-  static const String NAME ='name';               //カラム
-
-  static const String MEMO ='memo';               //カラム
-  static const String PHOTO ='photo';           //カラム
-
+  static const String NO ='no';
+  static const String PATH ='path';
+  //recipi_ingredient
+  static const String NAME ='name';
+  //recipi_howto
+  static const String MEMO ='memo';
+  static const String PHOTO ='photo';
+  //tag
   static const String MST_TAG_ID ='mst_tag_id';
+  //diary
+  static const String BODY ='body';
+  static const String DATE ='date';
+  static const String CATEGORY ='category';
+  //diary_phto
+  static const String DIARY_ID = 'diary_id';
 
-  //テーブル
-  static final String RECIPI_TABLE = 'recipi';     //テーブル名を定義
-  static final String TAG_TABLE = 'tag';     //テーブル名を定義
-  static final String MST_TAG_TABLE = 'mst_tag';     //テーブル名を定義
-  static final String MST_FOLDER_TABLE = 'mst_folder';     //テーブル名を定義
-  static final String RECIPI_PHOTO_TABLE = 'recipi_photo';           //テーブル名を定義
-  static final String RECIPI_INGREDIENT_TABLE = 'recipi_ingredient'; //テーブル名を定義
-  static final String RECIPI_HOWTO_TABLE = 'recipi_howto';            //テーブル名を定義
-  static const String DB_NAME ='recipi.db';             //DB名を定義
+
+  //////////
+  //TABLE///
+  //////////
+  //レシピ
+  static final String RECIPI_TABLE = 'recipi';
+  static final String TAG_TABLE = 'tag';
+  static final String MST_TAG_TABLE = 'mst_tag';
+  static final String MST_FOLDER_TABLE = 'mst_folder';
+  static final String RECIPI_PHOTO_TABLE = 'recipi_photo';
+  static final String RECIPI_INGREDIENT_TABLE = 'recipi_ingredient';
+  static final String RECIPI_HOWTO_TABLE = 'recipi_howto';
+  //ごはん日記
+  static final String DIARY_TABLE = 'diary';
+  static final String DIARY_PHOTO_TABLE = 'diary_photo';
+  static final String DIARY_RECIPI_TABLE = 'diary_recipi';
 
   Future<Database> get db async{
 
@@ -77,6 +98,7 @@ class DBHelper{
   }
 
   _onCreate(Database db,int version) async {
+    //レシピ
     await db.execute("CREATE TABLE $RECIPI_TABLE ($ID INTEGER PRIMARY KEY, $TYPE INTEGER, $THUMBNAIL TEXT, $TITLE TEXT, $DESCRIPTION TEXT, $QUANTITY INTEGER, $UNIT INTEGER, $TIME INTEGER, $FOLDER_ID INTEGER); ");
     await db.execute("CREATE TABLE $TAG_TABLE ($ID INTEGER PRIMARY KEY,$RECIPI_ID INTEGER,$MST_TAG_ID INTEGER); ");
     await db.execute("CREATE TABLE $MST_TAG_TABLE ($ID INTEGER PRIMARY KEY, $NAME TEXT); ");
@@ -84,6 +106,10 @@ class DBHelper{
     await db.execute("CREATE TABLE $RECIPI_PHOTO_TABLE ($ID INTEGER PRIMARY KEY,$RECIPI_ID INTEGER,$NO INTEGER, $PATH TEXT); ");
     await db.execute("CREATE TABLE $RECIPI_INGREDIENT_TABLE ($ID INTEGER PRIMARY KEY,$RECIPI_ID INTEGER,$NO INTEGER, $NAME TEXT, $QUANTITY TEXT); ");
     await db.execute("CREATE TABLE $RECIPI_HOWTO_TABLE ($ID INTEGER PRIMARY KEY,$RECIPI_ID INTEGER,$NO INTEGER, $MEMO TEXT, $PHOTO TEXT); ");
+    //ごはん日記
+    await db.execute("CREATE TABLE $DIARY_TABLE ($ID INTEGER PRIMARY KEY, $BODY TEXT, $DATE TEXT, $CATEGORY INTEGER, $THUMBNAIL INTEGER); ");
+    await db.execute("CREATE TABLE $DIARY_PHOTO_TABLE ($ID INTEGER PRIMARY KEY,$DIARY_ID INTEGER,$NO INTEGER, $PATH TEXT); ");
+    await db.execute("CREATE TABLE $DIARY_RECIPI_TABLE ($ID INTEGER PRIMARY KEY,$DIARY_ID INTEGER,$RECIPI_ID INTEGER); ");
     print('#########CREATE!!!!!!');
   }
 
@@ -314,6 +340,7 @@ class DBHelper{
     print('####insert結果:${myrecipi.id}');
     return myrecipi;
   }
+
   //recipi_photo
   Future<void> insertPhoto(List<Photo> photos) async {
     for(var i = 0; i < photos.length; i++){
@@ -341,6 +368,33 @@ class DBHelper{
 //      print('########insert結果:${howTos[i].recipi_id},${howTos[i].id},${howTos[i].no},${howTos[i].photo}');
     }
   }
+
+  //diary
+  Future<Diary> insertDiary(Diary diary) async {
+    print('########insert:${diary.id},${diary.body},${diary.date},${diary.category},${diary.thumbnail},');
+    var dbClient = await db;
+    diary.id = await dbClient.insert(RECIPI_TABLE, diary.toMap());
+    print('####insert結果:${diary.id}');
+    return diary;
+  }
+
+//  //diary_photo
+//  Future<void> insertDiaryPhoto(List<DPhoto> photos) async {
+//    for(var i = 0; i < photos.length; i++){
+//      print('########insertするレコード[photo]:${photos[i].diary_id},${photos[i].id},${photos[i].no},${photos[i].path}');
+//      var dbClient = await db;
+//      var id = await dbClient.insert(RECIPI_PHOTO_TABLE, photos[i].toMap());
+//    }
+//  }
+//  //diary_recipi
+//  Future<void> insertDiaryRecipi(List<Recipi> recipi) async {
+//    for(var i = 0; i < recipi.length; i++){
+//      print('########insertするレコード[photo]:${recipi[i].diary_id},${recipi[i].id},${recipi[i].recipi_id}');
+//      var dbClient = await db;
+//      var id = await dbClient.insert(RECIPI_PHOTO_TABLE, recipi[i].toMap());
+//    }
+//  }
+
 
   //UPDATE
   Future<void> updateMyRecipi(Myrecipi myrecipi) async {

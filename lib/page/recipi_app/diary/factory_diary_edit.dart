@@ -1,13 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/page/recipi_app/diary/diary_list.dart';
-import 'package:recipe_app/page/recipi_app/diary/diary_detail.dart';
-import 'package:recipe_app/page/recipi_app/diary/factory_diary_edit.dart';
+import 'package:recipe_app/page/recipi_app/diary/edit_recipi.dart';
+import 'package:recipe_app/page/recipi_app/diary/edit_photo.dart';
+import 'package:recipe_app/page/recipi_app/diary/diary_edit.dart';
 
-class FactoryDiary extends StatelessWidget{
+class FactoryDiaryEdit extends StatelessWidget{
 
-  var _rootPages = <Widget>[ DiaryList(), DiaryDetail(), FactoryDiaryEdit()];
+  var _rootPages = <Widget>[ DiaryEdit(), EditRecipi(), EditPhoto()];
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +17,7 @@ class FactoryDiary extends StatelessWidget{
 //        if(DisplayState.edit >= rootPage.length){
 //          return ErrorPage();
 //        }
-        return _rootPages[Display.state];
+        return _rootPages[Display.editType];
       },
     );
   }
