@@ -136,7 +136,7 @@ class _RecipiListState extends State<RecipiList>{
       });
     });
     //取得したタグをstoreに保存
-    Provider.of<Display>(context, listen: false).setTags(_tags);
+//    Provider.of<Display>(context, listen: false).setTags(_tags);
     //チェックボックス付きタグリスト
     this._displayTags = Provider.of<Display>(context, listen: false).createCheckList(type: 2);
     this._oldTags = Provider.of<Display>(context, listen: false).createCheckList(type: 2);
@@ -840,93 +840,6 @@ class _RecipiListState extends State<RecipiList>{
     refreshImages(); //レコードリフレッシュ
   }
 
-  //タグリストエリア
-  Column _createTagList(){
-    List<Widget> column = new List<Widget>();
-
-    //チェックBox付きタグリストの生成
-//    List<Check> tags = Provider.of<Display>(context, listen: false).createCheckList(type: 2);
-
-    //フォルダリストを展開する
-    for(var i=0; i < this._displayTags.length; i++){
-
-      column.add(
-        SizedBox(
-//          height: MediaQuery.of(context).size.height * 0.06,
-//          width: MediaQuery.of(context).size.width * 0.7,
-          child: Container(
-            color: Colors.white,
-            child: InkWell(
-                child: Row(
-//                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Container(
-                      padding: EdgeInsets.all(5),
-                      child: SizedBox(
-                        height: 50,
-                        width: 50,
-                        child: Container(
-                          color: Colors.grey,
-                          child: Icon(Icons.local_offer,color: Colors.white,size: 30,),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.4,
-                      padding: EdgeInsets.all(5),
-                      child: Text('${this._displayTags[i].name}',
-                        maxLines: 1,
-                        style: TextStyle(
-                          fontSize: 15,
-//                              fontWeight: FontWeight.bold
-                        ),),
-                    ),
-                    Container(
-//                      width: MediaQuery.of(context).size.width * 0.1,
-                      padding: EdgeInsets.all(5),
-                    ),
-                    Container(
-//                        width: MediaQuery.of(context).size.width * 0.1,
-//                      padding: EdgeInsets.all(5),
-                        child:
-                        Checkbox(
-                          value: this._displayTags[i].isCheck,
-                          onChanged: (bool value){
-//                              onTabCheck(index: i,value: value);
-//                            _onTagCheck(index: i,type: 2);
-                            setState(() {
-                              this._displayTags[i].isCheck = !this._displayTags[i].isCheck;
-                              print('ID:${this._displayTags[i].id},NAME:${this._displayTags[i].name},isCheck:${this._displayTags[i].isCheck}');
-                            });
-                          },
-                        )
-                    ),
-                  ],
-                ),
-                onTap: (){
-//                      _onTabCheck(index: i,type: 2);
-                  setState(() {
-                    this._displayTags[i].isCheck = !this._displayTags[i].isCheck;
-                    print('ID:${this._displayTags[i].id},NAME:${this._displayTags[i].name},isCheck:${this._displayTags[i].isCheck}');
-                  });
-                }
-            ),
-          ),
-        ),
-      );
-      column.add(
-        Divider(
-          color: Colors.grey,
-          height: 0.5,
-          thickness: 0.5,
-        ),
-      );
-    }
-    return Column(
-      children: column,
-    );
-  }
-
   //タグ検索モーダルにてタグが選択されている場合trueを返す
   bool _isTagSeachFlg(){
     for(var i = 0; i < this._displayTags.length; i++){
@@ -1076,6 +989,26 @@ class _RecipiListState extends State<RecipiList>{
     });
   }
 
+  //チェックボックスにて選択した値を返す
+  String _selectedCount(){
+    int count = 0;
+    for(var i = 0; i < this._displayList.length; i++){
+      if(this._displayList[i].isCheck){
+        count++;
+      }
+    }
+    for(var i = 0; i < this._folders.length; i++){
+      if(_folders[i].isCheck){
+        count++;
+      }
+    }
+    if(count == 0){
+      return '';
+    }
+    return count.toString();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1084,7 +1017,7 @@ class _RecipiListState extends State<RecipiList>{
         leading: _isCheck ? Container() : menuBtn(),
         elevation: 0.0,
         title: Center(
-          child: Text(_isCheck ? '個選択':'レシピ',
+          child: Text(_isCheck ? '${_selectedCount()}個選択':'レシピ',
             style: TextStyle(
                 color: Colors.white,
                 fontSize: 25,
@@ -1487,76 +1420,5 @@ class _RecipiListState extends State<RecipiList>{
         ),
       );
   }
-
-//  Widget showList(){
-//    return Center(
-//      child: Column(
-//        mainAxisAlignment: MainAxisAlignment.start,
-//        children: <Widget>[
-//          Flexible(
-////              child: gridView(),
-//            child: ListView.builder(
-//                itemCount: _recipis == null ? 0: _recipis.length,
-//                itemBuilder: (BuildContext context,int index){
-//                  return InkWell(
-//                    child: Card(
-//                      color: Colors.white,
-//                      child: Container(
-//                        height: MediaQuery.of(context).size.height * 0.10,
-//                        child: Row(
-//                          children: <Widget>[
-////                            images[index].topImage == null
-////                              ? Container(
-//                              Container(
-////                                  padding: EdgeInsets.all(10),
-//                                  width: 100,
-//                                  height: 100,
-//                                  child:
-//                                  _recipis[index].thumbnail.isEmpty
-//                                     ? const Icon(Icons.camera_alt,color: Colors.white,)
-//                                     : Image.file(File(_recipis[index].thumbnail)),
-//                                  decoration: BoxDecoration(
-//                                    color: _recipis[index].thumbnail.isEmpty ? Colors.grey : Colors.white,
-//                                  ),
-//                                ),
-//                            Column(
-//                              children: <Widget>[
-//                                Container(
-//                                  child: SizedBox(
-//                                    width: MediaQuery.of(context).size.width * 0.7,
-//                                    height: 30,
-//                                    child: ListTile(
-//                                      title: Text('${_recipis[index].title}'),
-////                                    title: Text(''),
-//                                    ),
-//                                  ),
-//                                ),
-//                                Container(
-//                                  child: SizedBox(
-//                                    width: MediaQuery.of(context).size.width * 0.7,
-//                                    child: ListTile(
-//                                      title: Text('${_recipis[index].description}'),
-////                                    title: Text(''),
-//                                    ),
-//                                  ),
-//                                ),
-//                              ],
-//                            )
-//                          ],
-//                        ),
-//                      ),
-//                    ),
-//                    onTap: (){
-//                      _onDetail(index);
-//                    },
-//                  );
-//                }
-//            ),
-//          )
-//        ],
-//      ),
-//    );
-//  }
-
 
 }

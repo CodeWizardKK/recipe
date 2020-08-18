@@ -22,9 +22,9 @@ class AlbumList extends StatefulWidget {
 class _AlbumListState extends State<AlbumList>{
 
   DBHelper dbHelper;
-  List<DPhoto> _photoAll = List<DPhoto>();
-  bool _isCheck = false;
-  List<bool> _selected = List<bool>();
+  List<DPhoto> _photoAll = List<DPhoto>(); //アルバム
+  bool _isCheck = false;                   //true:右上Checkアイコン押下時
+  List<bool> _selected = List<bool>();     //右上Checkアイコン押下時に表示するチェックボックス
 
   @override
   void initState() {
@@ -51,10 +51,11 @@ class _AlbumListState extends State<AlbumList>{
         this._photoAll.addAll(item);
       });
     });
-    print('アルバム件数：${this._photoAll.length}');
+//    print('アルバム件数：${this._photoAll.length}');
 
   }
 
+  //チェックボックスにて選択した値を返す
   String _selectedCount(){
     int count = 0;
     for(var i = 0; i < this._selected.length; i++){
@@ -78,7 +79,7 @@ class _AlbumListState extends State<AlbumList>{
 
   //編集処理
   void _onEdit(int selectedId,BuildContext context){
-    print('selectId[${selectedId}]');
+//    print('selectId[${selectedId}]');
     //idをset
     Provider.of<Display>(context, listen: false).setId(selectedId);
     if(selectedId == -1){
@@ -135,7 +136,6 @@ class _AlbumListState extends State<AlbumList>{
 
     //選択した日記をセットする
     Provider.of<Edit>(context, listen: false).setDiary(diary);
-
     //ごはん日記をset
     Provider.of<Display>(context, listen: false).setCurrentIndex(2);
     //2:詳細画面へ遷移
@@ -223,7 +223,7 @@ class _AlbumListState extends State<AlbumList>{
                   _isCheck
                   ? setState((){
                       _selected[index] = !_selected[index];
-                      print('selected:${this._selected}');
+//                      print('selected:${this._selected}');
                     })
                   : _onDetail(photo: _photoAll[index]);
                 },
@@ -239,7 +239,7 @@ class _AlbumListState extends State<AlbumList>{
                     onTap: (){
                       setState(() {
                         _selected[index] = !_selected[index];
-                        print('selected:${this._selected}');
+//                        print('selected:${this._selected}');
                       });
                     },
                     child: Container(
@@ -258,7 +258,7 @@ class _AlbumListState extends State<AlbumList>{
                     onPressed: (){
                       setState(() {
                         _selected[index] = !_selected[index];
-                        print('selected:${this._selected}');
+//                        print('selected:${this._selected}');
                       });
                     },
                   ),

@@ -788,6 +788,20 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
     return tags;
   }
 
+  //チェックボックスにて選択した値を返す
+  String _selectedCount(){
+    int count = 0;
+    for(var i = 0; i < this._displayList.length; i++){
+      if(this._displayList[i].isCheck){
+        count++;
+      }
+    }
+    if(count == 0){
+      return '';
+    }
+    return count.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -796,7 +810,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
         leading: backBtn(),
         elevation: 0.0,
         title: Center(
-          child: Text(_isCheck ? '個選択':'${_folder.name}',
+          child: Text(_isCheck ? '${_selectedCount()}個選択':'${_folder.name}',
             style: TextStyle(
               color: Colors.white,
               fontSize: 25,
