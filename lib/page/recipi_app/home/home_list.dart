@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
+import 'package:recipe_app/store/diary/edit_state.dart';
+import 'package:intl/intl.dart';
 
 class HomeList extends StatefulWidget{
 
@@ -18,6 +20,8 @@ class _HomeListState extends State<HomeList>{
 
   void _changeBottomNavigation(int index,BuildContext context){
     Provider.of<Display>(context, listen: false).setCurrentIndex(index);
+    //一覧リストへ遷移
+    Provider.of<Display>(context, listen: false).setState(0);
   }
 
   //編集処理
@@ -26,16 +30,28 @@ class _HomeListState extends State<HomeList>{
     print('selectId[${selectedId}]');
     //idをset
     Provider.of<Display>(context, listen: false).setId(selectedId);
-    //レシピ種別をset
-    Provider.of<Display>(context, listen: false).setType(type);
-    //材料をreset
-    Provider.of<Display>(context, listen: false).resetIngredients();
-    //
-    Provider.of<Display>(context, listen: false).setIsHome(true);
+    //ごはん日記
+    if(type == 4){
+      DateFormat formatter = DateFormat('yyyy-MM-dd');
+      String dateString = formatter.format(DateTime.now());
+      Provider.of<Edit>(context, listen: false).setDate(dateString);
+      //リセット処理
+      Provider.of<Edit>(context, listen: false).reset(); //編集フォーム
+      //ごはん日記をset
+      Provider.of<Display>(context, listen: false).setCurrentIndex(2);
+     //レシピ
+    }else{
+      //レシピ種別をset
+      Provider.of<Display>(context, listen: false).setType(type);
+      //材料をreset
+      Provider.of<Display>(context, listen: false).resetIngredients();
+      //レシピをset
+      Provider.of<Display>(context, listen: false).setCurrentIndex(1);
+    }
+    //戻る画面をセット
+    Provider.of<Display>(context, listen: false).setBackScreen(3);
     //2:編集状態をset
     Provider.of<Display>(context, listen: false).setState(2);
-    //レシピをset
-    Provider.of<Display>(context, listen: false).setCurrentIndex(1);
 
   }
 
@@ -174,6 +190,7 @@ class _HomeListState extends State<HomeList>{
                     ),
                     onTap:(){
                       print('ごはん日記を追加');
+                      _onEdit(selectedId:-1,type: 4);
                     }
                 ),
               ),

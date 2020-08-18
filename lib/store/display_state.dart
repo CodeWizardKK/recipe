@@ -13,11 +13,10 @@ import 'package:recipe_app/model/CheckRecipi.dart';
 
 //表示ステータスの状態クラス
 class Display with ChangeNotifier{
-  int type = 0;           //レシピ種別 1:写真レシピ 2:MYレシピ
+  int type = 0;           //レシピ種別 1:写真レシピ 2:MYレシピ 3:テキストレシピ 4:ごはん日記
   int state = 0;          // 0 :一覧 1:詳細 2:編集 3:レシピの整理 4:フォルダ別レシピ一覧 9:エラー
   int currentIndex = 0;   //0:ホーム 1:レシピ 2:ご飯日記 3:アルバム
   int editType = 0;       //0:編集画面TOP 1:タイトル編集欄orレシピの追加編集欄 2:材料編集欄or写真の追加編集欄 3:作り方編集欄
-  bool isHome = false;    //true:ホーム画面に戻る
   List<Myrecipi> recipis = List<Myrecipi>();     //レシピ全件
   List<Myrecipi> searchs = List<Myrecipi>();     //レシピ検索結果
   List<Myrecipi> searchsTX = List<Myrecipi>();     //レシピ検索結果
@@ -41,7 +40,7 @@ class Display with ChangeNotifier{
   //フォルダ別レシピ一覧//
   /////////////////////
   MstFolder folder;
-  bool isFolderBy = false;                 //true:フォルダ別レシピ一覧表示
+  int backScreen = 0;                       //0:レシピのレシピ一覧 1:レシピのフォルダ別レシピ一覧 2:ごはん日記の日記詳細レシピ一覧 3:ホーム画面
 
 
 
@@ -58,22 +57,13 @@ class Display with ChangeNotifier{
 
 
 
-  void setIsHome(bool isHome){
-    this.isHome = isHome;
-    notifyListeners();
+  void setBackScreen(int backScreen){
+    this.backScreen = backScreen;
+//    notifyListeners();
   }
 
-  bool getIsHome(){
-    return this.isHome;
-  }
-
-  void setIsFolderBy(bool isFolderBy){
-    this.isFolderBy = isFolderBy;
-    notifyListeners();
-  }
-
-  bool getIsFolderBy(){
-    return this.isFolderBy;
+  int getBackScreen(){
+    return this.backScreen;
   }
 
   void setFolder(Check folder){
@@ -456,7 +446,7 @@ class Display with ChangeNotifier{
     this.ingredients.clear();
     this.howTos.clear();
     this.id = -1;
-    this.setIsHome(false);
+//    this.backScreen = 0;
   }
 
   //サムネイル画像の取得

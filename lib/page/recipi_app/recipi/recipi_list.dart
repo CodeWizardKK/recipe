@@ -63,6 +63,8 @@ class _RecipiListState extends State<RecipiList>{
     _displayTags = [];
     _oldTags = [];
 
+    //戻る画面をセット
+    Provider.of<Display>(context, listen: false).setBackScreen(0);
     //レコードリフレッシュ
     this.refreshImages();
   }
@@ -127,7 +129,7 @@ class _RecipiListState extends State<RecipiList>{
     Provider.of<Display>(context, listen: false).setMstTag(_Mtags);
 
     //タグリストの取得
-    await dbHelper.getTags().then((item){
+    await dbHelper.getAllTags().then((item){
       setState(() {
         _tags.clear();
         _tags.addAll(item);
@@ -144,6 +146,8 @@ class _RecipiListState extends State<RecipiList>{
   //ナビゲーションバー
   void _changeBottomNavigation(index){
     Provider.of<Display>(context, listen: false).setCurrentIndex(index);
+    //一覧リストへ遷移
+    Provider.of<Display>(context, listen: false).setState(0);
   }
 
   //編集処理
@@ -334,8 +338,8 @@ class _RecipiListState extends State<RecipiList>{
 //    Provider.of<Display>(context, listen: false).setTags(_tags);
 //    //取得した材料をstoreに保存
 //    Provider.of<Display>(context, listen: false).setIngredients(this._ingredients);
-    //フォルダ別レシピ一覧
-    Provider.of<Display>(context, listen: false).setIsFolderBy(true);
+    //戻る画面をセット
+    Provider.of<Display>(context, listen: false).setBackScreen(1);
     //4:フォルダ別レシピ一覧へ遷移
     Provider.of<Display>(context, listen: false).setState(4);
 }
@@ -353,7 +357,7 @@ class _RecipiListState extends State<RecipiList>{
     print('②${howTos.length}');
     Provider.of<Detail>(context, listen: false).setHowTos(howTos);
     }else{
-      var photos = await dbHelper.getPhotos(this._displayList[index].id);
+      var photos = await dbHelper.getRecipiPhotos(this._displayList[index].id);
       Provider.of<Detail>(context, listen: false).setPhotos(photos);
     }
     //2:詳細画面へ遷移
@@ -579,17 +583,17 @@ class _RecipiListState extends State<RecipiList>{
                       ),
                      //サムネイルエリア
                     this._displayList[i].thumbnail.isNotEmpty
-                        ? SizedBox(
-                          height: 100,
-                          width: 100,
+                        ? Card(
                           child: Container(
+                            height: 100,
+                            width: 100,
                             child: Image.file(File(this._displayList[i].thumbnail)),
                           ),
                         )
-                        : SizedBox(
-                          height: 100,
-                          width: 100,
+                        : Card(
                           child: Container(
+                            height: 100,
+                            width: 100,
                             color: Colors.grey,
                                 child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
                           ),
@@ -772,8 +776,22 @@ class _RecipiListState extends State<RecipiList>{
       for(var i = 0; i < ids.length; i++){
         //フォルダマスタ削除
         await dbHelper.deleteMstFolder(ids[i]);
+        //フォルダマスタで削除したIDに紐づくレシピを取得する
+        List<Myrecipi> recipis = await dbHelper.getMyRecipibyFolderID(ids[i]);
         //フォルダマスタで削除したIDに紐づくレシピを削除する
         await dbHelper.deleteMyRecipiFolderId(ids[i]);
+        for(var j = 0; j < recipis.length; j++){
+          //レシピIDに紐づくタグを削除する
+          await dbHelper.deletetag(recipis[j].id);
+          //レシピIDに紐づく材料リストを削除
+          await dbHelper.deleteRecipiIngredient(recipis[j].id);
+          //レシピIDに紐づく作り方リストを削除
+          await dbHelper.deleteRecipiHowto(recipis[j].id);
+          //レシピIDに紐づく写真リストを削除
+          await dbHelper.deleteRecipiPhoto(recipis[j].id);
+          //削除したレシピIDに紐づくごはん日記のレシピリストを削除する
+          await dbHelper.deleteDiaryRecipibyRecipiID(recipis[j].id);
+        }
       }
     }
 
@@ -786,7 +804,6 @@ class _RecipiListState extends State<RecipiList>{
     }
     if(ids.length > 0){
       print('削除するレシピID：${ids}');
-      //フォルダマスタ削除処理
       for(var i = 0; i < ids.length; i++){
         //レシピを削除
         await dbHelper.deleteMyRecipi(ids[i]);
@@ -797,7 +814,8 @@ class _RecipiListState extends State<RecipiList>{
         //レシピIDに紐づく作り方リストを削除
         await dbHelper.deleteRecipiHowto(ids[i]);
         //レシピIDに紐づく写真リストを削除
-        await dbHelper.deleteRecipiPhoto(ids[i]);
+        //レシピIDに紐づくごはん日記のレシピリストを削除する
+        await dbHelper.deleteDiaryRecipibyRecipiID(ids[i]);
       }
     }
 

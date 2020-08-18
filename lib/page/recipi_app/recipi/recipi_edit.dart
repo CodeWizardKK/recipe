@@ -31,16 +31,14 @@ class _RecipiEditState extends State<RecipiEdit>{
   List<HowTo> _howTos;            //作り方リスト
   List<Photo> _photos;            //詳細の内容の写真(写真を追加欄)
 //  List<File> imageFiles = new List<File>(); //詳細の内容の写真(写真を追加欄)
-  bool _isFolderBy = false;       //true:フォルダ別レシピ一覧へ遷移
-  bool _isHome = false;       //true:フォルダ別レシピ一覧へ遷移
+  int _backScreen = 0;          //0:レシピのレシピ一覧 1:レシピのフォルダ別レシピ一覧 2:ごはん日記の日記詳細レシピ一覧 3:ホーム画面
 
   @override
   void initState() {
     super.initState();
     dbHelper = DBHelper();
     //戻る画面を取得
-    this._isFolderBy = Provider.of<Display>(context, listen: false).getIsFolderBy();
-    this._isHome = Provider.of<Display>(context, listen: false).getIsHome();
+    this._backScreen = Provider.of<Display>(context, listen: false).getBackScreen();
     //idを取得
     _selectedID = Provider.of<Display>(context, listen: false).getId();
     print('ID:${_selectedID}');
@@ -86,16 +84,21 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //一覧リストへ遷移
   void _onList(){
-    if(this._isFolderBy){
+    if(this._backScreen == 1) {
       //フォルダ別一覧リストへ遷移
       Provider.of<Display>(context, listen: false).setState(4);
+    }else if(this._backScreen == 2){
+      //2:ごはん日記へ遷移
+      Provider.of<Display>(context, listen: false).setCurrentIndex(2);
+      Provider.of<Display>(context, listen: false).setState(1);
+    }else if(this._backScreen == 3){
+      //ホーム画面へ遷移
+      Provider.of<Display>(context, listen: false).setCurrentIndex(0);
+      //一覧リストへ遷移
+      Provider.of<Display>(context, listen: false).setState(0);
     }else{
       //一覧リストへ遷移
       Provider.of<Display>(context, listen: false).setState(0);
-    }
-    if(this._isHome){
-      //ホーム画面へ遷移
-      Provider.of<Display>(context, listen: false).setCurrentIndex(0);
     }
     _init();
   }
@@ -266,7 +269,7 @@ class _RecipiEditState extends State<RecipiEdit>{
         //写真レシピの場合
       } else {
         //recipi_photoテーブルをselectし、set
-        var photos = await dbHelper.getPhotos(_selectedID);
+        var photos = await dbHelper.getRecipiPhotos(_selectedID);
         Provider.of<Detail>(context, listen: false).setPhotos(photos);
       }
       //詳細画面へ遷移
@@ -726,6 +729,8 @@ class _RecipiEditState extends State<RecipiEdit>{
     await dbHelper.deleteMyRecipi(this._selectedID);
     //レシピIDに紐づくタグを削除する
     await dbHelper.deletetag(this._selectedID);
+    //レシピIDに紐づくごはん日記のレシピリストを削除する
+    await dbHelper.deleteDiaryRecipibyRecipiID(this._selectedID);
     //MYレシピの場合
     if(this._type == 2){
       //材料リストを削除

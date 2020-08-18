@@ -95,6 +95,8 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
   //ナビゲーションバー
   void _changeBottomNavigation(index){
     Provider.of<Display>(context, listen: false).setCurrentIndex(index);
+    //一覧リストへ遷移
+    Provider.of<Display>(context, listen: false).setState(0);
   }
 
   //編集処理
@@ -281,7 +283,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
       print('②${howTos.length}');
       Provider.of<Detail>(context, listen: false).setHowTos(howTos);
     }else{
-      var photos = await dbHelper.getPhotos(_recipis[index].id);
+      var photos = await dbHelper.getRecipiPhotos(_recipis[index].id);
       Provider.of<Detail>(context, listen: false).setPhotos(photos);
     }
     //2:詳細画面へ遷移
@@ -309,7 +311,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
   //レシピリストへ戻るボタン押下時処理
   void _onBack(){
     //フォルダ別レシピ一覧
-    Provider.of<Display>(context, listen: false).setIsFolderBy(false);
+    Provider.of<Display>(context, listen: false).setBackScreen(0);
     //0 :一覧へ遷移
     Provider.of<Display>(context, listen: false).setState(0);
 //    _init();
@@ -368,17 +370,17 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                       ),
                     //サムネイルエリア
                     this._displayList[i].thumbnail.isNotEmpty
-                        ? SizedBox(
-                      height: 100,
-                      width: 100,
+                        ? Card(
                       child: Container(
+                        height: 100,
+                        width: 100,
                         child: Image.file(File(this._displayList[i].thumbnail)),
                       ),
                     )
-                        : SizedBox(
-                      height: 100,
-                      width: 100,
+                        : Card(
                       child: Container(
+                        height: 100,
+                        width: 100,
                         color: Colors.grey,
                         child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
                       ),
@@ -563,6 +565,8 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
         await dbHelper.deleteRecipiHowto(ids[i]);
         //レシピIDに紐づく写真リストを削除
         await dbHelper.deleteRecipiPhoto(ids[i]);
+        //レシピIDに紐づくごはん日記のレシピリストを削除する
+        await dbHelper.deleteDiaryRecipibyRecipiID(ids[i]);
       }
     }
 
@@ -772,7 +776,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
   Future<List<Tag>> getTags() async {
     //材料の取得
     List<Tag> tags = [];
-    await dbHelper.getTags().then((item){
+    await dbHelper.getAllTags().then((item){
       setState(() {
         tags.clear();
         tags.addAll(item);

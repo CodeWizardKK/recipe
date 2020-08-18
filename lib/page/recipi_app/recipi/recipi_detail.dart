@@ -25,7 +25,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
   List<Ingredient> _ingredients;      //レシピIDに紐づく材料リスト
   List<HowTo> _howTos;                //レシピIDに紐づく作り方リスト
   List<Photo> _photos;                //レシピIDに紐づく写真
-  bool _isFolderBy = false;       //true:フォルダ別レシピ一覧へ遷移
+  int _backScreen = 0;        //0:レシピのレシピ一覧 1:レシピのフォルダ別レシピ一覧 2:ごはん日記の日記詳細レシピ一覧 3:ホーム画面
 
 
   @override
@@ -44,14 +44,22 @@ class _RecipiDetailState extends State<RecipiDetail>{
       this._recipi = Provider.of<Detail>(context, listen: false).getRecipi();
     });
     //戻る画面を取得
-    this._isFolderBy = Provider.of<Display>(context, listen: false).getIsFolderBy();
+    this._backScreen = Provider.of<Display>(context, listen: false).getBackScreen();
   }
 
   //レシピリストへ戻るボタン押下時処理
   void _onList(){
-    if(this._isFolderBy){
+    if(this._backScreen == 1) {
       //フォルダ別一覧リストへ遷移
       Provider.of<Display>(context, listen: false).setState(4);
+    }else if(this._backScreen == 2){
+      //2:ごはん日記へ遷移
+      Provider.of<Display>(context, listen: false).setCurrentIndex(2);
+//      //1:日記詳細レシピ一覧
+//      Provider.of<Display>(context, listen: false).setState(1);
+    }else if(this._backScreen == 3){
+      //ホーム画面へ遷移
+      Provider.of<Display>(context, listen: false).setCurrentIndex(0);
     }else{
       //一覧リストへ遷移
       Provider.of<Display>(context, listen: false).setState(0);
@@ -177,10 +185,10 @@ class _RecipiDetailState extends State<RecipiDetail>{
                       ),
                     ),
                     _howTos[i].photo.isNotEmpty
-                        ? SizedBox(
-                      height: 100,
-                      width: 100,
+                        ? Card(
                       child: Container(
+                        height: 100,
+                        width: 100,
                           child: Image.file(File(_howTos[i].photo)),
                       ),
                     )

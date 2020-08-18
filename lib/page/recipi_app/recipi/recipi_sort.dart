@@ -32,7 +32,7 @@ class _RecipiSortState extends State<RecipiSort>{
 
   String _name = '';             //モーダルにて入力した値
   int _sortType = 0;             //表示タイプ 0:全表示 1:フォルダのみ 2:タグのみ
-  bool _isFolderBy = false;       //true:フォルダ別レシピ一覧へ遷移
+  int _backScreen = 0;       //0:レシピのレシピ一覧 1:レシピのフォルダ別レシピ一覧 2:ごはん日記の日記詳細レシピ一覧 3:ホーム画面
 
 
   @override
@@ -59,7 +59,7 @@ class _RecipiSortState extends State<RecipiSort>{
 //    }
 
   //戻る画面を取得
-    this._isFolderBy = Provider.of<Display>(context, listen: false).getIsFolderBy();
+    this._backScreen = Provider.of<Display>(context, listen: false).getBackScreen();
 
   }
 
@@ -68,10 +68,17 @@ class _RecipiSortState extends State<RecipiSort>{
 
     //レシピの整理での表示タイプをset
     Provider.of<Display>(context, listen: false).setSortType(0);
-
-    if(this._isFolderBy){
+    if(this._backScreen == 1) {
       //フォルダ別一覧リストへ遷移
       Provider.of<Display>(context, listen: false).setState(4);
+    }else if(this._backScreen == 2){
+      //2:ごはん日記へ遷移
+      Provider.of<Display>(context, listen: false).setCurrentIndex(2);
+//      //1:日記詳細レシピ一覧
+//      Provider.of<Display>(context, listen: false).setState(1);
+    }else if(this._backScreen == 3){
+      //ホーム画面へ遷移
+      Provider.of<Display>(context, listen: false).setCurrentIndex(0);
     }else{
       //一覧リストへ遷移
       Provider.of<Display>(context, listen: false).setState(0);
@@ -174,7 +181,7 @@ class _RecipiSortState extends State<RecipiSort>{
       //フォルダIDを更新する
       List ids = Provider.of<Display>(context, listen: false).getIds();
       for(var i = 0; i < ids.length; i++){
-        await dbHelper.updateFolderId(id: ids[i],folder_id: folder_id);
+        await dbHelper.updateFolderId(recipi_id: ids[i],folder_id: folder_id);
       }
 
     //タグ付けボタン
@@ -201,6 +208,7 @@ class _RecipiSortState extends State<RecipiSort>{
       //変更前のフォルダIDを取得
       int old_folder_id = recipi.folder_id;
       //変更後のフォルダIDを取得
+      recipi.folder_id = 0;
       for(var i = 0; i < this._folders.length; i++){
         if(this._folders[i].isCheck ){
           recipi.folder_id = this._folders[i].id;
