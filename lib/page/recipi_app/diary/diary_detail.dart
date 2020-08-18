@@ -26,7 +26,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
   DisplayDiary _diary = DisplayDiary();    //選択したごはん日記
   List<Recipi> _recipis = List<Recipi>();  //選択したごはん日記に紐づくレシピリストを格納
   int _photoIndex = 0;                     //サムネイルで表示する写真のindexを格納
-//  int _backScreen = 0;                   //戻る画面を格納[0:レシピのレシピ一覧 1:レシピのフォルダ別レシピ一覧 2:ごはん日記の日記詳細レシピ一覧 3:ホーム画面]
+  int _backScreen = 0;                   //戻る画面を格納[0:レシピのレシピ一覧 1:レシピのフォルダ別レシピ一覧 2:ごはん日記の日記詳細レシピ一覧 3:ホーム画面]
 
   @override
   void initState() {
@@ -37,8 +37,8 @@ class _DiaryDetailState extends State<DiaryDetail>{
   _getItem() async {
     dbHelper = DBHelper();
     setState(() {
-//    //戻る画面を取得
-//    this._backScreen = Provider.of<Display>(context, listen: false).getIsFolderBy();
+      //戻る画面を取得
+      this._backScreen = Provider.of<Display>(context, listen: false).getBackScreen();
       //選択した日記の取得
       this._diary = Provider.of<Edit>(context, listen: false).getDiary();
     });
@@ -132,7 +132,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                       height: 100,
                       width: 100,
                       child: Container(
-                        child: Image.file(File(this._recipis[i].recipi.thumbnail)),
+                        child: Image.file(File(this._recipis[i].recipi.thumbnail),fit: BoxFit.cover,),
                       ),
                     )
                         : SizedBox(
@@ -271,19 +271,13 @@ class _DiaryDetailState extends State<DiaryDetail>{
 
   //ごはん日記リストへ戻るボタン押下時処理
   void _onBack(){
-//    if(this._backScreen == 1) {
-//      //フォルダ別一覧リストへ遷移
-//      Provider.of<Display>(context, listen: false).setState(4);
-//    }else if(this._backScreen == 2){
-//      //2:ごはん日記へ遷移
-//      Provider.of<Display>(context, listen: false).setCurrentIndex(2);
-//    }else if(this._backScreen == 3){
-//      //ホーム画面へ遷移
-//      Provider.of<Display>(context, listen: false).setCurrentIndex(0);
-//    }else{
-      //一覧リストへ遷移
-      Provider.of<Display>(context, listen: false).setState(0);
-//    }
+    //アルバム
+    if(this._backScreen == 4) {
+      //4:アルバムへ遷移
+      Provider.of<Display>(context, listen: false).setCurrentIndex(3);
+    }
+    //一覧リストへ遷移
+    Provider.of<Display>(context, listen: false).setState(0);
 //    _init();
   }
 
@@ -467,7 +461,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
             height: MediaQuery.of(context).size.height * 0.40,
             width: MediaQuery.of(context).size.width,
             child: Container(
-              child: Image.file((File(_diary.photos[_photoIndex].path))),
+              child: Image.file(File(_diary.photos[_photoIndex].path),fit: BoxFit.cover,),
           ),
         );
   }
@@ -501,7 +495,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                                 ? Container(
                               width: 100,
                               height: 100,
-                              child: Image.file(File(_diary.photos[index].path),),
+                              child: Image.file(File(_diary.photos[index].path),fit: BoxFit.cover,),
                               decoration: (
                                   BoxDecoration(
                                       border: Border.all(
@@ -515,7 +509,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                                 : Container(
                               width: 100,
                               height: 100,
-                              child: Image.file(File(_diary.photos[index].path),),
+                              child: Image.file(File(_diary.photos[index].path),fit: BoxFit.cover,),
                             )
                         ),
                       ],

@@ -49,14 +49,17 @@ class _RecipiDetailState extends State<RecipiDetail>{
 
   //レシピリストへ戻るボタン押下時処理
   void _onList(){
+    //レシピ
     if(this._backScreen == 1) {
       //フォルダ別一覧リストへ遷移
       Provider.of<Display>(context, listen: false).setState(4);
-    }else if(this._backScreen == 2){
+    //ごはん日記または、アルバム
+    }else if(this._backScreen == 2 || this._backScreen == 4 ){
       //2:ごはん日記へ遷移
       Provider.of<Display>(context, listen: false).setCurrentIndex(2);
 //      //1:日記詳細レシピ一覧
 //      Provider.of<Display>(context, listen: false).setState(1);
+    //ホーム
     }else if(this._backScreen == 3){
       //ホーム画面へ遷移
       Provider.of<Display>(context, listen: false).setCurrentIndex(0);
@@ -189,7 +192,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
                       child: Container(
                         height: 100,
                         width: 100,
-                          child: Image.file(File(_howTos[i].photo)),
+                          child: Image.file(File(_howTos[i].photo),fit: BoxFit.cover,),
                       ),
                     )
                         : Container(),
@@ -236,7 +239,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
           width: MediaQuery.of(context).size.width,
           child: Container(
             child: InkWell(
-                child: Image.file(File(_photos[i].path)),
+                child: Image.file(File(_photos[i].path),fit: BoxFit.cover,),
                 onTap: (){
 //                  print('###tap!!!!');
 //                  print('no:${_photos[i].no},path:${_photos[i].path}');
@@ -416,7 +419,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
                   width: MediaQuery.of(context).size.width,
                   child: Container(
                     child: InkWell(
-                    child: Image.file((File(_recipi.thumbnail))),
+                    child: Image.file(File(_recipi.thumbnail),fit: BoxFit.cover,),
                     onTap: (){
 //                      _showImgSelectModal(thumbnail: true);
                     }

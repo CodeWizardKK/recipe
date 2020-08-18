@@ -40,17 +40,18 @@ class _DiaryEditState extends State<DiaryEdit>{
 
   //一覧リストへ遷移
   void _onList(){
+    //レシピ
     if(this._backScreen == 1) {
       //フォルダ別一覧リストへ遷移
       Provider.of<Display>(context, listen: false).setState(4);
+
+    //ごはん日記
     }else if(this._backScreen == 2){
       if(this._isDelete){
         //一覧リストへ遷移
         Provider.of<Display>(context, listen: false).setState(0);
       }else{
         if(this._selectedID == -1){
-//      //2:ごはん日記へ遷移
-//      Provider.of<Display>(context, listen: false).setCurrentIndex(2);
           //一覧リストへ遷移
           Provider.of<Display>(context, listen: false).setState(0);
         }else{
@@ -58,9 +59,28 @@ class _DiaryEditState extends State<DiaryEdit>{
           Provider.of<Display>(context, listen: false).setState(1);
         }
       }
+
+    //ホーム
     }else if(this._backScreen == 3){
       //ホーム画面へ遷移
       Provider.of<Display>(context, listen: false).setCurrentIndex(0);
+
+    //アルバム
+    }else if(this._backScreen == 4){
+      if(this._isDelete){
+        //一覧リストへ遷移
+        Provider.of<Display>(context, listen: false).setState(0);
+        //4:アルバムへ遷移
+        Provider.of<Display>(context, listen: false).setCurrentIndex(3);
+      }else{
+        if(this._selectedID == -1){
+          //4:アルバムへ遷移
+          Provider.of<Display>(context, listen: false).setCurrentIndex(3);
+        }else{
+          //詳細リストへ遷移
+          Provider.of<Display>(context, listen: false).setState(1);
+        }
+      }
     }else{
       //一覧リストへ遷移
       Provider.of<Display>(context, listen: false).setState(0);
