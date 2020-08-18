@@ -374,7 +374,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                       child: Container(
                         height: 100,
                         width: 100,
-                        child: Image.file(File(this._displayList[i].thumbnail)),
+                        child: Image.file(File(this._displayList[i].thumbnail),fit: BoxFit.cover,),
                       ),
                     )
                         : Card(

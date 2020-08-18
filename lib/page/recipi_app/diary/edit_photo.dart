@@ -160,6 +160,9 @@ class _EditPhotoState extends State<EditPhoto>{
   Widget buildGridView(){
     return GridView.count(
       crossAxisCount:3,
+      crossAxisSpacing: 2.0,
+      mainAxisSpacing: 2.0,
+      shrinkWrap: true,
       children: List.generate(_photos.length, (index){
         return Container(
           child:Stack(
@@ -167,7 +170,7 @@ class _EditPhotoState extends State<EditPhoto>{
               Container(
                 width: 300,
                 height: 300,
-                child: Image.file(File(_photos[index].path),),
+                child: Image.file(File(_photos[index].path),fit: BoxFit.cover,),
               ),
               Positioned(
                 left: 100,

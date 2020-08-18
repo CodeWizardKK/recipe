@@ -139,7 +139,7 @@ class _EditRecipiState extends State<EditRecipi>{
                       height: 100,
                       width: 100,
                       child: Container(
-                        child: Image.file(File(this._recipis[i].thumbnail)),
+                        child: Image.file(File(this._recipis[i].thumbnail),fit: BoxFit.cover,),
                       ),
                     )
                         : SizedBox(
@@ -317,7 +317,7 @@ class _EditRecipiState extends State<EditRecipi>{
                     child: Container(
                       width: 100,
                       height: 100,
-                      child: Image.file(File(_selectedRecipis[index].image),),
+                      child: Image.file(File(_selectedRecipis[index].image),fit: BoxFit.cover,),
                     ),
                   )
                   : Card(

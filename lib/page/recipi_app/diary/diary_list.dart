@@ -313,7 +313,7 @@ class _DiaryListState extends State<DiaryList>{
                       child: Container(
                         height: 100,
                         width: 100,
-                        child: Image.file(File(thumbnail)),
+                        child: Image.file(File(thumbnail),fit: BoxFit.cover,),
                           ),
                       )
                       : Card(

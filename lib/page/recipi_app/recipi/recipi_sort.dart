@@ -760,7 +760,7 @@ class _RecipiSortState extends State<RecipiSort>{
             height: 100,
             width: 100,
             child: Container(
-              child: Image.file(File(Detail.recipi.thumbnail)),
+              child: Image.file(File(Detail.recipi.thumbnail),fit: BoxFit.cover,),
             ),
           )
               : SizedBox(

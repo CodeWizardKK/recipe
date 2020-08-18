@@ -281,7 +281,7 @@ class _EditHowToState extends State<EditHowTo>{
                       height: 100,
                       width: 100,
                       child: InkWell(
-                        child: Image.file(File(_photo)),
+                        child: Image.file(File(_photo),fit: BoxFit.cover,),
                         onTap: (){
                           _showImgSelectModal();
                         }

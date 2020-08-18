@@ -587,7 +587,7 @@ class _RecipiListState extends State<RecipiList>{
                           child: Container(
                             height: 100,
                             width: 100,
-                            child: Image.file(File(this._displayList[i].thumbnail)),
+                            child: Image.file(File(this._displayList[i].thumbnail),fit: BoxFit.cover,),
                           ),
                         )
                         : Card(
@@ -1147,7 +1147,6 @@ class _RecipiListState extends State<RecipiList>{
       icon: const Icon(Icons.check_circle_outline,color: Colors.white,size:30),
       onPressed: (){
         _onCheck();
-//        _onList();
       },
     );
   }
