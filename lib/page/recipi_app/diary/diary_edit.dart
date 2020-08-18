@@ -3,19 +3,15 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:recipe_app/model/Myrecipi.dart';
 import 'package:recipe_app/model/diary/Diary.dart';
+import 'package:recipe_app/model/diary/edit/Photo.dart';
+import 'package:recipe_app/model/diary/edit/Recipi.dart';
+import 'package:recipe_app/model/diary/DisplayDiary.dart';
 import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/store/detail_state.dart';
 import 'package:recipe_app/store/diary/edit_state.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
-import 'package:recipe_app/model/edit/Titleform.dart';
-import 'package:recipe_app/model/edit/Ingredient.dart';
-import 'package:recipe_app/model/edit/Photo.dart';
-import 'package:recipe_app/model/edit/Howto.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:multi_image_picker/multi_image_picker.dart';
 
 
 class DiaryEdit extends StatefulWidget{
@@ -28,202 +24,159 @@ class _DiaryEditState extends State<DiaryEdit>{
 
   DBHelper dbHelper;
   int _selectedID;              //編集するID
-//  String _thumbnail;            //サムネイル DB送信用
-  int _type;                      //レシピ種別
-  List<Ingredient> _ingredients;  //材料リスト
-  List<HowTo> _howTos;            //作り方リスト
-  List<Photo> _photos;            //詳細の内容の写真(写真を追加欄)
-//  List<File> imageFiles = new List<File>(); //詳細の内容の写真(写真を追加欄)
-//  bool _isFolderBy = false;       //true:フォルダ別レシピ一覧へ遷移
-  bool _isHome = false;       //true:フォルダ別レシピ一覧へ遷移
-
-  int _selectedCategory = 1;               //分類（1：指定なし、2：朝食、3：昼食、4：夕食、5：間食）
-
+  int _selectedCategory = 1;    //分類（1：指定なし、2：朝食、3：昼食、4：夕食、5：間食）
+  int _backScreen = 0;          //戻る画面を格納[0:レシピのレシピ一覧 1:レシピのフォルダ別レシピ一覧 2:ごはん日記の日記詳細レシピ一覧 3:ホーム画面]
+  bool _isDelete = false;       //true:削除ボタン押下時
 
   @override
   void initState() {
     super.initState();
     dbHelper = DBHelper();
     //戻る画面を取得
-//    this._isFolderBy = Provider.of<Display>(context, listen: false).getIsFolderBy();
-    this._isHome = Provider.of<Display>(context, listen: false).getIsHome();
+    this._backScreen = Provider.of<Display>(context, listen: false).getBackScreen();
     //idを取得
-    _selectedID = Provider.of<Display>(context, listen: false).getId();
-    print('ID:${_selectedID}');
-//    //レシピ種別を取得
-//    this._type = Provider.of<Display>(context, listen: false).getType();
-//    print('レシピ種別:${this._type}');
-    //新規投稿の場合
-    if(_selectedID == -1){
-      print('新規作成');
-      bool initialDisplay = Provider.of<Edit>(context, listen: false).getInitialDisplay();
-      //初めて開かれた場合
-      if(initialDisplay){
-        print('初期表示');
-      }else{
-        print('２回目以降');
-      }
-    }else{
-      //更新の場合
-      print('更新');
-//      //選択した日記の内容を取得
-//      HowTo item = Provider.of<Display>(context, listen: false).getHowTo(_selectedID);
-//      this._body.text = item.memo;
-    }
+    this._selectedID = Provider.of<Display>(context, listen: false).getId();
   }
 
   //一覧リストへ遷移
   void _onList(){
-    if(this._isHome){
+    if(this._backScreen == 1) {
+      //フォルダ別一覧リストへ遷移
+      Provider.of<Display>(context, listen: false).setState(4);
+    }else if(this._backScreen == 2){
+      if(this._isDelete){
+        //一覧リストへ遷移
+        Provider.of<Display>(context, listen: false).setState(0);
+      }else{
+        if(this._selectedID == -1){
+//      //2:ごはん日記へ遷移
+//      Provider.of<Display>(context, listen: false).setCurrentIndex(2);
+          //一覧リストへ遷移
+          Provider.of<Display>(context, listen: false).setState(0);
+        }else{
+          //詳細リストへ遷移
+          Provider.of<Display>(context, listen: false).setState(1);
+        }
+      }
+    }else if(this._backScreen == 3){
       //ホーム画面へ遷移
       Provider.of<Display>(context, listen: false).setCurrentIndex(0);
     }else{
       //一覧リストへ遷移
       Provider.of<Display>(context, listen: false).setState(0);
     }
-    _init();
   }
 
   //初期化処理
   void _init(){
     //リセット処理
     Provider.of<Edit>(context, listen: false).reset(); //編集フォーム
-//    Provider.of<Display>(context, listen: false).reset(); //編集フォーム
-//    Provider.of<Detail>(context, listen: false).reset();  //詳細フォーム
   }
 
   //保存する押下時処理
   void _onSubmit() async {
-    String thumbnail = Provider.of<Display>(context, listen: false).getThumbnail();
+    //storeから内容を取得
+    //内容、日付、分類、サムネイル
+    Diary item = Provider.of<Edit>(context, listen: false).getEditForm();
+    //料理
+    List<DRecipi> recipis = Provider.of<Edit>(context, listen: false).getRecipis();
+    //写真
+    List<DPhoto> photos = Provider.of<Edit>(context, listen: false).getPhotos();
+    //取得した値でdiaryを生成
+    Diary diary = Diary
+      (
+         id: this._selectedID
+        ,body: item.body
+        ,date: item.date
+        ,category: item.category
+        ,thumbnail: item.thumbnail
+      );
+
     //新規登録の場合
-    if(_selectedID == -1){
-//      //日付が当日で且つ分類が1(指定なし)の場合
-//      if(          ) {
-//        //DBに登録せず、一覧リストへ戻る
-//            _onList();
-//            return;
-//        }
-//      //内容が入力されている場合
-//      TitleForm titleForm = Provider.of<Display>(context, listen: false).getTitleForm();
-//      //ごはん日記テーブルへ登録
-//      Myrecipi myrecipi = Myrecipi
-//        (
-//          id: this._selectedID
-//          ,type: this._type
-//          ,thumbnail: thumbnail
-//          ,title: titleForm.title
-//          ,description: titleForm.description
-//          ,quantity: titleForm.quantity
-//          ,unit: titleForm.unit
-//          ,time: titleForm.time
-//          ,folder_id: 0
-//      );
-//      Myrecipi result = await dbHelper.insertMyRecipi(myrecipi);
-//      //登録した日記IDを取得
-//      var recipi_id = result.id;
-//      //料理がセットされている場合
-//        if(this._ingredients.length != 0){
-//          //レシピリスト
-//          for(var i = 0; i < this._ingredients.length; i++){
-//            //日記IDをセットする
-//            this._ingredients[i].recipi_id = recipi_id;
-//          }
-//          //diary_recipiテーブルへ登録
-//          await dbHelper.insertRecipiIngredient(this._ingredients);
-//        }
-//        //写真がセットされている場合
-//        if(this._howTos.length != 0) {
-//          //写真リスト
-//          for (var i = 0; i < this._howTos.length; i++) {
-//            //日記IDをセットする
-//            this._howTos[i].recipi_id = recipi_id;
-//          }
-//          //diary_photoテーブルへ登録
-//          await dbHelper.insertRecipiHowto(this._howTos);
-//        }
-      _onList();
+    if(this._selectedID == -1){
+      //ごはん日記テーブルへ登録
+      Diary result = await dbHelper.insertDiary(diary);
+      //登録した日記IDを取得
+      var diary_id = result.id;
+      //料理がセットされている場合
+      if(recipis.length != 0){
+        //レシピリスト
+        for(var i = 0; i < recipis.length; i++){
+          //IDをセットする
+          recipis[i].id = this._selectedID;
+          //日記IDをセットする
+          recipis[i].diary_id = diary_id;
+        }
+        //diary_recipiテーブルへ登録
+        await dbHelper.insertDiaryRecipi(recipis);
+      }
+
+      //写真がセットされている場合
+      if(photos.length != 0){
+        //写真リスト
+        for(var i = 0; i < photos.length; i++){
+          //IDをセットする
+          photos[i].id = this._selectedID;
+          //日記IDをセットする
+          photos[i].diary_id = diary_id;
+        }
+        //diary_recipiテーブルへ登録
+        await dbHelper.insertDiaryPhoto(photos);
+      }
 
       //更新の場合
     }else{
-      //フォルダーIDを取得
-      Myrecipi recipi = Provider.of<Detail>(context, listen: false).getRecipi();
-      //タイトル、説明、分量、単位、調理時間
-      TitleForm titleForm = Provider.of<Display>(context, listen: false).getTitleForm();
-      //myrecipiテーブルへ更新
-      Myrecipi myrecipi = Myrecipi
+      //ごはん日記テーブルへ更新
+      await dbHelper.updateDiary(diary);
+      //変更前の料理リストを削除
+      await dbHelper.deleteDiaryRecipi(this._selectedID);
+      //変更前の写真リストを削除
+      await dbHelper.deleteDiaryPhoto(this._selectedID);
+
+      //料理がセットされている場合
+      if(recipis.length != 0){
+        //レシピリスト
+        for(var i = 0; i < recipis.length; i++){
+          //IDをセットする
+          recipis[i].id = -1;
+          //日記IDをセットする
+          recipis[i].diary_id = this._selectedID;
+        }
+        //diary_recipiテーブルへ登録
+        await dbHelper.insertDiaryRecipi(recipis);
+      }
+
+      //写真がセットされている場合
+      if(photos.length != 0){
+        //写真リスト
+        for(var i = 0; i < photos.length; i++){
+          //IDをセットする
+          photos[i].id = -1;
+          //日記IDをセットする
+          photos[i].diary_id = this._selectedID;
+        }
+        //diary_recipiテーブルへ登録
+        await dbHelper.insertDiaryPhoto(photos);
+      }
+
+      //更新した日記IDの最新情報の取得し、詳細フォームへ反映させる
+      Diary newDiary = await dbHelper.getDiary(this._selectedID);
+      List<DRecipi> newRecipis = await dbHelper.getDiaryRecipis(this._selectedID);
+      List<DPhoto>  newPhotos  = await dbHelper.getDiaryPhotos(this._selectedID);
+      DisplayDiary dd = DisplayDiary
         (
-          id: this._selectedID
-          ,type: this._type
-          ,thumbnail: thumbnail
-          ,title: titleForm.title
-          ,description: titleForm.description
-          ,quantity: titleForm.quantity
-          ,unit: titleForm.unit
-          ,time: titleForm.time
-          ,folder_id: recipi.folder_id
-      );
-      await dbHelper.updateMyRecipi(myrecipi);
-      //MYレシピの場合
-      if(this._type == 2){
-        //変更前の材料リストを削除
-        await dbHelper.deleteRecipiIngredient(_selectedID);
-        //変更した材料リストをセット
-        if(this._ingredients.length != 0){
-          for(var i = 0; i < this._ingredients.length; i++){
-            //レシピIDをセットする
-            this._ingredients[i].recipi_id = this._selectedID;
-          }
-          //recipi_ingredientテーブルへ登録
-          await dbHelper.insertRecipiIngredient(this._ingredients);
-        }
-        //変更前の作り方リストを削除
-        await dbHelper.deleteRecipiHowto(_selectedID);
-        //変更した作り方リストをセット
-        if(this._howTos.length != 0){
-          //作り方
-          for(var i = 0; i < this._howTos.length; i++){
-            //レシピIDをセットする
-            this._howTos[i].recipi_id = _selectedID;
-          }
-          //recipi_howtoテーブルへ更新
-          await dbHelper.insertRecipiHowto(this._howTos);
-        }
-      }else{
-        //変更前の写真リストを削除
-        await dbHelper.deleteRecipiPhoto(_selectedID);
-        if(this._photos.length != 0){
-          //写真
-          for(var i = 0; i < this._photos.length; i++){
-            //レシピIDをセットする
-            this._photos[i].recipi_id = this._selectedID;
-          }
-          //recipi_photoテーブルへ登録
-          await dbHelper.insertPhoto(this._photos);
-        }
-      }
-      //更新したレシピIDの最新情報の取得し、詳細フォームへ反映させる
-      //recipiをselectし、set
-      var newMyrecipi = await dbHelper.getMyRecipi(_selectedID);
-      Provider.of<Detail>(context, listen: false).setRecipi(newMyrecipi);
-      //MYレシピの場合
-      if (this._type == 2) {
-        //recipi_ingredientテーブルをselectし、set
-        var ingredients = await dbHelper.getIngredients(_selectedID);
-        Provider.of<Detail>(context, listen: false).setIngredients(ingredients);
-        //recipi_howtoテーブルをselectし、set
-        var howTos = await dbHelper.getHowtos(_selectedID);
-        Provider.of<Detail>(context, listen: false).setHowTos(howTos);
-        //写真レシピの場合
-      } else {
-        //recipi_photoテーブルをselectし、set
-        var photos = await dbHelper.getPhotos(_selectedID);
-        Provider.of<Detail>(context, listen: false).setPhotos(photos);
-      }
-      //詳細画面へ遷移
-      Provider.of<Display>(context, listen: false).setState(1);
-      //初期化
-      Provider.of<Display>(context, listen: false).reset(); //編集フォーム
+        id: newDiary.id,
+        body: newDiary.body,
+        date: newDiary.date,
+        category: newDiary.category,
+        thumbnail: newDiary.thumbnail,
+        recipis: newRecipis,
+        photos: newPhotos,
+        );
+      //更新した日記の内容をセットする
+      Provider.of<Edit>(context, listen: false).setDiary(dd);
     }
+    this._onList();
   }
 
   //削除モーダルの表示
@@ -258,12 +211,17 @@ class _DiaryEditState extends State<DiaryEdit>{
     );
   }
 
-  //該当日記削除
+  //該当日記の削除
   void _onDelete() async {
     //日記を削除
-    await dbHelper.deleteMyRecipi(this._selectedID);
-    //日記IDに紐づく写真リストを削除する
+    await dbHelper.deleteDiary(this._selectedID);
     //日記IDに紐づくレシピリストを削除する
+    await dbHelper.deleteDiaryRecipi(this._selectedID);
+    //日記IDに紐づく写真リストを削除する
+    await dbHelper.deleteDiaryPhoto(this._selectedID);
+    setState(() {
+      this._isDelete = true;
+    });
     _onList();
   }
 
@@ -275,16 +233,19 @@ class _DiaryEditState extends State<DiaryEdit>{
         //選択の度に呼び出される
         onChanged: (date){
 //          print('change $date}');
-        DateTime datetime = new DateTime(date.year,date.month,date.day);
-        print('${datetime}');
         },
         //選択完了後に呼び出される
         onConfirm: (date){
-          Provider.of<Edit>(context, listen: false).setDate(date);
-//            print('set $date');
+        //Date　=> String　変換
+        DateFormat formatter = DateFormat('yyyy-MM-dd');
+        String dateString = formatter.format(date);
+        Provider.of<Edit>(context, listen: false).setDate(dateString);
+//        print('Date型 $date');
+//        print('String型 ${dateString}');
         },
-        //datepickerのデフォルトで表示する日付
-        currentTime: Provider.of<Edit>(context, listen: false).getDate(),
+        //デフォルトで表示する日付
+        //String　=> Date　変換
+        currentTime: DateTime.parse(Provider.of<Edit>(context, listen: false).getDate()),
         locale: LocaleType.jp
     );
   }
@@ -354,7 +315,10 @@ class _DiaryEditState extends State<DiaryEdit>{
                     Center(child: Text("夕食")),
                     Center(child: Text("間食")),
                   ],
-                  scrollController: FixedExtentScrollController(initialItem: this._selectedCategory - 1),
+                  scrollController: FixedExtentScrollController(
+                      //デフォルト値
+                      initialItem: this._selectedCategory - 1,
+                  ),
                 ),
               ),
             ],
@@ -367,7 +331,7 @@ class _DiaryEditState extends State<DiaryEdit>{
     Provider.of<Edit>(context, listen: false).setCategory(this._selectedCategory);
   }
 
-  //各エリアの追加ボタン押下
+  //料理、写真ボタン押下時の画面遷移
   void _changeEditType({editType}){
     Provider.of<Display>(context, listen: false).setEditType(editType);
   }
@@ -382,7 +346,7 @@ class _DiaryEditState extends State<DiaryEdit>{
             leading: closeBtn(),
             elevation: 0.0,
             title: Center(
-              child: Text( '${(DateFormat('yyyy年MM月dd日')).format(Edit.date)}',
+              child: Text( '${(DateFormat('yyyy年MM月dd日')).format(DateTime.parse(Edit.date))}',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -482,13 +446,13 @@ class _DiaryEditState extends State<DiaryEdit>{
                           icon: Icon(
                               Icons.calendar_today,
                               size: 25,
-                              color: Edit.date == null
+                              color: Edit.date.isEmpty
                                     ? Colors.grey
                                     : Colors.cyan
                           ),
                           label: Text('日付',
                             style: TextStyle(
-                              color: Edit.date == null
+                              color: Edit.date.isEmpty
                                   ? Colors.grey
                                   : Colors.cyan,
                               fontSize: 12,
@@ -576,7 +540,6 @@ class _DiaryEditState extends State<DiaryEdit>{
                             )
                         ),
                         onPressed:(){
-                          print('料理');
                           _changeEditType(editType: 1);
                         },
 
@@ -612,7 +575,6 @@ class _DiaryEditState extends State<DiaryEdit>{
                               )
                           ),
                           onPressed:(){
-                            print('写真');
                             _changeEditType(editType: 2);
                           }
                       ),

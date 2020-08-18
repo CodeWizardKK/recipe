@@ -18,8 +18,8 @@ class EditPhoto extends StatefulWidget{
 
 class _EditPhotoState extends State<EditPhoto>{
 
-  List<Photo> _photos = List<Photo>();
-  List<Photo> _photosOld = List<Photo>();
+  List<DPhoto> _photos = List<DPhoto>();
+  List<DPhoto> _photosOld = List<DPhoto>();
   String _error = 'No Error Dectected';
 
   @override
@@ -70,7 +70,7 @@ class _EditPhotoState extends State<EditPhoto>{
     setState(() {
       if(files != null) {
         for(var i = 0; i < files.length; i++){
-          Photo photo = Photo(path: files[i].path);
+          DPhoto photo = DPhoto(path: files[i].path);
           this._photos.add(photo);
         }
 //        print('++++++++++++++++++++++++++++++++++++++++');

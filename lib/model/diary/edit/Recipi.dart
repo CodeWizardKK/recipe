@@ -1,22 +1,27 @@
 //材料欄
-class Recipi{
+class DRecipi{
   int id;
-  String thumbnail;
+  String image;
+  int diary_id;
+  int recipi_id;
 
-  Recipi({this.id, this.thumbnail});
+  DRecipi({this.id, this.image, this.diary_id, this.recipi_id});
 
   //DBへ送る形式へ変換
   Map<String,dynamic> toMap(){
     var map = <String,dynamic>{
-      'id':id,
-      'thumbnail':thumbnail,
+//      'thumbnail':thumbnail,
+      'diary_id':diary_id,
+      'recipi_id':recipi_id,
     };
     return map;
   }
 
   //Widgetへ展開する形式へ変換
-  Recipi.fromMap(Map<String,dynamic> map){
+  DRecipi.fromMap(Map<String,dynamic> map){
     id = map['id'];
-    thumbnail = map['thumbnail'];
+    diary_id = map['diary_id'];
+    recipi_id = map['recipi_id'];
+    image = map['thumbnail'];
   }
 }

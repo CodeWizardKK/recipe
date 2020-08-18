@@ -26,8 +26,8 @@ class _EditRecipiState extends State<EditRecipi>{
   List<Myrecipi> _recipis = List<Myrecipi>();
   List<Ingredient> _ingredients = List<Ingredient>();
   List<Tag> _tags = List<Tag>();
-  List<Recipi> _selectedRecipis = List<Recipi>();
-  List<Recipi> _selectedRecipisOld = List<Recipi>();
+  List<DRecipi> _selectedRecipis = List<DRecipi>();
+  List<DRecipi> _selectedRecipisOld = List<DRecipi>();
 
 
   @override
@@ -58,7 +58,7 @@ class _EditRecipiState extends State<EditRecipi>{
     });
 
     //タグリストの取得
-    await dbHelper.getTags().then((item){
+    await dbHelper.getAllTags().then((item){
       setState(() {
         _tags.clear();
         _tags.addAll(item);
@@ -66,7 +66,7 @@ class _EditRecipiState extends State<EditRecipi>{
     });
 
     //選択レシピリストをセット
-    this._selectedRecipis = Provider.of<Edit>(context, listen: false).getRecipi();
+    this._selectedRecipis = Provider.of<Edit>(context, listen: false).getRecipis();
     for(var i = 0; i < this._selectedRecipis.length; i++){
       this._selectedRecipisOld.add(this._selectedRecipis[i]);
     }
@@ -82,14 +82,14 @@ class _EditRecipiState extends State<EditRecipi>{
   //保存ボタン押下時処理
   void _onSubmit(){
     //選択したレシピを保存
-    Provider.of<Edit>(context, listen: false).setRecipi(this._selectedRecipis);
+    Provider.of<Edit>(context, listen: false).setRecipis(this._selectedRecipis);
     this._changeEditType();
   }
 
   //×ボタン押下時処理
   void _onClose(){
     //編集前のレシピを保存
-    Provider.of<Edit>(context, listen: false).setRecipi(this._selectedRecipisOld);
+    Provider.of<Edit>(context, listen: false).setRecipis(this._selectedRecipisOld);
     this._changeEditType();
   }
 
@@ -222,11 +222,11 @@ class _EditRecipiState extends State<EditRecipi>{
                   ],
                 ),
                 onTap: (){
-//                  print('recipiID:${this._recipis[i].id},thumbnail:${this._recipis[i].thumbnail}');
+                  print('recipiID:${this._recipis[i].id},thumbnail:${this._recipis[i].thumbnail}');
                   bool isDelete = false;
                   //tapしたレシピが選択レシピリストに存在する場合
                   for(var k = 0; k < this._selectedRecipis.length; k++){
-                    if(this._recipis[i].id == this._selectedRecipis[k].id){
+                    if(this._recipis[i].id == this._selectedRecipis[k].recipi_id){
                       //削除
                       setState(() {
                         this._selectedRecipis.removeAt(k);
@@ -238,7 +238,7 @@ class _EditRecipiState extends State<EditRecipi>{
                   //tapしたレシピが選択レシピリストに存在しなかった場合
                   if(!isDelete){
                     setState(() {
-                      Recipi recipi = Recipi(id: this._recipis[i].id,thumbnail: this._recipis[i].thumbnail);
+                      DRecipi recipi = DRecipi(recipi_id: this._recipis[i].id,image: this._recipis[i].thumbnail);
                       this._selectedRecipis.add(recipi);
                     });
                   }
@@ -302,23 +302,34 @@ class _EditRecipiState extends State<EditRecipi>{
   Widget selectedArea(){
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.0,vertical: 24.0),
-      height: MediaQuery.of(context).size.height * 0.2,
+      height: MediaQuery.of(context).size.height * 0.15,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
           itemCount: _selectedRecipis.length,
           itemBuilder: (context,index){
             return Container(
-              width: MediaQuery.of(context).size.width * 0.3,
+              width: MediaQuery.of(context).size.width * 0.2,
               child: Stack(
                 children: <Widget>[
-                Card(
-                  color: Colors.blue,
-                  child: Container(
-                    child: Image.file(File(_selectedRecipis[index].thumbnail),),
+                  _selectedRecipis[index].image.isNotEmpty
+                  ? Card(
+//                    color: Colors.blue,
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      child: Image.file(File(_selectedRecipis[index].image),),
+                    ),
+                  )
+                  : Card(
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        color: Colors.grey,
+                        child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
+                    ),
                   ),
-                ),
                   Positioned(
-                    left: 90,
+                    left: 45,
                     width: 40,
                     height: 40,
                     child: Container(

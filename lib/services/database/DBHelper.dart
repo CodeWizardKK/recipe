@@ -11,8 +11,9 @@ import 'package:recipe_app/model/edit/Howto.dart';
 import 'package:recipe_app/model/edit/Ingredient.dart';
 import 'package:recipe_app/model/edit/Photo.dart';
 import 'package:recipe_app/model/diary/Diary.dart';
-import 'package:recipe_app/model/diary/edit/Photo.dart' as DPhoto;
+import 'package:recipe_app/model/diary/edit/Photo.dart';
 import 'package:recipe_app/model/diary/edit/Recipi.dart';
+import 'package:recipe_app/model/diary/Month.dart';
 
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
@@ -113,7 +114,13 @@ class DBHelper{
     print('#########CREATE!!!!!!');
   }
 
-  //SELECT
+
+
+  //////////
+  //SELECT//
+  //////////
+
+  //recipi
   Future<List<Myrecipi>> getMyRecipis() async {
     var dbClient = await db;
 //    List<Map> maps = await dbClient.query(TABLE,columns: [ID,TYPE,THUMBNAIL,TITLE,DESCRIPTON,QUANTITY,UNIT,TIME,PHOTOS,INGREDIENTS,HOWTO]);
@@ -129,32 +136,26 @@ class DBHelper{
     return myrecipis;
   }
 
-  //SELECT
+  //recipi
   Future<List<MyrecipiGroupFolder>> getMyRecipisCount() async {
     var dbClient = await db;
     List<Map> maps = await dbClient.rawQuery('SELECT $RECIPI_TABLE.$FOLDER_ID,$MST_FOLDER_TABLE.$NAME,COUNT($RECIPI_TABLE.$FOLDER_ID) FROM $RECIPI_TABLE left outer join $MST_FOLDER_TABLE on $RECIPI_TABLE.$FOLDER_ID  = $MST_FOLDER_TABLE.$ID GROUP BY $RECIPI_TABLE.$FOLDER_ID');
 //    List<Map> maps = await dbClient.rawQuery('SELECT $FOLDER_ID,COUNT($FOLDER_ID) FROM $RECIPI_TABLE GROUP BY $FOLDER_ID');
     List<MyrecipiGroupFolder> myrecipis = [];
     if(maps.length > 0){
-//      print('####################################');
-//      print('####################################');
       for(var i = 0; i < maps.length; i++){
         //json形式 => Map型に展開する
-//        print(maps[i]);
         myrecipis.add(MyrecipiGroupFolder.fromMap(maps[i]));
       }
     }
     print("[myrecipi]Select: ${myrecipis.length}");
-    print('####################################');
-    print('####################################');
     for(var i = 0; i < myrecipis.length; i++){
       print('folder_id:${myrecipis[i].folder_id},name:${myrecipis[i].name},count:${myrecipis[i].count}');
     }
-    print('####################################');
-    print('####################################');
     return myrecipis;
   }
 
+  //mst_folder
   Future<List<MstFolder>> getMstFolders() async {
     var dbClient = await db;
     List<Map> maps = await dbClient.query(MST_FOLDER_TABLE,columns: [ID,NAME]);
@@ -169,6 +170,7 @@ class DBHelper{
     return folders;
   }
 
+  //mst_tag
   Future<List<MstTag>> getMstTags() async {
     var dbClient = await db;
     List<Map> maps = await dbClient.query(MST_TAG_TABLE,columns: [ID,NAME]);
@@ -184,11 +186,11 @@ class DBHelper{
     return tags;
   }
 
-  Future<List<Tag>> getTags() async {
+  //tag　タグ名取得
+  Future<List<Tag>> getAllTags() async {
     var dbClient = await db;
     List<Map> maps = await dbClient.rawQuery('SELECT $TAG_TABLE.$ID,$TAG_TABLE.$RECIPI_ID,$TAG_TABLE.$MST_TAG_ID,$MST_TAG_TABLE.$NAME FROM $TAG_TABLE left outer join $MST_TAG_TABLE on $TAG_TABLE.$MST_TAG_ID  = $MST_TAG_TABLE.$ID');
 //    List<Map> maps = await dbClient.rawQuery('SELECT $TAG_TABLE.$ID,$TAG_TABLE.$RECIPI_ID,$TAG_TABLE.$MST_TAG_ID,$MST_TAG_TABLE.$NAME FROM $TAG_TABLE left outer join $MST_TAG_TABLE on $TAG_TABLE.$MST_TAG_ID  = $MST_TAG_TABLE.$ID where $RECIPI_TABLE.$ID = ? ',[id]);
-//    List<Map> maps = await dbClient.query(TAG_TABLE,columns: [ID,RECIPI_ID,MST_TAG_ID]);
     List<Tag> tags = [];
     if(maps.length > 0){
       for(var i = 0; i < maps.length; i++){
@@ -201,9 +203,26 @@ class DBHelper{
     return tags;
   }
 
+  //tag
+  Future<List<Tag>> getTags(int id) async {
+    print('########id:${id}');
+    var dbClient = await db;
+    List<Map> maps = await dbClient.rawQuery('SELECT $TAG_TABLE.$ID,$TAG_TABLE.$RECIPI_ID,$TAG_TABLE.$MST_TAG_ID,$MST_TAG_TABLE.$NAME FROM $TAG_TABLE left outer join $MST_TAG_TABLE on $TAG_TABLE.$MST_TAG_ID  = $MST_TAG_TABLE.$ID where $TAG_TABLE.$RECIPI_ID = ? ',[id]);
+    List<Tag> tags = [];
+    if(maps.length > 0){
+      for(var i = 0; i < maps.length; i++){
+        print('Tabs[${i}]${maps[i]}');
+        //json形式 => Map型に展開する
+        tags.add(Tag.fromMap(maps[i]));
+      }
+    }
+    print("[tag]select: ${tags.length}");
+    return tags;
+  }
+
+  //tag
   Future<List<TagGroupRecipiId>> getTagsGropByRecipiId(String mst_tag_ids,int count) async {
     print('①id:${mst_tag_ids}');
-    String id = '1,2,3';
     var dbClient = await db;
 //    List<Map> maps = await dbClient.rawQuery('SELECT $RECIPI_ID,COUNT($RECIPI_ID) FROM $TAG_TABLE　GROUP BY $RECIPI_ID');
 //    List<Map> maps = await dbClient.rawQuery('SELECT $RECIPI_ID,COUNT($RECIPI_ID) FROM $TAG_TABLE GROUP BY $RECIPI_ID');
@@ -213,8 +232,6 @@ class DBHelper{
     List<TagGroupRecipiId> tags = [];
     if(maps.length > 0){
       for(var i = 0; i < maps.length; i++){
-        print('##################################');
-        print('##################################');
         print('グループ別Tabs[${i}]${maps[i]}');
         //json形式 => Map型に展開する
         tags.add(TagGroupRecipiId.fromMap(maps[i]));
@@ -224,6 +241,7 @@ class DBHelper{
     return tags;
   }
 
+  //recipi_ingredient
   Future<List<Ingredient>> getAllIngredients() async {
     var dbClient = await db;
     List<Map> maps = await dbClient.rawQuery('SELECT * FROM $RECIPI_INGREDIENT_TABLE');
@@ -239,23 +257,40 @@ class DBHelper{
     return ingredients;
   }
 
-  //レシピIDに紐づくデータを取得
-  Future<Myrecipi> getMyRecipi(int id) async {
-    print('########id:${id}');
+  //recipi FolderIDに紐づくレシピデータを取得
+  Future<List<Myrecipi>> getMyRecipibyFolderID(int folder_id) async {
+    print('########フォルダーid:${folder_id}');
+    var dbClient = await db;
+    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$TYPE,$THUMBNAIL,$TITLE,$DESCRIPTION,$QUANTITY,$UNIT,$TIME,$FOLDER_ID FROM $RECIPI_TABLE where $FOLDER_ID = ? ',[folder_id]);
+    List<Myrecipi> recipi = [];
+    if(maps.length > 0){
+      for(var i = 0; i < maps.length; i++){
+        print('フォルダIDに紐づくrecipi[${i}]${maps[i]}');
+        //json形式 => Map型に展開する
+        recipi.add(Myrecipi.fromMap(maps[i]));
+      }
+    }
+    print("[フォルダIDに紐づくrecipi]select: ${recipi.length}");
+    return recipi;
+  }
+
+  //recipi レシピIDに紐づくレシピデータを取得
+  Future<Myrecipi> getMyRecipi(int recipi_id) async {
+    print('########id:${recipi_id}');
     var dbClient = await db;
 //    List<Map> maps = await dbClient.rawQuery('SELECT $RECIPI_INGREDIENT_TABLE.$ID,$RECIPI_INGREDIENT_TABLE.$RECIPI_ID,$RECIPI_INGREDIENT_TABLE.$NO,$RECIPI_INGREDIENT_TABLE.$NAME,$RECIPI_INGREDIENT_TABLE.$QUANTITY FROM $RECIPI_TABLE left outer join $RECIPI_INGREDIENT_TABLE on $RECIPI_TABLE.$ID  = $RECIPI_INGREDIENT_TABLE.$RECIPI_ID where $RECIPI_TABLE.$ID = ? ',[id]);
-    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$TYPE,$THUMBNAIL,$TITLE,$DESCRIPTION,$QUANTITY,$UNIT,$TIME,$FOLDER_ID FROM $RECIPI_TABLE where $ID = ? ',[id]);
+    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$TYPE,$THUMBNAIL,$TITLE,$DESCRIPTION,$QUANTITY,$UNIT,$TIME,$FOLDER_ID FROM $RECIPI_TABLE where $ID = ? ',[recipi_id]);
         print('myrecipi[${0}]${maps[0]}');
         //json形式 => Map型に展開する
     return Myrecipi.fromMap(maps[0]);
   }
 
-  //レシピIDに紐づく材料データを取得
-  Future<List<Ingredient>> getIngredients(int id) async {
-    print('########id:${id}');
+  //recipi_ingredient レシピIDに紐づく材料データを取得
+  Future<List<Ingredient>> getIngredients(int recipi_id) async {
+    print('########id:${recipi_id}');
     var dbClient = await db;
 //    List<Map> maps = await dbClient.rawQuery('SELECT $RECIPI_INGREDIENT_TABLE.$ID,$RECIPI_INGREDIENT_TABLE.$RECIPI_ID,$RECIPI_INGREDIENT_TABLE.$NO,$RECIPI_INGREDIENT_TABLE.$NAME,$RECIPI_INGREDIENT_TABLE.$QUANTITY FROM $RECIPI_TABLE left outer join $RECIPI_INGREDIENT_TABLE on $RECIPI_TABLE.$ID  = $RECIPI_INGREDIENT_TABLE.$RECIPI_ID where $RECIPI_TABLE.$ID = ? ',[id]);
-    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$RECIPI_ID,$NO,$NAME,$QUANTITY FROM $RECIPI_INGREDIENT_TABLE where $RECIPI_ID = ? ',[id]);
+    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$RECIPI_ID,$NO,$NAME,$QUANTITY FROM $RECIPI_INGREDIENT_TABLE where $RECIPI_ID = ? ',[recipi_id]);
     List<Ingredient> ingredients = [];
     if(maps.length > 0){
       for(var i = 0; i < maps.length; i++){
@@ -268,12 +303,12 @@ class DBHelper{
     return ingredients;
   }
 
-  //レシピIDに紐づく作り方データを取得
-  Future<List<HowTo>> getHowtos(int id) async {
-    print('id:${id}');
+  //recipi_howto レシピIDに紐づく作り方データを取得
+  Future<List<HowTo>> getHowtos(int recipi_id) async {
+    print('id:${recipi_id}');
     var dbClient = await db;
 //    List<Map> maps = await dbClient.rawQuery('SELECT $RECIPI_HOWTO_TABLE.$ID,$RECIPI_HOWTO_TABLE.$RECIPI_ID,$RECIPI_HOWTO_TABLE.$NO,$RECIPI_HOWTO_TABLE.$MEMO,$RECIPI_HOWTO_TABLE.$PHOTO FROM $RECIPI_TABLE left outer join $RECIPI_HOWTO_TABLE on $RECIPI_TABLE.$ID  = $RECIPI_HOWTO_TABLE.$RECIPI_ID where $RECIPI_TABLE.$ID = ? ',[id]);
-    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$RECIPI_ID,$NO,$MEMO,$PHOTO FROM $RECIPI_HOWTO_TABLE where $RECIPI_ID = ? ',[id]);
+    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$RECIPI_ID,$NO,$MEMO,$PHOTO FROM $RECIPI_HOWTO_TABLE where $RECIPI_ID = ? ',[recipi_id]);
     List<HowTo> howTos = [];
     if(maps.length > 0){
       for(var i = 0; i < maps.length; i++){
@@ -286,11 +321,11 @@ class DBHelper{
     return howTos;
   }
 
-  //レシピIDに紐づくデータを取得
-  Future<List<Photo>> getPhotos(int id) async {
-    print('id:${id}');
+  //recipi_photo レシピIDに紐づくデータを取得
+  Future<List<Photo>> getRecipiPhotos(int recipi_id) async {
+    print('id:${recipi_id}');
     var dbClient = await db;
-    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$RECIPI_ID,$NO,$PATH FROM $RECIPI_PHOTO_TABLE where $RECIPI_ID = ? ',[id]);
+    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$RECIPI_ID,$NO,$PATH FROM $RECIPI_PHOTO_TABLE where $RECIPI_ID = ? ',[recipi_id]);
     List<Photo> phtos = [];
     if(maps.length > 0){
       for(var i = 0; i < maps.length; i++){
@@ -303,7 +338,132 @@ class DBHelper{
     return phtos;
   }
 
-  //INSERT
+  //diary　全データ取得
+  Future<List<Diary>> getAllDiarys() async {
+    var dbClient = await db;
+    List<Map> maps = await dbClient.query(DIARY_TABLE,columns: [ID,BODY,DATE,CATEGORY,THUMBNAIL]);
+    List<Diary> diarys = [];
+    if(maps.length > 0){
+      for(var i = 0; i < maps.length; i++){
+        //json形式 => Map型に展開する
+        diarys.add(Diary.fromMap(maps[i]));
+      }
+    }
+    print("[dairy]Select: ${diarys.length}");
+    return diarys;
+  }
+
+  //diary 日記IDに紐づくデータを取得
+  Future<Diary> getDiary(int diary_id) async {
+    var dbClient = await db;
+    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$BODY,$DATE,$CATEGORY,$THUMBNAIL FROM $DIARY_TABLE where $ID = ? ',[diary_id]);
+    print('diary[${0}]${maps[0]}');
+    //json形式 => Map型に展開する
+    return Diary.fromMap(maps[0]);
+  }
+
+  //diary 月別リストを取得
+  Future<List<Month>> getDiaryMonth() async {
+    var dbClient = await db;
+    List<Map> maps = await dbClient.rawQuery('SELECT COUNT($ID) as new_user_count,strftime(?,$DATE) as month FROM $DIARY_TABLE GROUP BY month',['%Y-%m']);
+    List<Month> months = [];
+    if(maps.length > 0){
+      for(var i = 0; i < maps.length; i++){
+        //json形式 => Map型に展開する
+        months.add(Month.fromMap(maps[i]));
+      }
+    }
+    return months;
+  }
+
+  //diary 月別データを取得
+  Future<List<Diary>> getDiaryGroupByMonth(String group) async {
+//    print('①');
+    var dbClient = await db;
+    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$BODY,$DATE,$CATEGORY,$THUMBNAIL,strftime(?,$DATE) as month FROM $DIARY_TABLE where month = ?',['%Y-%m',group]);
+    List<Diary> diarys = [];
+    if(maps.length > 0){
+      for(var i = 0; i < maps.length; i++){
+        print('グループ別[${i}]${maps[i]}');
+        //json形式 => Map型に展開する
+        diarys.add(Diary.fromMap(maps[i]));
+      }
+    }
+//    print("[diary_photo]select: ${diarys.length}");
+    return diarys;
+  }
+
+  //diary_photo　全データ取得
+  Future<List<DPhoto>> getAllDiaryPhotos() async {
+    var dbClient = await db;
+    List<Map> maps = await dbClient.query(DIARY_PHOTO_TABLE,columns: [ID,DIARY_ID,NO,PATH]);
+    List<DPhoto> phtos = [];
+    if(maps.length > 0){
+      for(var i = 0; i < maps.length; i++){
+        //json形式 => Map型に展開する
+        phtos.add(DPhoto.fromMap(maps[i]));
+      }
+    }
+    print("[photo]Select: ${phtos.length}");
+    return phtos;
+  }
+
+  //diary_photo 日記IDに紐づくデータを取得
+  Future<List<DPhoto>> getDiaryPhotos(int diary_id) async {
+    print('id:${diary_id}');
+    var dbClient = await db;
+    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$DIARY_ID,$NO,$PATH FROM $DIARY_PHOTO_TABLE where $DIARY_ID = ? ',[diary_id]);
+    List<DPhoto> phtos = [];
+    if(maps.length > 0){
+      for(var i = 0; i < maps.length; i++){
+        print('phto[${i}]${maps[i]}');
+        //json形式 => Map型に展開する
+        phtos.add(DPhoto.fromMap(maps[i]));
+      }
+    }
+    print("[diary_photo]select: ${phtos.length}");
+    return phtos;
+  }
+
+  //diary_recipi　全データ取得
+  Future<List<DRecipi>> getAllDiaryRecipis() async {
+    var dbClient = await db;
+    List<Map> maps = await dbClient.query(DIARY_RECIPI_TABLE,columns: [ID,DIARY_ID,RECIPI_ID]);
+    List<DRecipi> recipis = [];
+    if(maps.length > 0){
+      for(var i = 0; i < maps.length; i++){
+        //json形式 => Map型に展開する
+        recipis.add(DRecipi.fromMap(maps[i]));
+      }
+    }
+    print("[recipi]Select: ${recipis.length}");
+    return recipis;
+  }
+
+  //diary_recipi 日記IDに紐づくデータを取得
+  Future<List<DRecipi>> getDiaryRecipis(int diary_id) async {
+    print('③');
+    print('id:${diary_id}');
+    var dbClient = await db;
+    List<Map> maps = await dbClient.rawQuery('SELECT $DIARY_RECIPI_TABLE.$ID,$DIARY_RECIPI_TABLE.$DIARY_ID,$DIARY_RECIPI_TABLE.$RECIPI_ID,$RECIPI_TABLE.$THUMBNAIL FROM $DIARY_RECIPI_TABLE left outer join $RECIPI_TABLE on $DIARY_RECIPI_TABLE.$RECIPI_ID  = $RECIPI_TABLE.$ID where $DIARY_RECIPI_TABLE.$DIARY_ID = ? ',[diary_id]);
+//    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$DIARY_ID,$RECIPI_ID FROM $DIARY_RECIPI_TABLE where $DIARY_ID = ? ',[id]);
+    List<DRecipi> recipis = [];
+    if(maps.length > 0){
+      for(var i = 0; i < maps.length; i++){
+        print('recipis[${i}]${maps[i]}');
+        //json形式 => Map型に展開する
+        recipis.add(DRecipi.fromMap(maps[i]));
+      }
+    }
+    print("[diary_recipi]select: ${recipis.length}");
+    return recipis;
+  }
+
+  //////////
+  //insert//
+  //////////
+
+  //mst_folder
   Future<MstFolder> insertMstFolder(MstFolder folder) async {
     print('########insert:${folder.id},${folder.name}}');
     var dbClient = await db;
@@ -312,7 +472,7 @@ class DBHelper{
     return folder;
   }
 
-  //INSERT
+  //mst_tag
   Future<MstTag> insertMstTag(MstTag tag) async {
     print('########insert:${tag.id},${tag.name}}');
     var dbClient = await db;
@@ -321,7 +481,7 @@ class DBHelper{
     return tag;
   }
 
-  //INSERT
+  //tag
   Future<Tag> insertTag(Tag tag) async {
     print('########insert:${tag.id},${tag.recipi_id}}');
     var dbClient = await db;
@@ -330,12 +490,10 @@ class DBHelper{
     return tag;
   }
 
-  //INSERT
+  //recipi
   Future<Myrecipi> insertMyRecipi(Myrecipi myrecipi) async {
-//    print('########insert:${myrecipi.id},${myrecipi.type},${myrecipi.thumbnail},${myrecipi.title},${myrecipi.description},${myrecipi.quantity},${myrecipi.unit},${myrecipi.time},${myrecipi.photos},${myrecipi.ingredients},${myrecipi.howto}');
     print('########insert:${myrecipi.id},${myrecipi.type},${myrecipi.thumbnail},${myrecipi.title},${myrecipi.description},${myrecipi.quantity},${myrecipi.unit},${myrecipi.time},${myrecipi.folder_id}');
     var dbClient = await db;
-//    var result = await dbClient.insert(TABLE, my.toMap());
     myrecipi.id = await dbClient.insert(RECIPI_TABLE, myrecipi.toMap());
     print('####insert結果:${myrecipi.id}');
     return myrecipi;
@@ -347,56 +505,61 @@ class DBHelper{
       print('########insertするレコード[photo]:${photos[i].recipi_id},${photos[i].id},${photos[i].no},${photos[i].path}');
       var dbClient = await db;
       var id = await dbClient.insert(RECIPI_PHOTO_TABLE, photos[i].toMap());
-//      print('########insert結果:${photos[i].recipi_id},${photos[i].id},${photos[i].no},${photos[i].path}');
     }
   }
-  //recipi_photo
+  //recipi_ingredient
   Future<void> insertRecipiIngredient(List<Ingredient> ingredients) async {
     for(var i = 0; i < ingredients.length; i++){
       print('########insertするレコード[ingredient]:${ingredients[i].recipi_id},${ingredients[i].id},${ingredients[i].no},${ingredients[i].name}');
       var dbClient = await db;
       var id = await dbClient.insert(RECIPI_INGREDIENT_TABLE, ingredients[i].toMap());
-//      print('########insert結果:${ingredients[i].recipi_id},${ingredients[i].id},${ingredients[i].no},${ingredients[i].name}');
     }
   }
-  //recipi_photo
+
+  //recipi_howto
   Future<void> insertRecipiHowto(List<HowTo> howTos) async {
     for(var i = 0; i < howTos.length; i++){
       print('########insertするレコード[howTo]:${howTos[i].recipi_id},${howTos[i].id},${howTos[i].no},${howTos[i].memo},${howTos[i].photo}');
       var dbClient = await db;
       var id = await dbClient.insert(RECIPI_HOWTO_TABLE, howTos[i].toMap());
-//      print('########insert結果:${howTos[i].recipi_id},${howTos[i].id},${howTos[i].no},${howTos[i].photo}');
     }
   }
 
   //diary
   Future<Diary> insertDiary(Diary diary) async {
-    print('########insert:${diary.id},${diary.body},${diary.date},${diary.category},${diary.thumbnail},');
+    print('########[diary]insert id:${diary.id},body:${diary.body},date:${diary.date},category:${diary.category},thumbnail:${diary.thumbnail},');
     var dbClient = await db;
-    diary.id = await dbClient.insert(RECIPI_TABLE, diary.toMap());
+    diary.id = await dbClient.insert(DIARY_TABLE, diary.toMap());
     print('####insert結果:${diary.id}');
     return diary;
   }
 
-//  //diary_photo
-//  Future<void> insertDiaryPhoto(List<DPhoto> photos) async {
-//    for(var i = 0; i < photos.length; i++){
-//      print('########insertするレコード[photo]:${photos[i].diary_id},${photos[i].id},${photos[i].no},${photos[i].path}');
-//      var dbClient = await db;
-//      var id = await dbClient.insert(RECIPI_PHOTO_TABLE, photos[i].toMap());
-//    }
-//  }
-//  //diary_recipi
-//  Future<void> insertDiaryRecipi(List<Recipi> recipi) async {
-//    for(var i = 0; i < recipi.length; i++){
-//      print('########insertするレコード[photo]:${recipi[i].diary_id},${recipi[i].id},${recipi[i].recipi_id}');
-//      var dbClient = await db;
-//      var id = await dbClient.insert(RECIPI_PHOTO_TABLE, recipi[i].toMap());
-//    }
-//  }
+  //diary_photo
+  Future<void> insertDiaryPhoto(List<DPhoto> photos) async {
+    for(var i = 0; i < photos.length; i++){
+      print('########[photo]insert id:${photos[i].id},diary_id:${photos[i].diary_id},no:${photos[i].no},path:${photos[i].path}');
+      var dbClient = await db;
+      var id = await dbClient.insert(DIARY_PHOTO_TABLE, photos[i].toMap());
+    }
+  }
+
+  //diary_recipi
+  Future<void> insertDiaryRecipi(List<DRecipi> recipis) async {
+    for(var i = 0; i < recipis.length; i++){
+      print('########[recipi]insert id:${recipis[i].id},diary_id:${recipis[i].diary_id},recipi_id:${recipis[i].recipi_id}');
+      var dbClient = await db;
+      var id = await dbClient.insert(DIARY_RECIPI_TABLE, recipis[i].toMap());
+    }
+  }
 
 
-  //UPDATE
+  //////////
+  //update//
+  //////////
+
+
+  //日記IDに紐づくデータを更新
+  //recipi
   Future<void> updateMyRecipi(Myrecipi myrecipi) async {
     print('########update:id:${myrecipi.id},type:${myrecipi.type},thumbnail:${myrecipi.thumbnail},title:${myrecipi.title},quantity:${myrecipi.description},quantity:${myrecipi.quantity},unit:${myrecipi.unit},folder_id:${myrecipi.folder_id},');
     var dbClient = await db;
@@ -405,85 +568,139 @@ class DBHelper{
     print('####update結果:${result}');
   }
 
-  //UPDATE
-  Future<void> updateFolderId({int id,int folder_id}) async {
-    print('########update:ID${id},folder_id${folder_id}');
+  //該当するレシピのフォルダIDを更新
+  //recipi
+  Future<void> updateFolderId({int recipi_id,int folder_id}) async {
+    print('########update:ID${recipi_id},folder_id${folder_id}');
     var dbClient = await db;
     //json形式にして送る
-    var result = await dbClient.rawUpdate('UPDATE $RECIPI_TABLE SET $FOLDER_ID = ? WHERE $ID = ?',[folder_id,id]);
+    var result = await dbClient.rawUpdate('UPDATE $RECIPI_TABLE SET $FOLDER_ID = ? WHERE $ID = ?',[folder_id,recipi_id]);
     print('####update結果:${result}');
   }
 
-//  Future<void> updateIngredient(List<Ingredient> ingredients) async {
-//    for(var i = 0; i < ingredients.length; i++){
-//      print('########updateするレコード[ingredient]:${ingredients[i].recipi_id},${ingredients[i].id},${ingredients[i].no},${ingredients[i].name}');
-//      var dbClient = await db;
-//      var id = await dbClient.insert(RECIPI_INGREDIENT_TABLE, ingredients[i].toMap());
-////      print('########insert結果:${ingredients[i].recipi_id},${ingredients[i].id},${ingredients[i].no},${ingredients[i].name}');
-//    }
-//  }
 
-  //DELETE
-  Future<void> deleteMyRecipi(int id) async {
-    print("########①delete:${id}");
+  //日記IDに紐づくデータを更新
+  //diary
+  Future<void> updateDiary(Diary diary) async {
+    print('########[Diary]update:id:${diary.id},body:${diary.body},date:${diary.date},category:${diary.category},thumbnail:${diary.thumbnail},');
+    var dbClient = await db;
+    var result = await dbClient.update(DIARY_TABLE, diary.toMap(), where: '$ID = ?', whereArgs: [diary.id]);
+    print('####[Diary]update結果:${result}');
+  }
+
+
+  //////////
+  //delete//
+  //////////
+
+
+  //recipi
+  Future<void> deleteMyRecipi(int recipi_id) async {
+    print("########①delete:${recipi_id}");
     var dbClient = await db;
     var result = await dbClient.delete(
-        RECIPI_TABLE,where: '$ID = ?',whereArgs: [id]);
+        RECIPI_TABLE,where: '$ID = ?',whereArgs: [recipi_id]);
     print('####①delete結果:${result}');
   }
 
   //レシピIDに紐づくデータを削除
-  Future<void> deleteRecipiIngredient(int id) async {
-      print("########②deleteID:${id}");
+  //recipi_ingredient
+  Future<void> deleteRecipiIngredient(int recipi_id) async {
+      print("########②材料deleteID:${recipi_id}");
       var dbClient = await db;
       var result = await dbClient.delete(
-          RECIPI_INGREDIENT_TABLE, where: '$RECIPI_ID = ?', whereArgs: [id]);
-      print('####②delete結果:${result}');
+          RECIPI_INGREDIENT_TABLE, where: '$RECIPI_ID = ?', whereArgs: [recipi_id]);
+      print('####②材料delete結果:${result}');
   }
 
   //レシピIDに紐づくデータを削除
-  Future<void> deleteRecipiHowto(int id) async {
-      print("########③deleteID:${id}");
+  //recipi_howto
+  Future<void> deleteRecipiHowto(int recipi_id) async {
+      print("########③作り方deleteID:${recipi_id}");
       var dbClient = await db;
       var result = await dbClient.delete(
-          RECIPI_HOWTO_TABLE, where: '$RECIPI_ID = ?', whereArgs: [id]);
-      print('####③delete結果:${result}');
+          RECIPI_HOWTO_TABLE, where: '$RECIPI_ID = ?', whereArgs: [recipi_id]);
+      print('####③作り方delete結果:${result}');
   }
 
   //レシピIDに紐づくデータを削除
-  Future<void> deleteRecipiPhoto(int id) async {
-      print("########④deleteID:${id}");
+  //recipi_photo
+  Future<void> deleteRecipiPhoto(int recipi_id) async {
+      print("########④写真deleteID:${recipi_id}");
       var dbClient = await db;
       var result = await dbClient.delete(
-          RECIPI_PHOTO_TABLE, where: '$RECIPI_ID = ?', whereArgs: [id]);
-      print('####④delete結果:${result}');
+          RECIPI_PHOTO_TABLE, where: '$RECIPI_ID = ?', whereArgs: [recipi_id]);
+      print('####④写真delete結果:${result}');
   }
 
   //レシピIDに紐づくタグデータを削除
-  Future<void> deletetag(int id) async {
-      print("########⑤deleteID:${id}");
+  //tag
+  Future<void> deletetag(int recipi_id) async {
+      print("########⑤タグdeleteID:${recipi_id}");
       var dbClient = await db;
       var result = await dbClient.delete(
-          TAG_TABLE, where: '$RECIPI_ID = ?', whereArgs: [id]);
+          TAG_TABLE, where: '$RECIPI_ID = ?', whereArgs: [recipi_id]);
       print('####⑤delete結果:${result}');
   }
 
   //フォルダマスタデータを削除
-  Future<void> deleteMstFolder(int id) async {
-      print("########⑥deleteID:${id}");
+  //mst_folder
+  Future<void> deleteMstFolder(int folder_mst_id) async {
+      print("########⑥フォルダマスタdeleteID:${folder_mst_id}");
       var dbClient = await db;
       var result = await dbClient.delete(
-          MST_FOLDER_TABLE, where: '$ID = ?', whereArgs: [id]);
+          MST_FOLDER_TABLE, where: '$ID = ?', whereArgs: [folder_mst_id]);
       print('####⑥delete結果:${result}');
   }
 
   //フォルダIDに紐づくレシピを削除
+  //recipi
   Future<void> deleteMyRecipiFolderId(int folder_id) async {
-    print("########①delete:${folder_id}");
+    print("########①フォルダに紐づくレシピdelete:${folder_id}");
     var dbClient = await db;
     var result = await dbClient.delete(
         RECIPI_TABLE,where: '$FOLDER_ID = ?',whereArgs: [folder_id]);
-    print('####①delete結果:${result}');
+    print('####①フォルダに紐づくレシピdelete結果:${result}');
+  }
+
+  //日記IDに紐づく日記を削除
+  //diary
+  Future<void> deleteDiary(int diary_id) async {
+    print("########[diary]deleteID:${diary_id}");
+    var dbClient = await db;
+    var result = await dbClient.delete(
+        DIARY_TABLE, where: '$ID = ?', whereArgs: [diary_id]);
+    print('####[Diary]delete結果:${result}');
+  }
+
+  //日記IDに紐づくデータを削除
+  //diary_photo
+  Future<void> deleteDiaryPhoto(int diary_id) async {
+    print("########[diary_photo]deleteID:${diary_id}");
+    var dbClient = await db;
+    var result = await dbClient.delete(
+        DIARY_PHOTO_TABLE, where: '$DIARY_ID = ?', whereArgs: [diary_id]);
+    print('####[diary_photo]delete結果:${result}');
+  }
+
+  //日記IDに紐づくデータを削除
+  //diary_recipi
+  Future<void> deleteDiaryRecipi(int diary_id) async {
+    print("########[diary_recipi]deleteID:${diary_id}");
+    var dbClient = await db;
+    var result = await dbClient.delete(
+        DIARY_RECIPI_TABLE, where: '$DIARY_ID = ?', whereArgs: [diary_id]);
+    print('####[diary_recipi]delete結果:${result}');
+  }
+
+  //レシピIDに紐づくデータを削除
+  //diary_recipi
+  Future<void> deleteDiaryRecipibyRecipiID(int recipi_id) async {
+    print("########[diary_recipi]deleteレシピID:${recipi_id}");
+    var dbClient = await db;
+    var result = await dbClient.delete(
+        DIARY_RECIPI_TABLE, where: '$RECIPI_ID = ?', whereArgs: [recipi_id]);
+    print('####[diary_recipi]deleteレシピID結果:${result}');
   }
 
   //DB CLOSE
