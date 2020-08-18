@@ -263,10 +263,10 @@ class _EditHowToState extends State<EditHowTo>{
               ),
               //画像エリア
               _photo.isEmpty
-                ? SizedBox(
-                    height: 100,
-                    width: 100,
+                ? Card(
                     child: Container(
+                      height: 100,
+                      width: 100,
                       color: Colors.grey,
                       child: InkWell(
                           child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
@@ -276,10 +276,10 @@ class _EditHowToState extends State<EditHowTo>{
                       ),
                     ),
                   )
-                : SizedBox(
-                    height: 100,
-                    width: 100,
+                : Card(
                     child: Container(
+                      height: 100,
+                      width: 100,
                       child: InkWell(
                         child: Image.file(File(_photo)),
                         onTap: (){

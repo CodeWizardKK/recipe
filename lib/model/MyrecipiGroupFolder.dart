@@ -1,7 +1,3 @@
-import 'package:recipe_app/model/edit/Howto.dart';
-import 'package:recipe_app/model/edit/Ingredient.dart';
-import 'package:recipe_app/model/edit/Photo.dart';
-
 class MyrecipiGroupFolder{
   int folder_id;          //フォルダID
   String name;            //フォルダ名
