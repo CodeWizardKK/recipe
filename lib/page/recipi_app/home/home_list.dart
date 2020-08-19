@@ -55,12 +55,36 @@ class _HomeListState extends State<HomeList>{
 
   }
 
+  //レシピリストのフォルダアイコンtap時処理
+  void _onFolderTap({int type}){
+    String title = '';
+    // 3:フォルダの管理(menu)
+    if(type == 3){
+      //タイトルセット
+      title = 'フォルダの管理';
+    }else{
+    // 4:タグの管理(menu)
+      //タイトルセット
+      title = 'タグの管理';
+    }
+    //フォルダ、タグ管理画面でのタイトルをset
+    Provider.of<Display>(context, listen: false).setSortTitle(title);
+    //フォルダ、タグ管理画面での表示タイプをset
+    Provider.of<Display>(context, listen: false).setSortType(type);
+    //戻る画面をセット
+    Provider.of<Display>(context, listen: false).setBackScreen(3);
+    //レシピをset
+    Provider.of<Display>(context, listen: false).setCurrentIndex(1);
+    //3:フォルダ、タグ管理画面をset
+    Provider.of<Display>(context, listen: false).setState(3);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: drawerNavigation(),
       appBar: AppBar(
         backgroundColor: Colors.cyan,
-        leading: menuBtn(),
         elevation: 0.0,
         title: Center(
           child: const Text('レシピ',
@@ -203,13 +227,59 @@ class _HomeListState extends State<HomeList>{
     );
   }
 
-
-  Widget menuBtn(){
-    return IconButton(
-      icon: const Icon(Icons.list,color: Colors.white,size:30,),
-      onPressed: (){
-//        _onList();
-      },
+  //ドロワーナビゲーション
+  Widget drawerNavigation(){
+    return Drawer(
+      child: ListView(
+        children: <Widget>[
+          Container(
+            color: Colors.cyan,
+            child: ListTile(
+              title: Center(
+                child: Text('設定',
+                  style: TextStyle(
+                      color:Colors.white,
+                      fontWeight: FontWeight.bold
+                  ),
+                ),
+              ),
+//              subtitle: Text(''),
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.folder_open,color: Colors.cyan,),
+            title: Text('フォルダの管理',
+              style: TextStyle(
+//                fontWeight: FontWeight.bold
+              ),
+            ),
+            onTap: () {
+              _onFolderTap(type: 3);
+            },
+          ),
+          Divider(
+            color: Colors.grey,
+            height: 0.5,
+            thickness: 0.5,
+          ),
+          ListTile(
+            leading: Icon(Icons.local_offer,color: Colors.cyan,),
+            title: Text('タグの管理',
+              style: TextStyle(
+//                  fontWeight: FontWeight.bold
+              ),
+            ),
+            onTap: () {
+              _onFolderTap(type: 4);
+            },
+          ),
+          Divider(
+            color: Colors.grey,
+            height: 0.5,
+            thickness: 0.5,
+          ),
+        ],
+      ),
     );
   }
 

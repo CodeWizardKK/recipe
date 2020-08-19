@@ -32,35 +32,40 @@ class _RecipiSortState extends State<RecipiSort>{
 
   String _name = '';             //モーダルにて入力した値
   int _sortType = 0;             //表示タイプ 0:全表示 1:フォルダのみ 2:タグのみ
-  int _backScreen = 0;       //0:レシピのレシピ一覧 1:レシピのフォルダ別レシピ一覧 2:ごはん日記の日記詳細レシピ一覧 3:ホーム画面
+  int _backScreen = 0;           //0:レシピのレシピ一覧 1:レシピのフォルダ別レシピ一覧 2:ごはん日記の日記詳細レシピ一覧 3:ホーム画面
+  bool _isCheck = false;         //true:チェックボックス表示
+  String _title = '';            //表示するタイトル
 
 
   @override
   void initState() {
     super.initState();
+    _getItem();
+  }
+
+  _getItem() async {
     dbHelper = DBHelper();
     this._Mfolders = [];
     this._Mtags = [];
     this._oldTags = [];
 
+    //タイトルを取得
+    this._title = Provider.of<Display>(context, listen: false).getSortTitle();
     //表示タイプを取得
     this._sortType = Provider.of<Display>(context, listen: false).getSortType();
-//    print('表示タイプ：${_sortType}');
-
     //チェックBox付きフォルダリストの生成
     this._folders = Provider.of<Display>(context, listen: false).createCheckList(type: 1);
-
+    if(this._folders.length == 0 ){
+      await this._getMstfolders(type: 1,isRefresh: true);
+    }
     //チェックBox付きタグリストの生成
     this._tags = Provider.of<Display>(context, listen: false).createCheckList(type: 2);
+    if(this._tags.length == 0 ){
+      await this._getMstTags(type: 1,isRefresh: true);
+    }
     this._oldTags = Provider.of<Display>(context, listen: false).createDefaultCheckList(type: 2);
-//    for(var i = 0; i < this._tags.length; i++){
-//      this._oldTags.add(this._tags[i]);
-//      print('${_oldTags[i].id},${_oldTags[i].name},${_oldTags[i].isCheck}');
-//    }
-
-  //戻る画面を取得
+    //戻る画面を取得
     this._backScreen = Provider.of<Display>(context, listen: false).getBackScreen();
-
   }
 
   //一覧リストへ遷移
@@ -74,11 +79,18 @@ class _RecipiSortState extends State<RecipiSort>{
     }else if(this._backScreen == 2){
       //2:ごはん日記へ遷移
       Provider.of<Display>(context, listen: false).setCurrentIndex(2);
-//      //1:日記詳細レシピ一覧
-//      Provider.of<Display>(context, listen: false).setState(1);
-    }else if(this._backScreen == 3){
-      //ホーム画面へ遷移
+      //一覧リストへ遷移
+      Provider.of<Display>(context, listen: false).setState(0);
+    }else if(this._backScreen == 3) {
+      //3:ホーム画面へ遷移
       Provider.of<Display>(context, listen: false).setCurrentIndex(0);
+      //一覧リストへ遷移
+      Provider.of<Display>(context, listen: false).setState(0);
+    }else if(this._backScreen == 4){
+      //3:アルバムへ遷移
+      Provider.of<Display>(context, listen: false).setCurrentIndex(3);
+      //一覧リストへ遷移
+      Provider.of<Display>(context, listen: false).setState(0);
     }else{
       //一覧リストへ遷移
       Provider.of<Display>(context, listen: false).setState(0);
@@ -102,71 +114,67 @@ class _RecipiSortState extends State<RecipiSort>{
   }
 
   //モーダルの保存するボタン押下時処理
-  void _onModalSubmit({int type}) async {
+  void _onModalSubmit({int type,int selectedId}) async {
     print('type:${type}');
+    //空の場合登録せず閉じる
     if(this._name.isEmpty){
       return;
     }
-    //フォルダに追加の場合
+
+    //フォルダ追加の場合
     if(type == 1){
-      //入力内容をセットする
-      MstFolder folder = MstFolder(id:-1,name: this._name);
-      //フォルダマスタへの登録処理
-      MstFolder result = await dbHelper.insertMstFolder(folder);
-      print('登録したfolderMstID${result.id}');
-
-      //フォルダマスタに登録したを内容を表示形式にし追加する
-      //フォルダアイコンをタップした場合のみ、登録したフォルダを選択状態にする
-      Check check = Check(id: result.id,name: result.name,isCheck: this._sortType == 0 ? true : false);
-      Provider.of<Display>(context, listen: false).addDisplayCheck(check: check,type: type);
-
-      //フォルダマスタ取得処理
-      await dbHelper.getMstFolders().then((item){
-        setState(() {
-          this._Mfolders.clear();
-          this._Mfolders.addAll(item);
-        });
-      });
-      //取得したフォルダマスタをstoreに保存
-      Provider.of<Display>(context, listen: false).setMstFolder(this._Mfolders);
-
-      //フォルダリストを取得し、展開する
-      this._folders = Provider.of<Display>(context, listen: false).getDisplayCheck(type: type);
-
+      //登録の場合
+      if(selectedId == -1){
+        //入力内容をセットする
+        MstFolder folder = MstFolder(id: selectedId,name: this._name);
+        //フォルダマスタへの登録処理
+        MstFolder result = await dbHelper.insertMstFolder(folder);
+//        print('登録したfolderMstID${result.id}');
+        //フォルダマスタに登録したを内容を表示形式にし追加する
+        //フォルダアイコンをタップした場合のみ、登録したフォルダを選択状態(true)で追加する
+        Check check = Check(id: result.id,name: result.name,isCheck: this._sortType == 0 ? true : false);
+        Provider.of<Display>(context, listen: false).addDisplayCheck(check: check,type: type);
+        //最新のレコードを取得
+        await this._getMstfolders(type: type,isRefresh: false);
+      }else{
+      //更新の場合
+        //フォルダマスタへの更新処理
+        await dbHelper.updateMstFolder(folder_id: selectedId,name: this._name);
+        //最新のレコードを取得
+        await this._getMstfolders(type: type,isRefresh: true);
+      }
     }else{
-      //入力内容をセットする
-      MstTag tag = MstTag(id:-1,name: this._name);
-      //タグマスタ登録処理
-      MstTag result = await dbHelper.insertMstTag(tag);
+    //タグ追加の場合
+      //登録の場合
+      if(selectedId == -1){
+        //入力内容をセットする
+        MstTag tag = MstTag(id:selectedId,name: this._name);
+        //タグマスタ登録処理
+        MstTag result = await dbHelper.insertMstTag(tag);
 
-      //タグマスタに登録したを内容を表示形式にし追加する
-      //フォルダアイコンをタップした場合のみ、登録したタグを選択状態にする
-      print('登録したtagmstID${result.id}');
-      Check check = Check(id: result.id,name: result.name,isCheck: this._sortType == 0 ? true : false);
-      Provider.of<Display>(context, listen: false).addDisplayCheck(check: check,type: type);
+        //タグマスタに登録したを内容を表示形式にし追加する
+        //フォルダアイコンをタップした場合のみ、登録したタグを選択状態にする
+        print('登録したtagmstID${result.id}');
+        Check check = Check(id: result.id,name: result.name,isCheck: this._sortType == 0 ? true : false);
+        Provider.of<Display>(context, listen: false).addDisplayCheck(check: check,type: type);
 
-      //変更前
-      Check default_check = Check(id: result.id,name: result.name,isCheck: false);
-      Provider.of<Display>(context, listen: false).addefaultDisplayCheck(check: default_check,type: type);
-
-      //タグマスタ取得処理
-      await dbHelper.getMstTags().then((item){
-        setState(() {
-          this._Mtags.clear();
-          this._Mtags.addAll(item);
-        });
-      });
-      //取得したタグマスタをstoreへ保存
-      Provider.of<Display>(context, listen: false).setMstTag(this._Mtags);
-
-      //タグリストを取得し、展開する
-      this._tags = Provider.of<Display>(context, listen: false).getDisplayCheck(type: type);
+        //変更前
+        Check default_check = Check(id: result.id,name: result.name,isCheck: false);
+        Provider.of<Display>(context, listen: false).addefaultDisplayCheck(check: default_check,type: type);
+        //最新のレコードを取得
+        await this._getMstTags(type: type, isRefresh: false);
+      }else{
+        //更新の場合
+        //フォルダマスタへの更新処理
+        await dbHelper.updateMstTag(tag_id: selectedId,name: this._name);
+        //最新のレコードを取得
+        await this._getMstTags(type: type,isRefresh: true);
+      }
     }
   }
 
   //保存する押下時処理
   void _onSubmit() async {
-
     //フォルダボタン
     if(this._sortType == 1){
       int folder_id = 0;
@@ -177,20 +185,18 @@ class _RecipiSortState extends State<RecipiSort>{
           break;
         }
       }
-
       //フォルダIDを更新する
       List ids = Provider.of<Display>(context, listen: false).getIds();
       for(var i = 0; i < ids.length; i++){
         await dbHelper.updateFolderId(recipi_id: ids[i],folder_id: folder_id);
       }
-
     //タグ付けボタン
     }else if(this._sortType == 2){
       //フォルダIDを更新する
       List ids = Provider.of<Display>(context, listen: false).getIds();
       for(var i = 0; i < ids.length; i++){
         //タグ削除処理
-        await dbHelper.deletetag(ids[i]);
+        await dbHelper.deleteTagRecipiId(ids[i]);
         //タグ追加処理
         for(var k = 0; k < this._tags.length; k++){
           if(this._tags[k].isCheck){
@@ -199,7 +205,6 @@ class _RecipiSortState extends State<RecipiSort>{
           }
         }
       }
-
     //フォルダアイコン押下時
     }else{
       //該当のレシピを取得
@@ -220,14 +225,13 @@ class _RecipiSortState extends State<RecipiSort>{
         //フォルダIDの更新
         await dbHelper.updateMyRecipi(recipi);
       }
-
       //タグの更新
       bool equals = this._equals(oldItem:this._oldTags, newItem:this._tags);
       print('equals:${equals}');
       if(!equals){
         print('--------タグテーブル更新---------');
         //タグ削除処理
-        await dbHelper.deletetag(recipi.id);
+        await dbHelper.deleteTagRecipiId(recipi.id);
 
         for(var i = 0; i < this._tags.length; i++){
           if(this._tags[i].isCheck){
@@ -238,13 +242,13 @@ class _RecipiSortState extends State<RecipiSort>{
       }else{
         print('--------タグテーブル更新しない---------');
       }
-
     }
-
      //一覧リストへ遷移
     this._onList();
   }
 
+  // レシピの整理にて保存ボタン押下時、チェックリストの変更有無をチェック
+  // true:変更あり
   bool _equals({List<Check> oldItem,List<Check> newItem}){
 
     for(var i = 0; i < newItem.length; i++){
@@ -270,8 +274,9 @@ class _RecipiSortState extends State<RecipiSort>{
     });
   }
 
-  void _onCheck({int index,int type}){
-    //フォルダリスト
+  //フォルダ、タグ選択処理
+  void _onSelected({int index,int type}){
+    //フォルダリスト(1件のみ選択)
     if(type == 1){
       if(!this._folders[index].isCheck){
         for(var i=0; i < this._folders.length; i++){
@@ -280,13 +285,20 @@ class _RecipiSortState extends State<RecipiSort>{
       }
       setState(() {
         this._folders[index].isCheck = !this._folders[index].isCheck;
-        if(this._folders[index].isCheck){
-
-        }
       });
-      //タグリストをsetする
+      //フォルダリストをsetする
       Provider.of<Display>(context, listen: false).setCheck(index: index,isCheck:this._folders[index].isCheck,type: type);
       print('ID:${_folders[index].id},NAME:${_folders[index].name},isCheck:${_folders[index].isCheck}');
+
+    //フォルダリスト(複数選択)
+    }else if(type == 3){
+      setState(() {
+        this._folders[index].isCheck = !this._folders[index].isCheck;
+      });
+      //フォルダリストをsetする
+      Provider.of<Display>(context, listen: false).setCheck(index: index,isCheck:this._folders[index].isCheck,type: type);
+      print('ID:${_folders[index].id},NAME:${_folders[index].name},isCheck:${_folders[index].isCheck}');
+
 
     //タグリスト
     }else{
@@ -298,15 +310,144 @@ class _RecipiSortState extends State<RecipiSort>{
       print('ID:${_tags[index].id},NAME:${_tags[index].name},isCheck:${_tags[index].isCheck}');
       print('ID:${_oldTags[index].id},NAME:${_oldTags[index].name},isCheck:${_oldTags[index].isCheck}');
     }
+  }
 
+  //右上チェックボタン押下時処理
+  void _onCheck(){
+    setState(() {
+      this._isCheck = !this._isCheck;
+    });
+  }
+
+  //チェックボックスにて選択した値を返す
+  int _selectedCount(){
+    int count = 0;
+    //フォルダの管理(menu)
+    if(this._sortType == 3) {
+      for (var i = 0; i < this._folders.length; i++) {
+        if (this._folders[i].isCheck) {
+          count++;
+        }
+      }
+    }
+    // 4:タグの管理(menu)
+    if(this._sortType == 4) {
+      for (var i = 0; i < this._tags.length; i++) {
+        if (this._tags[i].isCheck) {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
+
+  //削除処理
+  void _onDelete() async {
+    List ids = [];
+
+    //フォルダの管理(menu)
+    if(this._sortType == 3){
+      //選択したフォルダマスタを削除
+      for(var i = 0; i < this._folders.length; i++){
+        if(this._folders[i].isCheck){
+          ids.add(this._folders[i].id);
+        }
+      }
+      if(ids.length > 0){
+        print('削除するフォルダマスタID：${ids}');
+        //フォルダマスタ削除処理
+        for(var i = 0; i < ids.length; i++){
+          //フォルダマスタ削除
+          await dbHelper.deleteMstFolder(ids[i]);
+          //フォルダマスタで削除したIDに紐づくレシピを取得する
+          List<Myrecipi> recipis = await dbHelper.getMyRecipibyFolderID(ids[i]);
+          //フォルダマスタで削除したIDに紐づくレシピデータのフォルダIDを0に更新する
+          for(var i = 0; i < recipis.length; i++){
+            await dbHelper.updateFolderId(recipi_id: recipis[i].id,folder_id: 0);
+          }
+        }
+        //最新のレコードを取得
+        await this._getMstfolders(type: 1,isRefresh: true);
+      }
+    }
+
+    //タグの管理(menu)
+    if(this._sortType == 4){
+      //選択したフォルダマスタを削除
+      for(var i = 0; i < this._tags.length; i++){
+        if(this._tags[i].isCheck){
+          ids.add(this._tags[i].id);
+        }
+      }
+      if(ids.length > 0){
+        print('削除するタグマスタID：${ids}');
+        //タグマスタ削除処理
+        for(var i = 0; i < ids.length; i++){
+          //タグマスタ削除
+          await dbHelper.deleteMstTag(ids[i]);
+          //タグマスタで削除したIDに紐づくタグデータを削除する
+          await dbHelper.deleteTagMstTagId(ids[i]);
+        }
+        //最新のレコードを取得
+        await this._getMstTags(type: 2,isRefresh: true);
+      }
+    }
+    setState(() {
+      this._isCheck = !this._isCheck;
+    });
+  }
+
+  //フォルダマスタの取得
+  Future<void> _getMstfolders({int type,bool isRefresh}) async {
+    //最新フォルダマスタを取得
+    await dbHelper.getMstFolders().then((item){
+      setState(() {
+        this._Mfolders.clear();
+        this._Mfolders.addAll(item);
+      });
+    });
+    //取得したフォルダマスタをstoreに保存
+    Provider.of<Display>(context, listen: false).setMstFolder(this._Mfolders);
+
+    //フォルダリストを取得し、展開する
+    setState(() {
+      if(isRefresh){
+        //チェックBox付きフォルダリストの生成
+        this._folders = Provider.of<Display>(context, listen: false).createCheckList(type: 1);
+      }else{
+        //追加データをリストへaddし、チェックBox付きフォルダリストを取得
+        this._folders = Provider.of<Display>(context, listen: false).getDisplayCheck(type: type);
+      }
+    });
+  }
+
+  //タグマスタの取得
+  Future<void> _getMstTags({int type,bool isRefresh}) async {
+    //最新タグマスタを取得
+    await dbHelper.getMstTags().then((item){
+      setState(() {
+        this._Mtags.clear();
+        this._Mtags.addAll(item);
+      });
+    });
+    //取得したタグマスタをstoreへ保存
+    Provider.of<Display>(context, listen: false).setMstTag(this._Mtags);
+
+    //タグリストを取得し、展開する
+    setState(() {
+      if(isRefresh){
+        //チェックBox付きフォルダリストの生成
+        this._tags = Provider.of<Display>(context, listen: false).createCheckList(type: 2);
+      }else {
+        //追加データをリストへaddし、チェックBox付きフォルダリストを取得
+        this._tags = Provider.of<Display>(context, listen: false).getDisplayCheck(type: type);
+      }
+    });
   }
 
   //フォルダリストエリア
   Column _createFolderList(){
     List<Widget> column = new List<Widget>();
-    setState(() {
-//        this._folders = Provider.of<Display>(context, listen: false).getFolder();
-    });
     //フォルダリストを展開する
     for(var i=0; i < this._folders.length; i++){
       column.add(
@@ -319,6 +460,17 @@ class _RecipiSortState extends State<RecipiSort>{
                   child: Row(
 //                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
+                      _isCheck
+                      ? Container(
+                          width: MediaQuery.of(context).size.width * 0.1,
+                          child: Checkbox(
+                            value: _folders[i].isCheck,
+                            onChanged: (bool value){
+                              _onSelected(index: i,type: 3);
+                            },
+                          )
+                      )
+                      : Container(),
                       Container(
                         padding: EdgeInsets.all(5),
                         child: SizedBox(
@@ -344,12 +496,9 @@ class _RecipiSortState extends State<RecipiSort>{
                         width: MediaQuery.of(context).size.width * 0.1,
                         padding: EdgeInsets.all(5),
                       ),
-//                      Container(
-//                          width: MediaQuery.of(context).size.width * 0.05,
-//                          padding: EdgeInsets.all(5),
-//                          child: Icon(Icons.check_circle_outline,color: Colors.grey,size: 30,)
-//                      ),
-                      Container(
+                      _sortType == 3
+                      ? Container()
+                      : Container(
                           width: MediaQuery.of(context).size.width * 0.1,
 //                      padding: EdgeInsets.all(5),
                           child:
@@ -357,7 +506,7 @@ class _RecipiSortState extends State<RecipiSort>{
                             value: _folders[i].isCheck,
                             onChanged: (bool value){
 //                              onTabCheck(index: i,value: value);
-                              _onCheck(index: i,type: 1);
+                              _onSelected(index: i,type: 1);
                             },
                           )
                       ),
@@ -365,7 +514,11 @@ class _RecipiSortState extends State<RecipiSort>{
                   ),
                   onTap: (){
                     setState(() {
-                      _onCheck(index: i,type: 1);
+                      _sortType >= 3
+                      ? _isCheck
+                          ? _onSelected(index: i,type: 3)
+                          : _onUpdate(type: 1,selected: _folders[i])
+                      : _onSelected(index: i,type: 1);
                     });
                   }
               ),
@@ -381,7 +534,9 @@ class _RecipiSortState extends State<RecipiSort>{
       );
     }
     // + 新しいフォルダ ボタン
-    column.add(
+    _isCheck
+    ? null
+    : column.add(
       SizedBox(
         height: MediaQuery.of(context).size.height * 0.06,
         width: MediaQuery.of(context).size.width,
@@ -414,6 +569,15 @@ class _RecipiSortState extends State<RecipiSort>{
         ),
       ),
     );
+    _isCheck
+    ? null
+    : column.add(
+      Divider(
+        color: Colors.grey,
+        height: 0.5,
+        thickness: 0.5,
+      ),
+    );
     return Column(
       children: column,
     );
@@ -422,13 +586,8 @@ class _RecipiSortState extends State<RecipiSort>{
   //タグリストエリア
   Column _createTagList(){
     List<Widget> column = new List<Widget>();
-    setState(() {
-//      this._tags = Provider.of<Display>(context, listen: false).createCheck();
-//        this._Mtags = Provider.of<Display>(context, listen: false).getMstTag();
-    });
-    //フォルダリストを展開する
+    //タグリストを展開する
     for(var i=0; i < this._tags.length; i++){
-
       column.add(
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.06,
@@ -439,6 +598,18 @@ class _RecipiSortState extends State<RecipiSort>{
                   child: Row(
 //                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
+                      _isCheck
+                      ? Container(
+                          width: MediaQuery.of(context).size.width * 0.1,
+                          child:
+                          Checkbox(
+                            value: _tags[i].isCheck,
+                            onChanged: (bool value){
+                              _onSelected(index: i,type: 2);
+                            },
+                          )
+                      )
+                      : Container(),
                       Container(
                         padding: EdgeInsets.all(5),
                         child: SizedBox(
@@ -464,7 +635,9 @@ class _RecipiSortState extends State<RecipiSort>{
                         width: MediaQuery.of(context).size.width * 0.1,
                         padding: EdgeInsets.all(5),
                       ),
-                      Container(
+                      _sortType == 4
+                      ? Container()
+                      : Container(
                           width: MediaQuery.of(context).size.width * 0.1,
 //                      padding: EdgeInsets.all(5),
                           child:
@@ -472,7 +645,7 @@ class _RecipiSortState extends State<RecipiSort>{
                             value: _tags[i].isCheck,
                             onChanged: (bool value){
 //                              onTabCheck(index: i,value: value);
-                              _onCheck(index: i,type: 2);
+                              _onSelected(index: i,type: 2);
                             },
                           )
                       ),
@@ -480,10 +653,9 @@ class _RecipiSortState extends State<RecipiSort>{
                   ),
                   onTap: (){
                     setState(() {
-                      setState(() {
-                        _onCheck(index: i,type: 2);
-                      });
-                      print('ID:${_tags[i].id},NAME:${_tags[i].name},isCheck:${_tags[i].isCheck}');
+                      _sortType >= 3 && !_isCheck
+                        ? _onUpdate(type: 2,selected: _tags[i])
+                        : _onSelected(index: i,type: 2);
                     });
                   }
               ),
@@ -499,7 +671,9 @@ class _RecipiSortState extends State<RecipiSort>{
       );
     }
     // + 新しいフォルダ ボタン
-    column.add(
+    _isCheck
+    ? null
+    : column.add(
       SizedBox(
         height: MediaQuery.of(context).size.height * 0.06,
         width: MediaQuery.of(context).size.width,
@@ -530,6 +704,15 @@ class _RecipiSortState extends State<RecipiSort>{
               }
           ),
         ),
+      ),
+    );
+    _isCheck
+        ? null
+        : column.add(
+      Divider(
+        color: Colors.grey,
+        height: 0.5,
+        thickness: 0.5,
       ),
     );
     return Column(
@@ -600,12 +783,85 @@ class _RecipiSortState extends State<RecipiSort>{
                     ),
                     onPressed: (){
                       Navigator.pop(context);
-                      _onModalSubmit(type: type);
+                      _onModalSubmit(type: type,selectedId: -1);
                     },
                   ),
                 ),
               ),
           ],
+          );
+        });
+  }
+
+//フォルダ、タグ押下時処理
+  Future<void> _onUpdate({int type,Check selected}){
+    setState(() {
+      //初期化
+      this._name = '';
+    });
+    //モーダル表示
+    return showDialog(
+        context: context,
+        builder: (context){
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(right: 20),
+                  child: IconButton(
+                    icon: Icon(Icons.close,color: Colors.cyan,size: 30,),
+                    onPressed: (){
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+                Text( type == 1 ? 'フォルダ名の変更' : 'タグ名の変更',
+                  style: TextStyle(
+                      color: Colors.cyan
+                  ),
+                ),
+              ],
+            ),
+            content: Container(
+              width: MediaQuery.of(context).size.width,
+              color: Colors.white,
+              child: TextField(
+                onChanged: _onChange,
+                style: const TextStyle(fontSize: 15.0, color: Colors.black,),
+                minLines: 1,
+                maxLines: 1,
+                decoration: InputDecoration(
+                  hintText: '${selected.name}',
+                  border: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white, width: 20.0),
+                      borderRadius: BorderRadius.circular(0.0)
+                  ),
+                ),
+              ),
+            ),
+            actions: <Widget>[
+              Container(
+                width: 90,
+                child: Padding(
+                  padding: EdgeInsets.all(10),
+                  child: FlatButton(
+                    color: Colors.cyan,
+                    child: Text('保存',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                      ),
+                    ),
+                    onPressed: (){
+                      Navigator.pop(context);
+                      _onModalSubmit(type: type,selectedId: selected.id);
+                    },
+                  ),
+                ),
+              ),
+            ],
           );
         });
   }
@@ -618,7 +874,7 @@ class _RecipiSortState extends State<RecipiSort>{
         leading: closeBtn(),
         elevation: 0.0,
         title: Center(
-          child: Text('レシピの整理',
+          child: Text(_isCheck ?'${_selectedCount()}個選択' :'${_title}',
             style: TextStyle(
               color: Colors.white,
               fontSize: 25,
@@ -627,11 +883,57 @@ class _RecipiSortState extends State<RecipiSort>{
             ),
           ),
         ),
-        actions: <Widget>[
-          completeBtn(),
+        actions: _sortType >= 3 && !_isCheck
+          ? <Widget>[
+            checkBtn(),
+          ]
+          : <Widget>[
+            completeBtn(),
+          ]
+      ),
+      body: Column(
+        children: <Widget>[
+          Expanded(child: scrollArea(),),
+          deleteBtn(),
         ],
       ),
-      body: scrollArea(),
+    );
+  }
+
+  //削除するボタン
+  Widget deleteBtn(){
+    return
+      _isCheck
+          ? Container(
+        width: 130,
+        child: Padding(
+          padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
+          child: FlatButton(
+            color: Colors.redAccent,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Icon(Icons.delete_outline,color: Colors.white,),
+                const Text('削除する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
+              ],
+            ),
+            onPressed:
+              _selectedCount() == 0
+                ? null
+                : (){_onDelete();},
+          ),
+        ),
+      )
+          : Container();
+  }
+
+  //チェックボタン
+  Widget checkBtn(){
+    return IconButton(
+      icon: const Icon(Icons.check_circle_outline,color: Colors.white,size:30),
+      onPressed: (){
+        _onCheck();
+      },
     );
   }
 
@@ -643,14 +945,18 @@ class _RecipiSortState extends State<RecipiSort>{
         padding: EdgeInsets.all(10),
         child: FlatButton(
           color: Colors.white,
-          child: Text('保存',
+          child: Text(_isCheck ? '完了' : '保存',
             style: TextStyle(
               color: Colors.cyan,
               fontSize: 15,
             ),
           ),
           onPressed: (){
-            _onSubmit();
+            _isCheck
+            ? setState(() {
+                this._isCheck = !this._isCheck;
+              })
+            : _onSubmit();
           },
         ),
       ),
@@ -685,17 +991,15 @@ class _RecipiSortState extends State<RecipiSort>{
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children:
-              _sortType == 1
+              _sortType == 1 || _sortType == 3
               ? <Widget>[
                 //フォルダ整理
                 folderListArea(), //フォルダリストエリア
-                line(),
               ]
-              : _sortType == 2
+              : _sortType == 2 || _sortType == 4
                 ? <Widget>[
                 //タグ整理
                   tagListArea(), //タグリストエリア
-                  line(),
                 ]
                 : <Widget>[
                   //全て
@@ -704,11 +1008,9 @@ class _RecipiSortState extends State<RecipiSort>{
                   headerArea(type: 1), //フォルダに移動
                   line(),
                   folderListArea(), //フォルダリストエリア
-                  line(),
                   headerArea(type: 2), //タグをつける
                   line(),
                   tagListArea(), //タグリストエリア
-                  line(),
                 ]
         ),
       );

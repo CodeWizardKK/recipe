@@ -14,7 +14,7 @@ import 'package:recipe_app/model/CheckRecipi.dart';
 //表示ステータスの状態クラス
 class Display with ChangeNotifier{
   int type = 0;           //レシピ種別 1:写真レシピ 2:MYレシピ 3:テキストレシピ 4:ごはん日記
-  int state = 0;          // 0 :一覧 1:詳細 2:編集 3:レシピの整理 4:フォルダ別レシピ一覧 9:エラー
+  int state = 0;          // 0 :一覧 1:詳細 2:編集 3:フォルダ、タグ管理画面 4:フォルダ別レシピ一覧 9:エラー
   int currentIndex = 0;   //0:ホーム 1:レシピ 2:ご飯日記 3:アルバム
   int editType = 0;       //0:編集画面TOP 1:タイトル編集欄orレシピの追加編集欄 2:材料編集欄or写真の追加編集欄 3:作り方編集欄
   List<Myrecipi> recipis = List<Myrecipi>();     //レシピ全件
@@ -24,16 +24,17 @@ class Display with ChangeNotifier{
   List<MstFolder> Mfolders = List<MstFolder>();     //フォルダマスタ
   List<MstTag> Mtags = List<MstTag>();              //タグマスタ
 
-  //////////////
-  //レシピの整理//
-  //////////////
+  ///////////////////////
+  //フォルダ、タグ管理画面//
+  //////////////////////
   String ingredientsTX ='';                 //レシピIDに紐づく材料リストを文字列で格納
   List<Tag> tags = List<Tag>();             //レシピIDに紐づくタグリスト
   List<Check> default_tags = List<Check>(); //レシピIDに紐づくタグリスト　※チェックBox付きで表示する形式
   List<Check> Dtags = List<Check>();        //レシピIDに紐づくタグリスト　※チェックBox付きで表示する形式
   int folderId = -1;                        //レシピIDに紐づくフォルダID
   List<Check> Dfolders = List<Check>();     //レシピIDに紐づくタグリスト　※チェックBox付きで表示する形式
-  int sortType = 0;                         //レシピの整理 0:全て表示 1:フォルダのみ 2:タグのみ
+  int sortType = 0;                         //フォルダ、タグ管理画面 0:全て表示 1:フォルダ管理のみ 2:タグ管理のみ
+  String sortTitle = '';                     //フォルダ、タグ整理画面で表示するタイトル
   List ids = [];                            //レシピリストにてチェックしたレシピIDを格納
 
   /////////////////////
@@ -92,6 +93,15 @@ class Display with ChangeNotifier{
 
   int getSortType(){
     return this.sortType;
+  }
+
+  void setSortTitle(String sortTitle){
+    this.sortTitle = sortTitle;
+    notifyListeners();
+  }
+
+  String getSortTitle(){
+    return this.sortTitle;
   }
 
   void setFolderId(int folderId){

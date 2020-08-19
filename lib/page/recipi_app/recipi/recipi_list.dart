@@ -153,7 +153,7 @@ class _RecipiListState extends State<RecipiList>{
   //編集処理
   void _onEdit({int selectedId,int type}){
     //編集画面へ遷移
-    print('selectId[${selectedId}]');
+//    print('selectId[${selectedId}]');
     //idをset
     Provider.of<Display>(context, listen: false).setId(selectedId);
     //レシピ種別をset
@@ -403,7 +403,6 @@ class _RecipiListState extends State<RecipiList>{
       setState(() {
         this._folders[index].isCheck = !this._folders[index].isCheck;
       });
-
 //      //フォルダリストをsetする
 //      Provider.of<Display>(context, listen: false).setCheck(index: index,isCheck:this._folders[index].isCheck,type: type);
 //      print('ID:${_folders[index].id},NAME:${_folders[index].name},isCheck:${_folders[index].isCheck}');
@@ -424,7 +423,6 @@ class _RecipiListState extends State<RecipiList>{
   //フォルダ別リストエリア
   Column _onFolderList(){
     List<Widget> column = new List<Widget>();
-//    List checks = [];
     //材料リストを展開する
     for(var i=0; i < this._folders.length; i++){
       int count = 0;
@@ -432,8 +430,6 @@ class _RecipiListState extends State<RecipiList>{
         if(this._folders[i].id == this._recipisGroupBy[k].folder_id)
           count = this._recipisGroupBy[k].count;
       }
-//      checks.add(false);
-//    for(var i=0; i < 3; i++){
       column.add(
         SizedBox(
           width: MediaQuery.of(context).size.width,
@@ -472,7 +468,6 @@ class _RecipiListState extends State<RecipiList>{
                       width: MediaQuery.of(context).size.width * 0.7,
                       padding: EdgeInsets.all(5),
                       child: Text('${_folders[i].name}',
-//                      child: Text('フォルダー名フォルダー名フォルダー名フォルダー名フォルダー名${i+1}',
                         maxLines: 1,
                         style: TextStyle(
                           fontSize: 15,
@@ -500,7 +495,6 @@ class _RecipiListState extends State<RecipiList>{
                     ),
                   ],
                 ),
-//                  child: Image.memory(imageFiles[i].readAsBytesSync()),
                 onTap: (){
                   if(this._isCheck) {
                     _onItemCheck(index: i, type: 1);
@@ -530,13 +524,12 @@ class _RecipiListState extends State<RecipiList>{
 
   //MYレシピエリア
   Column _onList(){
-//    List recipis = [];
     if(_isSeach || _isTagSeach){
       this._displayList = this._displaySearchs;
     }else{
       this._displayList = this._displayRecipis;
     }
-    List<Widget> column = new List<Widget>();
+    List<Widget> column = List<Widget>();
     //MYレシピを展開する
     for(var i=0; i < this._displayList.length; i++){
       List ingredients = [];
@@ -712,7 +705,12 @@ class _RecipiListState extends State<RecipiList>{
 
   //レシピリストのフォルダアイコンtap時処理
   void _onFolderTap({int index,String ingredients,List<Tag> tags,int type}){
-    //フォルダアイコン押下時
+    // 0:フォルダアイコン押下時
+    // 1:フォルダボタン(checkbox) 2:タグ付けボタン(checkbox)
+    // 3:フォルダの管理(menu)     4:タグの管理(menu)
+
+    String title = '';
+    // 0:フォルダアイコン押下時
     if(type == 0) {
       print('選択したレシピID:${this._displayList[index].id}');
       print('${ingredients}');
@@ -725,9 +723,11 @@ class _RecipiListState extends State<RecipiList>{
       //レシピIDに紐づくフォルダIDをsetする
       Provider.of<Display>(context, listen: false).setFolderId(this._displayList[index].folder_id);
 //    _onSort();
+      //タイトルセット
+      title = 'レシピの整理';
 
-    //フォルダボタン、タグ付けボタン押下時
-    }else{
+    //1:フォルダボタン(checkbox),2:タグ付けボタン(checkbox)
+    }else if(type == 1 || type == 2){
       //チェックしたレシピ(ID)を格納する
       List ids = [];
       for (var i = 0; i < this._displayList.length; i++) {
@@ -736,10 +736,27 @@ class _RecipiListState extends State<RecipiList>{
         }
       }
       Provider.of<Display>(context, listen: false).setIds(ids);
+      //タイトルセット
+      if(type == 1){
+        title = 'フォルダを選択';
+      }else{
+        title = 'タグを選択';
+      }
+
+    // 3:フォルダの管理(menu),4:タグの管理(menu)
+    }else{
+      //タイトルセット
+      if(type == 3){
+        title = 'フォルダの管理';
+      }else{
+        title = 'タグの管理';
+      }
     }
-    //レシピの整理での表示タイプをset
+    //フォルダ、タグ管理画面でのタイトルをset
+    Provider.of<Display>(context, listen: false).setSortTitle(title);
+    //フォルダ、タグ管理画面での表示タイプをset
     Provider.of<Display>(context, listen: false).setSortType(type);
-    //3:レシピの整理をset
+    //3:フォルダ、タグ管理画面をset
     Provider.of<Display>(context, listen: false).setState(3);
 
   }
@@ -782,7 +799,7 @@ class _RecipiListState extends State<RecipiList>{
         await dbHelper.deleteMyRecipiFolderId(ids[i]);
         for(var j = 0; j < recipis.length; j++){
           //レシピIDに紐づくタグを削除する
-          await dbHelper.deletetag(recipis[j].id);
+          await dbHelper.deleteTagRecipiId(recipis[j].id);
           //レシピIDに紐づく材料リストを削除
           await dbHelper.deleteRecipiIngredient(recipis[j].id);
           //レシピIDに紐づく作り方リストを削除
@@ -808,7 +825,7 @@ class _RecipiListState extends State<RecipiList>{
         //レシピを削除
         await dbHelper.deleteMyRecipi(ids[i]);
         //レシピIDに紐づくタグを削除する
-        await dbHelper.deletetag(ids[i]);
+        await dbHelper.deleteTagRecipiId(ids[i]);
         //レシピIDに紐づく材料リストを削除
         await dbHelper.deleteRecipiIngredient(ids[i]);
         //レシピIDに紐づく作り方リストを削除
@@ -837,7 +854,7 @@ class _RecipiListState extends State<RecipiList>{
       }
     }
 
-    refreshImages(); //レコードリフレッシュ
+    await this.refreshImages(); //レコードリフレッシュ
   }
 
   //タグ検索モーダルにてタグが選択されている場合trueを返す
@@ -1012,9 +1029,10 @@ class _RecipiListState extends State<RecipiList>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: _isCheck ? null : drawerNavigation(),
       appBar: AppBar(
         backgroundColor: Colors.cyan,
-        leading: _isCheck ? Container() : menuBtn(),
+//        leading: _isCheck ? Container() : menuBtn(),
         elevation: 0.0,
         title: Center(
           child: Text(_isCheck ? '${_selectedCount()}個選択':'レシピ',
@@ -1040,6 +1058,78 @@ class _RecipiListState extends State<RecipiList>{
     );
   }
 
+  //ドロワーナビゲーション
+  Widget drawerNavigation(){
+    return Drawer(
+      child: ListView(
+        children: <Widget>[
+//          DrawerHeader(
+//            child: Column(
+////              mainAxisSize: MainAxisSize.min,
+//              mainAxisAlignment: MainAxisAlignment.end,
+//              children: <Widget>[
+//
+//                Text('設定',
+//                  style: TextStyle(fontSize: 20,color: Colors.white),)
+//              ],
+//            ),
+//            decoration: BoxDecoration(
+//              color: Colors.cyan,
+//            ),
+//          ),
+          Container(
+            color: Colors.cyan,
+            child: ListTile(
+              title: Center(
+                child: Text('設定',
+                  style: TextStyle(
+                      color:Colors.white,
+                      fontWeight: FontWeight.bold
+                  ),
+                ),
+              ),
+//              subtitle: Text(''),
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.folder_open,color: Colors.cyan,),
+            title: Text('フォルダの管理',
+              style: TextStyle(
+//                fontWeight: FontWeight.bold
+              ),
+            ),
+            onTap: () {
+//              Navigator.pop(context);
+              _onFolderTap(type: 3);
+            },
+          ),
+          Divider(
+            color: Colors.grey,
+            height: 0.5,
+            thickness: 0.5,
+          ),
+          ListTile(
+            leading: Icon(Icons.local_offer,color: Colors.cyan,),
+            title: Text('タグの管理',
+              style: TextStyle(
+//                  fontWeight: FontWeight.bold
+              ),
+            ),
+            onTap: () {
+//              Navigator.pop(context);
+              _onFolderTap(type: 4);
+            },
+          ),
+          Divider(
+            color: Colors.grey,
+            height: 0.5,
+            thickness: 0.5,
+          ),
+        ],
+      ),
+    );
+  }
+
   //完了ボタン
   Widget completeBtn(){
     return Container(
@@ -1061,16 +1151,6 @@ class _RecipiListState extends State<RecipiList>{
           },
         ),
       ),
-    );
-  }
-
-  //メニューボタン
-  Widget menuBtn(){
-    return IconButton(
-      icon: const Icon(Icons.list,color: Colors.white,size:30,),
-      onPressed: (){
-//        _onList();
-      },
     );
   }
 
@@ -1147,96 +1227,101 @@ class _RecipiListState extends State<RecipiList>{
               children:
               _isCheck
                   ? <Widget>[
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.8,
-                  width: MediaQuery.of(context).size.width,
-                  child: SingleChildScrollView(
-                    child: showList(),
-                  ),
-                ),
-                SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.05,
-                    width: MediaQuery.of(context).size.width,
-                    child: SafeArea(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Container(
-                            //                      height: 25,
-                            width: 130,
-                            //                        color: Colors.grey,
-                            child: Padding(
-                              padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
-                              child: FlatButton(
-                                color: Colors.cyan,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    const Icon(Icons.folder_open,color: Colors.white,),
-                                    const Text('フォルダ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
-                                  ],
-                                ),
-                                onPressed: _onDisabled(type: 1) ? null :(){
-                                  _onFolderTap(type: 1);
-                                  print('フォルダ');
-                                },
-                              ),
-                            ),
-                          ),
-                          Container(
-                            width: 130,
-                            child: Padding(
-                              padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
-                              child: FlatButton(
-                                color: Colors.cyan,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    const Icon(Icons.local_offer,color: Colors.white,),
-                                    const Text('タグ付け', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
-                                  ],
-                                ),
-                                onPressed: _onDisabled(type: 2) ? null :(){
-                                  _onFolderTap(type: 2);
-                                  print('タグ付け');
-                                },
-                              ),
-                            ),
-                          ),
-                          Container(
-                            width: 130,
-                            child: Padding(
-                              padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
-                              child: FlatButton(
-                                color: Colors.redAccent,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    const Icon(Icons.delete_outline,color: Colors.white,),
-                                    const Text('削除する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
-                                  ],
-                                ),
-                                onPressed: _onDisabled(type: 3) ? null :(){
-                                  _onDelete();
-                                  print('削除する');
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
+                    //レシピリスト
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.8,
+                      width: MediaQuery.of(context).size.width,
+                      child: SingleChildScrollView(
+                        child: showList(),
                       ),
+                    ),
+                    //フォルダ、タグ付け、削除するボタン
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.05,
+                        width: MediaQuery.of(context).size.width,
+                        child: SafeArea(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              //フォルダボタン
+                              Container(
+                                //                      height: 25,
+                                width: 130,
+                                //                        color: Colors.grey,
+                                child: Padding(
+                                  padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
+                                  child: FlatButton(
+                                    color: Colors.cyan,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        const Icon(Icons.folder_open,color: Colors.white,),
+                                        const Text('フォルダ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
+                                      ],
+                                    ),
+                                    onPressed: _onDisabled(type: 1) ? null :(){
+                                      _onFolderTap(type: 1);
+                                      print('フォルダ');
+                                    },
+                                  ),
+                                ),
+                              ),
+                              //タグ付けボタン
+                              Container(
+                                width: 130,
+                                child: Padding(
+                                  padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
+                                  child: FlatButton(
+                                    color: Colors.cyan,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        const Icon(Icons.local_offer,color: Colors.white,),
+                                        const Text('タグ付け', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
+                                      ],
+                                    ),
+                                    onPressed: _onDisabled(type: 2) ? null :(){
+                                      _onFolderTap(type: 2);
+                                      print('タグ付け');
+                                    },
+                                  ),
+                                ),
+                              ),
+                              //削除するボタン
+                              Container(
+                                width: 130,
+                                child: Padding(
+                                  padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
+                                  child: FlatButton(
+                                    color: Colors.redAccent,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        const Icon(Icons.delete_outline,color: Colors.white,),
+                                        const Text('削除する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
+                                      ],
+                                    ),
+                                    onPressed: _onDisabled(type: 3) ? null :(){
+                                      _onDelete();
+                                      print('削除する');
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
                     )
-                )
-              ]
+                  ]
                   : <Widget>[
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.85,
-                  width: MediaQuery.of(context).size.width,
-                  child: SingleChildScrollView(
-                    child: showList(),
-                  ),
-                ),
-              ]
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.85,
+                      width: MediaQuery.of(context).size.width,
+                      child: SingleChildScrollView(
+                        child: showList(),
+                      ),
+                    ),
+                  ]
           )
       ),
     );

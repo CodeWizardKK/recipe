@@ -100,92 +100,39 @@ class _DiaryListState extends State<DiaryList>{
       displayDiarys.clear();
       this._displayDiaryGroupDates.add(displayDiaryGroupDate);
     }
-    for(var i = 0; i < this._displayDiaryGroupDates.length; i++){
-      print('######################################################');
-      print('id:${this._displayDiaryGroupDates[i].id},month:${this._displayDiaryGroupDates[i].month}');
-      for(var j = 0; j < this._displayDiaryGroupDates[i].displayDiarys.length; j++){
-        print('+++++++++++++++++++++++++++++++++++++++++++++');
-        print('id:${this._displayDiaryGroupDates[i].displayDiarys[j].id}');
-        print('body:${this._displayDiaryGroupDates[i].displayDiarys[j].body}');
-        print('date:${this._displayDiaryGroupDates[i].displayDiarys[j].date}');
-        print('category:${this._displayDiaryGroupDates[i].displayDiarys[j].category}');
-        print('thumbnail:${this._displayDiaryGroupDates[i].displayDiarys[j].thumbnail}');
-        print('------ phtos ------------------');
-        for(var k = 0; k < this._displayDiaryGroupDates[i].displayDiarys[j].photos.length; k++){
-          print('-- [$k] --');
-          print('id:${this._displayDiaryGroupDates[i].displayDiarys[j].photos[k].id}');
-          print('diary_id:${this._displayDiaryGroupDates[i].displayDiarys[j].photos[k].diary_id}');
-          print('no:${this._displayDiaryGroupDates[i].displayDiarys[j].photos[k].no}');
-          print('path:${this._displayDiaryGroupDates[i].displayDiarys[j].photos[k].path}');
-          print('---------');
-        }
-        print('------------------------');
-        print('------- recipis -----------------');
-        for(var k = 0; k < this._displayDiaryGroupDates[i].displayDiarys[j].recipis.length; k++){
-          print('-- [$k] --');
-          print('id:${this._displayDiaryGroupDates[i].displayDiarys[j].recipis[k].id}');
-          print('diary_id:${this._displayDiaryGroupDates[i].displayDiarys[j].recipis[k].diary_id}');
-          print('no:${this._displayDiaryGroupDates[i].displayDiarys[j].recipis[k].recipi_id}');
-          print('image:${this._displayDiaryGroupDates[i].displayDiarys[j].recipis[k].image}');
-          print('---------');
-        }
-        print('------------------------');
-        print('+++++++++++++++++++++++++++++++++++++++++++++');
-      }
-    }
-//    //ご飯日記の全件取得
-//    await dbHelper.getAllDiarys().then((item){
-//      setState(() {
-//        this._diarys.clear();
-//        this._diarys.addAll(item);
-//      });
-//    });
-//
-//    for(var i = 0; i < this._diarys.length; i++){
-//      print('==============[diary:${i}]====================');
-//      print('id:${this._diarys[i].id}'
-//            'body:${this._diarys[i].body},'
-//            'date:${this._diarys[i].date}'
-//            'category:${this._diarys[i].category}'
-//            'thumbnail:${this._diarys[i].thumbnail}'
-//      );
+//    for(var i = 0; i < this._displayDiaryGroupDates.length; i++){
+//      print('######################################################');
+//      print('id:${this._displayDiaryGroupDates[i].id},month:${this._displayDiaryGroupDates[i].month}');
+//      for(var j = 0; j < this._displayDiaryGroupDates[i].displayDiarys.length; j++){
+//        print('+++++++++++++++++++++++++++++++++++++++++++++');
+//        print('id:${this._displayDiaryGroupDates[i].displayDiarys[j].id}');
+//        print('body:${this._displayDiaryGroupDates[i].displayDiarys[j].body}');
+//        print('date:${this._displayDiaryGroupDates[i].displayDiarys[j].date}');
+//        print('category:${this._displayDiaryGroupDates[i].displayDiarys[j].category}');
+//        print('thumbnail:${this._displayDiaryGroupDates[i].displayDiarys[j].thumbnail}');
+//        print('------ phtos ------------------');
+//        for(var k = 0; k < this._displayDiaryGroupDates[i].displayDiarys[j].photos.length; k++){
+//          print('-- [$k] --');
+//          print('id:${this._displayDiaryGroupDates[i].displayDiarys[j].photos[k].id}');
+//          print('diary_id:${this._displayDiaryGroupDates[i].displayDiarys[j].photos[k].diary_id}');
+//          print('no:${this._displayDiaryGroupDates[i].displayDiarys[j].photos[k].no}');
+//          print('path:${this._displayDiaryGroupDates[i].displayDiarys[j].photos[k].path}');
+//          print('---------');
+//        }
+//        print('------------------------');
+//        print('------- recipis -----------------');
+//        for(var k = 0; k < this._displayDiaryGroupDates[i].displayDiarys[j].recipis.length; k++){
+//          print('-- [$k] --');
+//          print('id:${this._displayDiaryGroupDates[i].displayDiarys[j].recipis[k].id}');
+//          print('diary_id:${this._displayDiaryGroupDates[i].displayDiarys[j].recipis[k].diary_id}');
+//          print('no:${this._displayDiaryGroupDates[i].displayDiarys[j].recipis[k].recipi_id}');
+//          print('image:${this._displayDiaryGroupDates[i].displayDiarys[j].recipis[k].image}');
+//          print('---------');
+//        }
+//        print('------------------------');
+//        print('+++++++++++++++++++++++++++++++++++++++++++++');
+//      }
 //    }
-//    print('================================================');
-
-//    //レシピの取得
-//    await dbHelper.getAllDiaryRecipis().then((item){
-//      setState(() {
-//        this._recipis.clear();
-//        this._recipis.addAll(item);
-//      });
-//    });
-//
-//    for(var i = 0; i < this._recipis.length; i++){
-//      print('==============[recipis:${i}]====================');
-//      print('id:${this._recipis[i].id}'
-//          'diary_id:${this._recipis[i].diary_id}'
-//          'recipi_id:${this._recipis[i].recipi_id},'
-//      );
-//    }
-//    print('================================================');
-//
-//    //写真の取得
-//    await dbHelper.getAllDiaryPhotos().then((item){
-//      setState(() {
-//        this._photos.clear();
-//        this._photos.addAll(item);
-//      });
-//    });
-//
-//    for(var i = 0; i < this._photos.length; i++){
-//      print('==============[phtos:${i}]====================');
-//      print('id:${this._photos[i].id}'
-//          'diary_id:${this._photos[i].diary_id}'
-//          'no:${this._photos[i].no},'
-//          'path:${this._photos[i].path},'
-//      );
-//    }
-//    print('================================================');
   }
 
   //写真リストを作成し返す
@@ -476,12 +423,36 @@ class _DiaryListState extends State<DiaryList>{
 
   }
 
+  //レシピリストのフォルダアイコンtap時処理
+  void _onFolderTap({int type}){
+    String title = '';
+    // 3:フォルダの管理(menu)
+    if(type == 3){
+      //タイトルセット
+      title = 'フォルダの管理';
+    }else{
+      // 4:タグの管理(menu)
+      //タイトルセット
+      title = 'タグの管理';
+    }
+    //フォルダ、タグ管理画面でのタイトルをset
+    Provider.of<Display>(context, listen: false).setSortTitle(title);
+    //フォルダ、タグ管理画面での表示タイプをset
+    Provider.of<Display>(context, listen: false).setSortType(type);
+//    //戻る画面をセット
+//    Provider.of<Display>(context, listen: false).setBackScreen(2);
+    //レシピをset
+    Provider.of<Display>(context, listen: false).setCurrentIndex(1);
+    //3:フォルダ、タグ管理画面をset
+    Provider.of<Display>(context, listen: false).setState(3);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: drawerNavigation(),
       appBar: AppBar(
         backgroundColor: Colors.cyan,
-        leading: menuBtn(),
         elevation: 0.0,
         title: Center(
           child: const Text('レシピ',
@@ -501,6 +472,62 @@ class _DiaryListState extends State<DiaryList>{
       body:scrollArea(),
       bottomNavigationBar: bottomNavigationBar(context),
 //      floatingActionButton: floatBtn(),
+    );
+  }
+
+  //ドロワーナビゲーション
+  Widget drawerNavigation(){
+    return Drawer(
+      child: ListView(
+        children: <Widget>[
+          Container(
+            color: Colors.cyan,
+            child: ListTile(
+              title: Center(
+                child: Text('設定',
+                  style: TextStyle(
+                      color:Colors.white,
+                      fontWeight: FontWeight.bold
+                  ),
+                ),
+              ),
+//              subtitle: Text(''),
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.folder_open,color: Colors.cyan,),
+            title: Text('フォルダの管理',
+              style: TextStyle(
+//                fontWeight: FontWeight.bold
+              ),
+            ),
+            onTap: () {
+              _onFolderTap(type: 3);
+            },
+          ),
+          Divider(
+            color: Colors.grey,
+            height: 0.5,
+            thickness: 0.5,
+          ),
+          ListTile(
+            leading: Icon(Icons.local_offer,color: Colors.cyan,),
+            title: Text('タグの管理',
+              style: TextStyle(
+//                  fontWeight: FontWeight.bold
+              ),
+            ),
+            onTap: () {
+              _onFolderTap(type: 4);
+            },
+          ),
+          Divider(
+            color: Colors.grey,
+            height: 0.5,
+            thickness: 0.5,
+          ),
+        ],
+      ),
     );
   }
 
@@ -537,15 +564,6 @@ class _DiaryListState extends State<DiaryList>{
   Widget myrecipiListArea(){
     return Container(
       child: _onList(),
-    );
-  }
-
-  Widget menuBtn(){
-    return IconButton(
-      icon: const Icon(Icons.list,color: Colors.white,size:30,),
-      onPressed: (){
-//        _onList();
-      },
     );
   }
 

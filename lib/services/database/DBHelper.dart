@@ -578,6 +578,25 @@ class DBHelper{
     print('####update結果:${result}');
   }
 
+  //フォルダマスタを更新
+  //mst_folder
+  Future<void> updateMstFolder({int folder_id,String name}) async {
+    print('########フォルダマスタupdate:ID${folder_id},NAME${name}');
+    var dbClient = await db;
+    //json形式にして送る
+    var result = await dbClient.rawUpdate('UPDATE $MST_FOLDER_TABLE SET $NAME = ? WHERE $ID = ?',[name,folder_id]);
+    print('####フォルダマスタupdate結果:${result}');
+  }
+
+  //フォルダマスタを更新
+  //mst_tag
+  Future<void> updateMstTag({int tag_id,String name}) async {
+    print('########タグマスタupdate:ID${tag_id},NAME${name}');
+    var dbClient = await db;
+    //json形式にして送る
+    var result = await dbClient.rawUpdate('UPDATE $MST_TAG_TABLE SET $NAME = ? WHERE $ID = ?',[name,tag_id]);
+    print('####タグマスタupdate結果:${result}');
+  }
 
   //日記IDに紐づくデータを更新
   //diary
@@ -635,7 +654,7 @@ class DBHelper{
 
   //レシピIDに紐づくタグデータを削除
   //tag
-  Future<void> deletetag(int recipi_id) async {
+  Future<void> deleteTagRecipiId(int recipi_id) async {
       print("########⑤タグdeleteID:${recipi_id}");
       var dbClient = await db;
       var result = await dbClient.delete(
@@ -643,13 +662,33 @@ class DBHelper{
       print('####⑤delete結果:${result}');
   }
 
-  //フォルダマスタデータを削除
-  //mst_folder
-  Future<void> deleteMstFolder(int folder_mst_id) async {
-      print("########⑥フォルダマスタdeleteID:${folder_mst_id}");
+  //マスタタグIDに紐づくタグデータを削除
+  //tag
+  Future<void> deleteTagMstTagId(int mst_tag_id) async {
+      print("########⑤タグdeleteID:${mst_tag_id}");
       var dbClient = await db;
       var result = await dbClient.delete(
-          MST_FOLDER_TABLE, where: '$ID = ?', whereArgs: [folder_mst_id]);
+          TAG_TABLE, where: '$MST_TAG_ID = ?', whereArgs: [mst_tag_id]);
+      print('####⑤delete結果:${result}');
+  }
+
+  //タグマスタデータを削除
+  //mst_tag
+  Future<void> deleteMstTag(int mst_tag_id) async {
+      print("########⑥タグマスタdeleteID:${mst_tag_id}");
+      var dbClient = await db;
+      var result = await dbClient.delete(
+          MST_TAG_TABLE, where: '$ID = ?', whereArgs: [mst_tag_id]);
+      print('####⑥delete結果:${result}');
+  }
+
+  //フォルダマスタデータを削除
+  //mst_folder
+  Future<void> deleteMstFolder(int folder_id) async {
+      print("########⑥フォルダマスタdeleteID:${folder_id}");
+      var dbClient = await db;
+      var result = await dbClient.delete(
+          MST_FOLDER_TABLE, where: '$ID = ?', whereArgs: [folder_id]);
       print('####⑥delete結果:${result}');
   }
 
