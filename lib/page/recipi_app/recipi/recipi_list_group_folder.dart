@@ -558,7 +558,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
         //レシピを削除
         await dbHelper.deleteMyRecipi(ids[i]);
         //レシピIDに紐づくタグを削除する
-        await dbHelper.deletetag(ids[i]);
+        await dbHelper.deleteTagRecipiId(ids[i]);
         //レシピIDに紐づく材料リストを削除
         await dbHelper.deleteRecipiIngredient(ids[i]);
         //レシピIDに紐づく作り方リストを削除

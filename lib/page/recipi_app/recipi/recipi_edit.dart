@@ -731,7 +731,7 @@ class _RecipiEditState extends State<RecipiEdit>{
     //レシピを削除
     await dbHelper.deleteMyRecipi(this._selectedID);
     //レシピIDに紐づくタグを削除する
-    await dbHelper.deletetag(this._selectedID);
+    await dbHelper.deleteTagRecipiId(this._selectedID);
     //レシピIDに紐づくごはん日記のレシピリストを削除する
     await dbHelper.deleteDiaryRecipibyRecipiID(this._selectedID);
     //MYレシピの場合
