@@ -303,6 +303,13 @@ class _RecipiListState extends State<RecipiList>{
 //          message: const Text('Your options are '),
             actions: <Widget>[
               CupertinoActionSheetAction(
+                child: const Text('スキャンレシピを追加'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _onEdit(selectedId:-1,type: 3);
+                },
+              ),
+              CupertinoActionSheetAction(
                 child: const Text('MYレシピを追加'),
                 onPressed: () {
                   Navigator.pop(context);

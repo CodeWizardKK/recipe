@@ -24,14 +24,17 @@ class RecipiEdit extends StatefulWidget{
 class _RecipiEditState extends State<RecipiEdit>{
 
   DBHelper dbHelper;
-  int _selectedID;              //編集するID
+  int _selectedID;                //編集するID
 //  String _thumbnail;            //サムネイル DB送信用
-  int _type;                      //レシピ種別
+  int _type;                      //レシピ種別 1:写真レシピ 2:MYレシピ 3:テキストレシピ
   List<Ingredient> _ingredients;  //材料リスト
   List<HowTo> _howTos;            //作り方リスト
   List<Photo> _photos;            //詳細の内容の写真(写真を追加欄)
 //  List<File> imageFiles = new List<File>(); //詳細の内容の写真(写真を追加欄)
-  int _backScreen = 0;          //0:レシピのレシピ一覧 1:レシピのフォルダ別レシピ一覧 2:ごはん日記の日記詳細レシピ一覧 3:ホーム画面
+  int _backScreen = 0;            //0:レシピのレシピ一覧 1:レシピのフォルダ別レシピ一覧 2:ごはん日記の日記詳細レシピ一覧 3:ホーム画面
+
+    final _visionTextController = TextEditingController();
+
 
   @override
   void initState() {
@@ -136,13 +139,13 @@ class _RecipiEditState extends State<RecipiEdit>{
         //DBに登録せず、一覧リストへ戻る
         if (_type == 2) {
           if (this._ingredients.length == 0 && this._howTos.length == 0) {
-//            print('2:空だよ');
+//            print('2:空');
           _onList();
             return;
           }
         } else {
           if (this._photos.length == 0) {
-//            print('1:空だよ');
+//            print('1:空');
           _onList();
             return;
           }
@@ -747,6 +750,44 @@ class _RecipiEditState extends State<RecipiEdit>{
     _onList();
   }
 
+  //テキスト変換
+  void vision() async {
+    String thumbnail = Provider.of<Display>(context, listen: false).getThumbnail();
+
+    if (thumbnail.isNotEmpty) {
+
+//      FirebaseVisionImage visionImage = FirebaseVisionImage.fromFile(File(this._image.path));
+//      VisionText visionText = await textRecognizer.processImage(visionImage);
+//
+//      String text = visionText.text;
+//      //コンソール出力
+//      print('visionText.blocks:${visionText.blocks.length}');
+//      print('visionText.text:${text}');
+//
+//      var buf = new StringBuffer();
+//      for (TextBlock block in visionText.blocks) {
+//        final Rect boundingBox = block.boundingBox;
+//        final List<Offset> cornerPoints = block.cornerPoints;
+//        final String text = block.text;
+////        print('block.text${text}');
+//        final List<RecognizedLanguage> languages = block.recognizedLanguages;
+////        print(languages);
+////        buf.write("=====================\n");
+//        for (TextLine line in block.lines) {
+//          // Same getters as TextBlock
+//          buf.write("${line.text}\n");
+//          for (TextElement element in line.elements) {
+//            // Same getters as TextBlock
+//          }
+//        }
+//      }
+//      setState(() {
+//        //入力フォームへ反映させる
+//        this._visionTextController.text = buf.toString();
+//      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -826,30 +867,43 @@ class _RecipiEditState extends State<RecipiEdit>{
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children:
-            _type == 2
-             ? <Widget>[
-                thumbnailArea(), //トップ画像
-                titleArea(), //タイトル
-                line(),
-                ingredientArea(), //材料
-                line(),
-                ingredientAddArea(), //材料入力欄
-                line(),
-                howToArea(), //作り方
-                line(),
-                howToAddArea(), //作り方入力欄
-                line(),
-                deleteButtonArea(),//削除ボタン
-             ]
+            _type == 1 || _type == 3
+             ? _type == 1
+                ? <Widget>[
+                  thumbnailArea(), //トップ画像
+                  titleArea(), //タイトル
+                  line(),
+                  photoArea(), //写真
+                  line(),
+                  photoAddArea(), //写真入力欄
+                  line(),
+                  deleteButtonArea(),//削除ボタン
+                 ]
+                //_type == 3
+                : <Widget>[
+                  thumbnailArea(), //トップ画像
+                  titleArea(), //タイトル
+                  line(),
+                  ocrArea(),
+//                  photoArea(), //写真
+//                  line(),
+//                  photoAddArea(), //写真入力欄
+                  line(),
+                  deleteButtonArea(),//削除ボタン
+                ]
              : <Widget>[
-                thumbnailArea(), //トップ画像
-                titleArea(), //タイトル
-                line(),
-                photoArea(), //写真
-                line(),
-                photoAddArea(), //写真入力欄
-                line(),
-                deleteButtonArea(),//削除ボタン
+              thumbnailArea(), //トップ画像
+              titleArea(), //タイトル
+              line(),
+              ingredientArea(), //材料
+              line(),
+              ingredientAddArea(), //材料入力欄
+              line(),
+              howToArea(), //作り方
+              line(),
+              howToAddArea(), //作り方入力欄
+              line(),
+              deleteButtonArea(),//削除ボタン
              ]
           ),
       );
@@ -1080,6 +1134,27 @@ class _RecipiEditState extends State<RecipiEdit>{
         child: _addPhoto(),
       );
 //    });
+  }
+
+  Widget ocrArea(){
+    return
+      SizedBox(
+        height: 130,
+//        width: _getWidth(MediaQuery.of(context).size.width),
+        child: Container(
+          width: 400,
+          child: TextField(
+            controller: _visionTextController,
+            autofocus: false,
+            minLines: 5,
+            maxLines: 5,
+            decoration: const InputDecoration(
+//              hintText: 'メモを入力',
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+      );
   }
 
   //削除ボタン
