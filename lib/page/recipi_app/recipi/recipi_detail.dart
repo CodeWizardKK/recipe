@@ -366,8 +366,30 @@ class _RecipiDetailState extends State<RecipiDetail>{
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children:
-            _recipi.type == 2
-              ? <Widget>[
+            _recipi.type == 1 ||  _recipi.type == 3
+              ? _recipi.type == 1
+                ? <Widget>[
+                  thumbnailArea(), //トップ画像
+                  titleArea(), //タイトル
+                  line(),
+                  photoArea(), //写真
+                  line(),
+                  photoAddArea(), //写真入力欄
+                  line(),
+                ]
+                : <Widget>[
+                  thumbnailArea(), //トップ画像
+                  titleArea(), //タイトル
+                  line(),
+                  DescriptionTitleArea(),
+                  ocrTextArea(),   //文字変換
+                  line(),
+                  photoArea(), //写真
+                  line(),
+                  photoAddArea(), //写真入力欄
+                  line(),
+                ]
+              : <Widget>[
                 thumbnailArea(), //トップ画像
                 titleArea(), //タイトル
                 line(),
@@ -378,15 +400,6 @@ class _RecipiDetailState extends State<RecipiDetail>{
                 howToArea(), //作り方
                 line(),
                 howToAddArea(), //作り方入力欄
-                line(),
-              ]
-              : <Widget>[
-                thumbnailArea(), //トップ画像
-                titleArea(), //タイトル
-                line(),
-                photoArea(), //写真
-                line(),
-                photoAddArea(), //写真入力欄
                 line(),
               ]
       ),
@@ -447,7 +460,9 @@ class _RecipiDetailState extends State<RecipiDetail>{
                       fontWeight: FontWeight.bold
                   ),),
               ),
-              Container(
+              _recipi.type == 3
+              ? Container()
+              : Container(
                 padding: EdgeInsets.all(10),
                 child: Text('${_recipi.description}',
                   maxLines: 1,
@@ -535,6 +550,99 @@ class _RecipiDetailState extends State<RecipiDetail>{
     return Container(
       child: _addHowTo(),
     );
+  }
+
+  Widget DescriptionTitleArea(){
+//    return Consumer<Display>(
+//        builder: (context,Display,_) {
+          return
+//            Display.thumbnail.isEmpty
+//                ? Container()
+//                :
+            Column(
+              children: <Widget>[
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.05,
+                  width: MediaQuery.of(context).size.width,
+                  child: Container(
+                    color: Colors.white30,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Container(
+                          padding: EdgeInsets.all(10),
+                          child: Text('説明', style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold
+                          ),),
+                        ),
+//                        Container(
+//                          padding: EdgeInsets.all(10),
+//                          child: Row(
+//                            children: <Widget>[
+//                              Icon(Icons.text_fields,
+//                                  color: _isDescriptionEdit ? Colors.grey : Colors
+//                                      .orangeAccent),
+//                              Switch(
+//                                value: this._isDescriptionEdit,
+//                                activeColor: Colors.orangeAccent,
+//                                onChanged: (value) {
+//                                  setState(() {
+//                                    this._isDescriptionEdit =
+//                                    !this._isDescriptionEdit;
+//                                  });
+//                                },
+//                              ),
+//                              Icon(Icons.edit, color: _isDescriptionEdit
+//                                  ? Colors.orangeAccent
+//                                  : Colors.grey)
+//                            ],
+//                          ),
+//                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                line(),
+              ],
+            );
+//        });
+  }
+
+  //文字変換テキストエリア
+  Widget ocrTextArea(){
+//    return Consumer<Display>(
+//        builder: (context,Display,_) {
+          return
+//            Display.thumbnail.isEmpty
+//                ? Container()
+//                :
+            Container(
+              padding: EdgeInsets.only(left: 15, right: 15),
+              width: MediaQuery.of(context).size.width,
+              child:
+//              this._isDescriptionEdit
+//                  ? TextField(
+//                style: TextStyle(fontSize: 15),
+//                controller: _visionTextController,
+//                autofocus: false,
+//                //                minLines: 5,
+//                maxLines: 20,
+//                decoration: const InputDecoration(
+//                  //                  hintText: '写真を選択すると文字に変換された内容が表示されます',
+//                  border: InputBorder.none,
+//                ),
+//              )
+//                  :
+              Container(
+//                  width: MediaQuery.of(context).size.width,
+                padding: EdgeInsets.only(top: 13),
+                child: Text('${_recipi.description}',
+                  style: TextStyle(fontSize: 15),
+                ),
+              ),
+            );
+//        });
   }
 
   //写真エリア

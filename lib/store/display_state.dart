@@ -620,6 +620,11 @@ class Display with ChangeNotifier{
 //    notifyListeners();
   }
 
+  //説明欄のセット
+  void setDescription(String description){
+    this.titleForm.description = description;
+  }
+
   //タイトル欄の取得
   TitleForm getTitleForm(){
     return this.titleForm;

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/model/edit/Titleform.dart';
@@ -16,13 +17,21 @@ class _EditTitleState extends State<EditTitle>{
   final _title = TextEditingController();        //タイトル
   final _description = TextEditingController();  //説明/メモ
   final _quantity = TextEditingController();     //分量
-  int _unit;                                     //単位（1：人分、2：個分、3：枚分、4：杯分、5：皿分）
   final _time = TextEditingController();         //調理時間
+  int _unit;                                     //単位（1：人分、2：個分、3：枚分、4：杯分、5：皿分）
+  int _type;                                     //レシピ種別 1:写真レシピ 2:MYレシピ 3:テキストレシピ
+//  FocusNode _focus = new FocusNode();
+//  bool _isFocus = false;
 
   @override
   void initState() {
     super.initState();
+//    //分量のフォーカスの変更をリッスンする
+//    _focus.addListener(_onFocusChange);
+
     TitleForm item = Provider.of<Display>(context, listen: false).getTitleForm();
+    //レシピ種別を取得
+    this._type = Provider.of<Display>(context, listen: false).getType();
 //    print('set!!!!!');
     this._title.text = item.title;
     this._description.text = item.description;
@@ -52,49 +61,50 @@ class _EditTitleState extends State<EditTitle>{
   }
 
   //単位 表示用
-  String _displayUnit(){
-    if(_unit == 1){
+  String _displayUnit({int unit}){
+    print(unit);
+    if(unit == 1){
       return '人分';
     }
-    if(_unit == 2){
+    if(unit == 2){
       return '個分';
     }
-    if(_unit == 3){
+    if(unit == 3){
       return '枚分';
     }
-    if(_unit == 4){
+    if(unit == 4){
       return '杯分';
     }
-    if(_unit == 5){
+    if(unit == 5){
       return '皿分';
     }
   }
 
-  //単位の変更処理
-  Future<void> _changeUnit() async{
-    return showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          height: MediaQuery.of(context).size.height / 3,
-          child: CupertinoPicker(
-            onSelectedItemChanged: (value) {
-              setState(() {
-                _unit = ++value;
-              });
-            },
-            itemExtent: 40.0,
-            children: <Widget>[
-              Center(child: Text("人分")),
-              Center(child: Text("個分")),
-              Center(child: Text("枚分")),
-              Center(child: Text("杯分")),
-              Center(child: Text("皿分")),
-            ],
-          ),
-        );
-      });
-  }
+//  //単位の変更処理
+//  Future<void> _changeUnit() async{
+//    return showModalBottomSheet(
+//      context: context,
+//      builder: (BuildContext context) {
+//        return Container(
+//          height: MediaQuery.of(context).size.height / 3,
+//          child: CupertinoPicker(
+//            onSelectedItemChanged: (value) {
+//              setState(() {
+//                _unit = ++value;
+//              });
+//            },
+//            itemExtent: 40.0,
+//            children: <Widget>[
+//              Center(child: Text("人分")),
+//              Center(child: Text("個分")),
+//              Center(child: Text("枚分")),
+//              Center(child: Text("杯分")),
+//              Center(child: Text("皿分")),
+//            ],
+//          ),
+//        );
+//      });
+//  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +129,7 @@ class _EditTitleState extends State<EditTitle>{
               completeBtn(),
             ],
           ),
-          body: scrollArea(),
+          body: scrollArea()
         );
       }
     );
@@ -146,8 +156,18 @@ class _EditTitleState extends State<EditTitle>{
           alignment: Alignment.center,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
-//              mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
+            children:
+            _type == 3
+            ? <Widget>[
+              titleArea(),            //タイトル
+              titleInputArea(),       //タイトル入力欄
+              quantityArea(),         //分量
+              quantityInputArea(),    //分量単位入力欄
+              timeArea(),             //調理時間
+              timeInputArea(),        //調理時間入力欄
+              line(),
+            ]
+           : <Widget>[
               titleArea(),            //タイトル
               titleInputArea(),       //タイトル入力欄
               descriptionArea(),      //説明メモ
@@ -238,7 +258,7 @@ class _EditTitleState extends State<EditTitle>{
 //    print('####width:${MediaQuery.of(context).size.width}');
     return
       SizedBox(
-        height: 130,
+        height: 150,
 //        width: _getWidth(MediaQuery.of(context).size.width),
         child: Container(
           width: 400,
@@ -288,36 +308,90 @@ class _EditTitleState extends State<EditTitle>{
 //        height: MediaQuery.of(context).size.height * 0.08,
 //        width: MediaQuery.of(context).size.width,
         child: Container(
+          color: Colors.white,
           width: 400,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
             children: <Widget>[
-              SizedBox(
-                width: 300,
-                child: TextField(
-                  controller: _quantity,
-                  autofocus: false,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                      border: InputBorder.none,
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 40,
-                width: 100,
-                child: InkWell(
-                  child: Padding(padding: EdgeInsets.only(top: 10),
-                    child: Text('${_displayUnit()}',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  SizedBox(
+                    width: 300,
+                    child: TextField(
+//                      focusNode: _focus,
+                      controller: _quantity,
+                      autofocus: false,
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [BlacklistingTextInputFormatter(new RegExp('[\\-|\\ ]'))],
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                      ),
                     ),
                   ),
-                  onTap: (){
-                    _changeUnit();
-                  },
+                  SizedBox(
+                    height: 40,
+                    width: 100,
+//                child: InkWell(
+                    child: Padding(padding: EdgeInsets.only(top: 10),
+                      child: Text('${_displayUnit(unit: _unit)}',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+//                  onTap: (){
+//                    _changeUnit();
+//                  },
+//                ),
+                  ),
+                ],
+              ),
+              unitButtonArea() //単位選択ボタン
+            ],
+          ),
+        ),
+      );
+  }
+
+  //単位選択ボタン
+  Widget unitButtonArea(){
+    return
+      Container(
+//        color: Colors.white,
+        child: Padding(
+          padding: EdgeInsets.only(top: 10,bottom: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
+              for(var i = 1; i < 6; i++)
+              unitButton(i),
+            ],
+          ),
+        ),
+      );
+  }
+
+  //単位ボタン
+  Widget unitButton(int unit){
+    return
+      InkWell(
+        onTap: (){
+          setState(() {
+            _unit = unit;
+          });
+        },
+        child: SizedBox(
+          width: 70,
+          height: 40,
+          child: Container(
+            color: _unit == unit ? Colors.orangeAccent : Colors.white30,
+            child: Center(
+              child: Text('${_displayUnit(unit: unit)}',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: _unit == unit ? Colors.white : Colors.orangeAccent,
+                    fontSize: 15
                 ),
               ),
-            ],
+            ),
           ),
         ),
       );
