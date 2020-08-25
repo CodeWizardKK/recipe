@@ -136,8 +136,10 @@ class _AlbumListState extends State<AlbumList>{
 
     //選択した日記をセットする
     Provider.of<Edit>(context, listen: false).setDiary(diary);
-    //ごはん日記をset
+    //ごはん日記をセットする
     Provider.of<Display>(context, listen: false).setCurrentIndex(2);
+    //選択した写真をセットする
+    Provider.of<Edit>(context, listen: false).setSelectedPhoto(photo);
     //2:詳細画面へ遷移
     Provider.of<Display>(context, listen: false).setState(1);
 

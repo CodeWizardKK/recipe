@@ -12,6 +12,7 @@ class Edit with ChangeNotifier{
 
   //diary_list,diary_detail
   DisplayDiary diary = DisplayDiary();                    //選択した日記
+  DPhoto selectedPhoto = DPhoto();                      //選択した写真
 
   //diary_edit
   TextEditingController body  = TextEditingController();  //本文
@@ -85,6 +86,16 @@ class Edit with ChangeNotifier{
 
   void setPhotos(List<DPhoto> photos){
     this.photos = photos;
+    notifyListeners();
+  }
+
+  //選択した写真
+  DPhoto getSelectedPhoto(){
+    return this.selectedPhoto;
+  }
+
+  void setSelectedPhoto(DPhoto selectedPhoto){
+    this.selectedPhoto = selectedPhoto;
     notifyListeners();
   }
 

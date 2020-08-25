@@ -11,6 +11,7 @@ import 'package:recipe_app/model/Tag.dart';
 import 'package:recipe_app/model/Myrecipi.dart';
 import 'package:recipe_app/model/Recipi.dart';
 import 'package:recipe_app/model/diary/DisplayDiary.dart';
+import 'package:recipe_app/model/diary/edit/Photo.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
 import 'package:intl/intl.dart';
 
@@ -41,6 +42,15 @@ class _DiaryDetailState extends State<DiaryDetail>{
       this._backScreen = Provider.of<Display>(context, listen: false).getBackScreen();
       //選択した日記の取得
       this._diary = Provider.of<Edit>(context, listen: false).getDiary();
+      //アルバムから遷移してきた場合、tapした画像を選択状態にセットする
+      if(this._backScreen == 4){
+       DPhoto photo = Provider.of<Edit>(context, listen: false).getSelectedPhoto();
+       for(var i = 0; i < this._diary.photos.length; i++){
+         if(this._diary.photos[i].no == photo.no && this._diary.photos[i].path == photo.path ){
+           this._photoIndex = i;
+         }
+       }
+      }
     });
 
     //ご飯日記IDに紐づくレシピの取得

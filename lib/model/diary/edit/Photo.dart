@@ -1,4 +1,4 @@
-//材料欄
+
 class DPhoto{
   int id;
   int diary_id;   //外部key

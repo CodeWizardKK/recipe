@@ -1,4 +1,4 @@
-//材料欄
+
 class DRecipi{
   int id;
   String image;
