@@ -12,6 +12,21 @@ class HomeList extends StatefulWidget{
 }
 
 class _HomeListState extends State<HomeList>{
+  final List<Map> _type = [
+    {
+      'title':'写真レシピ',
+      'image' :''
+    },{
+      'title':'MYレシピ',
+      'image' :''
+    },{
+      'title':'スキャンレシピ',
+      'image' :''
+    },{
+      'title':'ごはん日記',
+      'image' :''
+    }
+  ];
 
   @override
   void initState() {
@@ -101,129 +116,57 @@ class _HomeListState extends State<HomeList>{
           addBtn(),
         ],
       ),
-      body: Container(
-        padding: EdgeInsets.only(top: 20),
-        width: MediaQuery.of(context).size.width,
-        child:Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            SizedBox(
-              child: Container(
-                color: Colors.white70,
-                padding: EdgeInsets.all(15),
-                width: MediaQuery.of(context).size.width * 0.25,
-                height: 100,
-                child: InkWell(
-                  child: Column(
-//                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Icon(Icons.photo_album,size: 40,),
-                      Text('写真レシピ',
-                        style: TextStyle(
-                            fontSize: 12
-                        ),),
-                      Text('を追加',
-                        style: TextStyle(
-                            fontSize: 12
-                        ),),
-                    ],
-                  ),
-                  onTap:(){
-                    print('写真レシピを追加');
-                    _onEdit(selectedId:-1,type: 1);
-                  }
-                ),
-              ),
-            ),
-            SizedBox(
-              child: Container(
-                color: Colors.white70,
-                padding: EdgeInsets.all(15),
-                width: MediaQuery.of(context).size.width * 0.25,
-                height: 100,
-                child: InkWell(
-                  child: Column(
-//                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Icon(Icons.description,size: 40,),
-                      Text('MYレシピ',
-                        style: TextStyle(
-                            fontSize: 12
-                        ),),
-                      Text('を追加',
-                        style: TextStyle(
-                            fontSize: 12
-                        ),),
-                    ],
-                  ),
-                  onTap:(){
-                    print('MYレシピを追加');
-                    _onEdit(selectedId:-1,type: 2);
-                  }
-                ),
-              ),
-            ),
-            SizedBox(
-              child: Container(
-                color: Colors.white70,
-                padding: EdgeInsets.all(15),
-                width: MediaQuery.of(context).size.width * 0.25,
-                height: 100,
-                child: InkWell(
-                    child: Column(
-//                    mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(Icons.photo_album,size: 40,),
-                        Text('写真レシピ',
-                          style: TextStyle(
-                              fontSize: 12
-                          ),),
-                        Text('を追加',
-                          style: TextStyle(
-                              fontSize: 12
-                          ),),
-                      ],
-                    ),
-                    onTap:(){
-                      print('写真レシピを追加');
-                      _onEdit(selectedId:-1,type: 1);
-                    }
-                ),
-              ),
-            ),
-            SizedBox(
-              child: Container(
-                color: Colors.white70,
-                padding: EdgeInsets.all(15),
-                width: MediaQuery.of(context).size.width * 0.25,
-                height: 100,
-                child: InkWell(
-                    child: Column(
-//                    mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(Icons.import_contacts,size: 40,),
-                        Text('ごはん日記',
-                          style: TextStyle(
-                              fontSize: 12
-                          ),),
-                        Text('を追加',
-                          style: TextStyle(
-                              fontSize: 12
-                          ),),
-                      ],
-                    ),
-                    onTap:(){
-                      print('ごはん日記を追加');
-                      _onEdit(selectedId:-1,type: 4);
-                    }
-                ),
-              ),
-            ),
-          ],
-        ),
+      body: Column(
+        children: <Widget>[
+          Expanded(child: buildGridView(),),
+//          shareAndSaveBtn(),
+        ],
       ),
       bottomNavigationBar: bottomNavigationBar(context),
 //      floatingActionButton: floatBtn(),
+    );
+  }
+
+  //リスト
+  Widget buildGridView(){
+    return GridView.count(
+      crossAxisCount:2,
+      crossAxisSpacing: 5.0,
+      mainAxisSpacing: 5.0,
+      shrinkWrap: true,
+      children: List.generate(_type.length, (index){
+        return Container(
+          color: Colors.grey,
+          child: InkWell(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  Icon(Icons.camera_alt,color: Colors.white, size: 70),
+//                  SizedBox(width: 10,),
+                  Column(
+//                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      Text('${_type[index]['title']}',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20
+                        ),),
+//                      SizedBox(width: 5,),
+                      Text('を追加',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20
+                        ),),
+                    ],
+                  ),
+                ],
+              ),
+              onTap:(){
+                _onEdit(selectedId:-1,type: index + 1);
+              }
+          ),
+        );
+      }),
     );
   }
 

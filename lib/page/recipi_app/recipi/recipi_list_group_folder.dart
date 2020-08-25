@@ -244,6 +244,13 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
         return CupertinoActionSheet(
             actions: <Widget>[
               CupertinoActionSheetAction(
+                child: const Text('スキャンレシピを追加'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _onEdit(selectedId:-1,type: 3);
+                },
+              ),
+              CupertinoActionSheetAction(
                 child: const Text('MYレシピを追加'),
                 onPressed: () {
                   Navigator.pop(context);
@@ -382,7 +389,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                         height: 100,
                         width: 100,
                         color: Colors.grey,
-                        child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
+                        child: Icon(Icons.restaurant,color: Colors.white,size: 50,),
                       ),
                     ),
                     //タイトル、材料、タグエリア

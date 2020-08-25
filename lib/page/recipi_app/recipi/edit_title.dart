@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_awesome_buttons/flutter_awesome_buttons.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/model/edit/Titleform.dart';
 
@@ -20,15 +21,10 @@ class _EditTitleState extends State<EditTitle>{
   final _time = TextEditingController();         //調理時間
   int _unit;                                     //単位（1：人分、2：個分、3：枚分、4：杯分、5：皿分）
   int _type;                                     //レシピ種別 1:写真レシピ 2:MYレシピ 3:テキストレシピ
-//  FocusNode _focus = new FocusNode();
-//  bool _isFocus = false;
 
   @override
   void initState() {
     super.initState();
-//    //分量のフォーカスの変更をリッスンする
-//    _focus.addListener(_onFocusChange);
-
     TitleForm item = Provider.of<Display>(context, listen: false).getTitleForm();
     //レシピ種別を取得
     this._type = Provider.of<Display>(context, listen: false).getType();
@@ -79,32 +75,6 @@ class _EditTitleState extends State<EditTitle>{
       return '皿分';
     }
   }
-
-//  //単位の変更処理
-//  Future<void> _changeUnit() async{
-//    return showModalBottomSheet(
-//      context: context,
-//      builder: (BuildContext context) {
-//        return Container(
-//          height: MediaQuery.of(context).size.height / 3,
-//          child: CupertinoPicker(
-//            onSelectedItemChanged: (value) {
-//              setState(() {
-//                _unit = ++value;
-//              });
-//            },
-//            itemExtent: 40.0,
-//            children: <Widget>[
-//              Center(child: Text("人分")),
-//              Center(child: Text("個分")),
-//              Center(child: Text("枚分")),
-//              Center(child: Text("杯分")),
-//              Center(child: Text("皿分")),
-//            ],
-//          ),
-//        );
-//      });
-//  }
 
   @override
   Widget build(BuildContext context) {
@@ -308,7 +278,7 @@ class _EditTitleState extends State<EditTitle>{
 //        height: MediaQuery.of(context).size.height * 0.08,
 //        width: MediaQuery.of(context).size.width,
         child: Container(
-          color: Colors.white,
+//          color: Colors.white,
           width: 400,
           child: Column(
             children: <Widget>[
@@ -344,54 +314,32 @@ class _EditTitleState extends State<EditTitle>{
                   ),
                 ],
               ),
-              unitButtonArea() //単位選択ボタン
-            ],
-          ),
-        ),
-      );
-  }
-
-  //単位選択ボタン
-  Widget unitButtonArea(){
-    return
-      Container(
-//        color: Colors.white,
-        child: Padding(
-          padding: EdgeInsets.only(top: 10,bottom: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              for(var i = 1; i < 6; i++)
-              unitButton(i),
-            ],
-          ),
-        ),
-      );
-  }
-
-  //単位ボタン
-  Widget unitButton(int unit){
-    return
-      InkWell(
-        onTap: (){
-          setState(() {
-            _unit = unit;
-          });
-        },
-        child: SizedBox(
-          width: 70,
-          height: 40,
-          child: Container(
-            color: _unit == unit ? Colors.orangeAccent : Colors.white30,
-            child: Center(
-              child: Text('${_displayUnit(unit: unit)}',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: _unit == unit ? Colors.white : Colors.orangeAccent,
-                    fontSize: 15
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0,vertical: 10.0),
+                height: 80,
+                child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 5,
+                    itemBuilder: (context,index) {
+                      return Row(
+                        children: <Widget>[
+                          RoundedButton(
+                            title: '${_displayUnit(unit: index + 1)}',
+//                            splashColor: Colors.redAccent,
+                            buttonColor: _unit == index + 1 ? Colors.orangeAccent :Colors.grey,
+                            onPressed: () {
+                              setState(() {
+                                  _unit = index + 1;
+                              });
+                            },
+                          ),
+                          SizedBox(width: 2.0,)
+                        ],
+                      );
+                    }
                 ),
               ),
-            ),
+            ],
           ),
         ),
       );

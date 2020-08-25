@@ -595,7 +595,7 @@ class _RecipiListState extends State<RecipiList>{
                             height: 100,
                             width: 100,
                             color: Colors.grey,
-                                child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
+                                child: Icon(Icons.restaurant,color: Colors.white,size: 50,),
                           ),
                         ),
                     //タイトル、材料、タグエリア
