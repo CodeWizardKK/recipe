@@ -1,8 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_awesome_buttons/flutter_awesome_buttons.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/model/edit/Ingredient.dart';
+import 'package:flutter/services.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:recipe_app/model/Format.dart';
 
 class EditIngredient extends StatefulWidget{
 
@@ -15,10 +20,15 @@ class _EditIngredientState extends State<EditIngredient>{
   final _name = TextEditingController();      //材料名
   final _quantity = TextEditingController();  //分量
   int _index;                                 //選択された材料のindex番号
+  List<Format> _seasonings = List();          //調味料リスト
+  List<Format> _quantityunit = List();        //分量単位リスト
 
   @override
   void initState() {
     super.initState();
+    //ローカルjson
+    this.getLocalSeasoningJsonData();
+    this.getLocalQuantityUnitJsonData();
     //新規or更新かジャッチする
     _index = Provider.of<Display>(context, listen: false).getEditIndex();
 //    print('index:${_index}');
@@ -30,6 +40,58 @@ class _EditIngredientState extends State<EditIngredient>{
       this._name.text = item.name;
       this._quantity.text = item.quantity;
     }
+  }
+
+  //材料ローカルjsonファイル読み込み
+  Future<String> _loadSeasoningAsset() async {
+    return await rootBundle.loadString('json/seasoning.json');
+  }
+
+  //分量単位ローカルjsonファイル読み込み
+  Future<String> _loadQuantityUnitAsset() async {
+    return await rootBundle.loadString('json/quantityUnit.json');
+  }
+
+  //材料ローカルjson データセット
+  Future<void> getLocalSeasoningJsonData() async {
+    setState(() {
+      this._seasonings.clear();
+    });
+    String jsonString = await _loadSeasoningAsset();
+    //データを個別に扱えるようデコードする
+    final jsonResponse = json.decode(jsonString);
+    List seasonings = jsonResponse['seasonings'];
+//      print('### getJSON: ${jsonResponse.toString()}');
+    for(var i = 0; i < seasonings.length; i++){
+      Format seasoning = Format(id: seasonings[i]['id'],name: seasonings[i]['name']);
+      setState(() {
+        this._seasonings.add(seasoning);
+      });
+    }
+//    for(var i = 0; i < this._seasonings.length; i++){
+//      print('id:${this._seasonings[i].id},name:${this._seasonings[i].name}');
+//    }
+  }
+
+  //分量単位ローカルjson データセット
+  Future<void> getLocalQuantityUnitJsonData() async {
+    setState(() {
+      this._quantityunit.clear();
+    });
+    String jsonString = await _loadQuantityUnitAsset();
+    //データを個別に扱えるようデコードする
+    final jsonResponse = json.decode(jsonString);
+    List quantityunit = jsonResponse['quantityunits'];
+//      print('### getJSON: ${jsonResponse.toString()}');
+    for(var i = 0; i < quantityunit.length; i++){
+      Format seasoning = Format(id: quantityunit[i]['id'],name: quantityunit[i]['name']);
+      setState(() {
+        this._quantityunit.add(seasoning);
+      });
+    }
+//    for(var i = 0; i < this._quantityunit.length; i++){
+//      print('id:${this._quantityunit[i].id},name:${this._quantityunit[i].name}');
+//    }
   }
 
   //保存ボタン押下時処理
@@ -174,23 +236,51 @@ class _EditIngredientState extends State<EditIngredient>{
 
   //材料入力欄
   Widget nameInputArea(){
-    return
-      SizedBox(
-//        height: MediaQuery.of(context).size.height * 0.08,
-//        width: MediaQuery.of(context).size.width,
-        child: Container(
-          width: 400,
-          child: TextField(
-            controller: _name,
-            autofocus: false,
-            keyboardType: TextInputType.text,
-            decoration: const InputDecoration(
-              hintText: 'トマト',
-              border: InputBorder.none,
+    return Column(
+      children: <Widget>[
+        SizedBox(
+  //        height: MediaQuery.of(context).size.height * 0.08,
+  //        width: MediaQuery.of(context).size.width,
+          child: Container(
+            width: 400,
+            child: TextField(
+              controller: _name,
+              autofocus: false,
+              keyboardType: TextInputType.text,
+              decoration: const InputDecoration(
+                hintText: 'トマト',
+                border: InputBorder.none,
+              ),
             ),
           ),
         ),
-      );
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 10.0,vertical: 10.0),
+          height: 80,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _seasonings.length,
+            itemBuilder: (context,index) {
+              return Row(
+                children: <Widget>[
+                  RoundedButton(
+                    title: '${_seasonings[index].name}',
+                    buttonColor: Colors.orangeAccent,
+                    onPressed: () {
+                      setState(() {
+                        _name.text = _seasonings[index].name;
+                      });
+                      print('${_seasonings[index].name}');
+                    },
+                  ),
+                  SizedBox(width: 2.0,)
+                ],
+              );
+            }
+          ),
+        )
+      ],
+    );
   }
 
   //分量
@@ -220,23 +310,55 @@ class _EditIngredientState extends State<EditIngredient>{
 
   //分量入力欄
   Widget quantityInputArea(){
-    return
-      SizedBox(
+    return Column(
+      children: <Widget>[
+        SizedBox(
 //        height: MediaQuery.of(context).size.height * 0.08,
 //        width: MediaQuery.of(context).size.width,
-        child: Container(
-          width: 400,
-          child: TextField(
-            controller: _quantity,
-            autofocus: false,
-            keyboardType: TextInputType.text,
-            decoration: const InputDecoration(
-              hintText: '1個',
-              border: InputBorder.none,
+          child: Container(
+            width: 400,
+            child: TextField(
+              controller: _quantity,
+              autofocus: false,
+              keyboardType: TextInputType.text,
+              decoration: const InputDecoration(
+                hintText: '1個',
+                border: InputBorder.none,
+              ),
             ),
           ),
         ),
-      );
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 10.0,vertical: 10.0),
+          height: 80,
+          child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _quantityunit.length,
+              itemBuilder: (context,index) {
+                return Row(
+                  children: <Widget>[
+                    RoundedButton(
+                      title: '${_quantityunit[index].name}',
+                      buttonColor: Colors.orangeAccent,
+                      onPressed: () {
+                        setState(() {
+                          if(_quantityunit[index].id < 5){
+                            _quantity.text = '${_quantity.text}${_quantityunit[index].name}';
+                          } else {
+                            _quantity.text = '${_quantityunit[index].name}${_quantity.text}';
+                          }
+                        });
+                        print('${_quantityunit[index].name}');
+                      },
+                    ),
+                    SizedBox(width: 2.0,)
+                  ],
+                );
+              }
+          ),
+        ),
+    ],
+    );
   }
 
   //線
