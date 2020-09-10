@@ -10,6 +10,8 @@ import 'package:recipe_app/model/MstTag.dart';
 import 'package:recipe_app/model/Tag.dart';
 import 'package:recipe_app/model/Check.dart';
 import 'package:recipe_app/model/CheckRecipi.dart';
+import 'package:recipe_app/model/VersionCheck.dart';
+import 'package:recipe_app/model/Format.dart';
 
 //表示ステータスの状態クラス
 class Display with ChangeNotifier{
@@ -56,7 +58,67 @@ class Display with ChangeNotifier{
   List<HowTo> howTos =  List<HowTo>();                //作り方リスト(編集用)
   List<Photo> photos = List<Photo>();                //詳細の内容の写真(写真を追加欄)(編集用)
 
+  List<Format> seasonings = List<Format>();          //調味料リスト
+  List<Format> quantityunits = List<Format>();        //分量単位リスト
 
+
+  //バージョン情報チェック
+  VersionCheck versionCheck = VersionCheck();
+  //アプリ初期起動時かどうかのチェック
+  bool isInitBoot = true;
+  //バージョンチェックした時間を保持
+  int versionCheckTime = 0;
+
+
+  //分量単位リスト
+  List<Format> getQuantityunits(){
+    return this.quantityunits;
+  }
+
+  void setQuantityunits(List<Format> quantityunits){
+    this.quantityunits = quantityunits;
+    notifyListeners();
+  }
+
+  //調味料リスト
+  List<Format> getSeasonings(){
+    return this.seasonings;
+  }
+
+  void setSeasonings(List<Format> seasonings){
+    this.seasonings = seasonings;
+    print('②②②②②②,${this.seasonings.length}');
+//    notifyListeners();
+  }
+
+  int getVersionCheckTime(){
+    return this.versionCheckTime;
+  }
+
+  //バージョンチェック時間
+  setVersionCheckTime(int versionCheckTime){
+    this.versionCheckTime  = versionCheckTime;
+    print('①セットチェック時間${this.versionCheckTime}');
+    notifyListeners();
+  }
+
+  bool getIsInitBoot(){
+    return this.isInitBoot;
+  }
+
+  setIsInitBoot(bool isInitBoot){
+    this.isInitBoot  = isInitBoot;
+    notifyListeners();
+  }
+
+  VersionCheck getVersionCheck(){
+    return this.versionCheck;
+  }
+
+  setVersionCheck(VersionCheck versionCheck){
+    this.versionCheck  = versionCheck;
+    notifyListeners();
+  }
 
   void setBackScreen(int backScreen){
     this.backScreen = backScreen;

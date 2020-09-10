@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:async';
 
+import 'package:recipe_app/model/Format.dart';
 import 'package:recipe_app/model/TagGroupRecipiId.dart';
 import 'package:recipe_app/model/Tag.dart';
 import 'package:recipe_app/model/MstTag.dart';
@@ -14,6 +15,7 @@ import 'package:recipe_app/model/diary/Diary.dart';
 import 'package:recipe_app/model/diary/edit/Photo.dart';
 import 'package:recipe_app/model/diary/edit/Recipi.dart';
 import 'package:recipe_app/model/diary/Month.dart';
+import 'package:recipe_app/model/Version.dart';
 
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
@@ -58,6 +60,10 @@ class DBHelper{
   static const String CATEGORY ='category';
   //diary_phto
   static const String DIARY_ID = 'diary_id';
+  //version
+  static const String S = 's';
+  static const String Q = 'q';
+
 
 
   //////////
@@ -75,6 +81,11 @@ class DBHelper{
   static final String DIARY_TABLE = 'diary';
   static final String DIARY_PHOTO_TABLE = 'diary_photo';
   static final String DIARY_RECIPI_TABLE = 'diary_recipi';
+  //バージョン管理
+  static final String VERSION_TABLE = 'version';
+
+  static final String SEASONING_TABLE = 'seasoning';
+  static final String QUANTITYUNIT_TABLE = 'quantityunit';
 
   Future<Database> get db async{
 
@@ -111,6 +122,11 @@ class DBHelper{
     await db.execute("CREATE TABLE $DIARY_TABLE ($ID INTEGER PRIMARY KEY, $BODY TEXT, $DATE TEXT, $CATEGORY INTEGER, $THUMBNAIL INTEGER); ");
     await db.execute("CREATE TABLE $DIARY_PHOTO_TABLE ($ID INTEGER PRIMARY KEY,$DIARY_ID INTEGER,$NO INTEGER, $PATH TEXT); ");
     await db.execute("CREATE TABLE $DIARY_RECIPI_TABLE ($ID INTEGER PRIMARY KEY,$DIARY_ID INTEGER,$RECIPI_ID INTEGER); ");
+    //バージョン管理
+    await db.execute("CREATE TABLE $VERSION_TABLE ($ID INTEGER PRIMARY KEY,$S REAL,$Q REAL); ");
+    await db.execute("CREATE TABLE $SEASONING_TABLE ($ID INTEGER PRIMARY KEY,$NAME TEXT); ");
+    await db.execute("CREATE TABLE $QUANTITYUNIT_TABLE ($ID INTEGER PRIMARY KEY,$NAME TEXT); ");
+
     print('#########CREATE!!!!!!');
   }
 
@@ -459,6 +475,60 @@ class DBHelper{
     return recipis;
   }
 
+  //version IDに紐づくバージョン情報を取得
+  Future<int> getVersionLength() async {
+    var dbClient = await db;
+//    List<Map> maps = await dbClient.rawQuery('SELECT $RECIPI_INGREDIENT_TABLE.$ID,$RECIPI_INGREDIENT_TABLE.$RECIPI_ID,$RECIPI_INGREDIENT_TABLE.$NO,$RECIPI_INGREDIENT_TABLE.$NAME,$RECIPI_INGREDIENT_TABLE.$QUANTITY FROM $RECIPI_TABLE left outer join $RECIPI_INGREDIENT_TABLE on $RECIPI_TABLE.$ID  = $RECIPI_INGREDIENT_TABLE.$RECIPI_ID where $RECIPI_TABLE.$ID = ? ',[id]);
+    List<Map> maps = await dbClient.rawQuery('SELECT COUNT(*) FROM $VERSION_TABLE ');
+
+    print('[version]Count:${maps[0]['COUNT(*)']}');
+//    //json形式 => Map型に展開する
+//    return Version.fromMap(maps[0]);
+//    print('versionlength:${maps.length}');
+    return maps[0]['COUNT(*)'];
+  }
+
+  //version IDに紐づくバージョン情報を取得
+  Future<Version> getVersion() async {
+    var dbClient = await db;
+//    List<Map> maps = await dbClient.rawQuery('SELECT $RECIPI_INGREDIENT_TABLE.$ID,$RECIPI_INGREDIENT_TABLE.$RECIPI_ID,$RECIPI_INGREDIENT_TABLE.$NO,$RECIPI_INGREDIENT_TABLE.$NAME,$RECIPI_INGREDIENT_TABLE.$QUANTITY FROM $RECIPI_TABLE left outer join $RECIPI_INGREDIENT_TABLE on $RECIPI_TABLE.$ID  = $RECIPI_INGREDIENT_TABLE.$RECIPI_ID where $RECIPI_TABLE.$ID = ? ',[id]);
+    List<Map> maps = await dbClient.rawQuery('SELECT $S,$Q FROM $VERSION_TABLE where $ID = ? ',[1]);
+//    print('version[${0}]${maps[0]}');
+    //json形式 => Map型に展開する
+    return Version.fromMap(maps[0]);
+  }
+
+  //seasoning　全データ取得
+  Future<List<Format>> getSeasoning() async {
+    var dbClient = await db;
+    List<Map> maps = await dbClient.query(SEASONING_TABLE,columns: [ID,NAME]);
+    List<Format> seasonings = [];
+    if(maps.length > 0){
+      for(var i = 0; i < maps.length; i++){
+        //json形式 => Map型に展開する
+        seasonings.add(Format.fromMap(maps[i]));
+      }
+    }
+    print("[seasoning]Select: ${seasonings.length}");
+    return seasonings;
+  }
+
+  //quantityUnit　全データ取得
+  Future<List<Format>> getQuantityUnit() async {
+    var dbClient = await db;
+    List<Map> maps = await dbClient.query(QUANTITYUNIT_TABLE,columns: [ID,NAME]);
+    List<Format> quantityUnits = [];
+    if(maps.length > 0){
+      for(var i = 0; i < maps.length; i++){
+        //json形式 => Map型に展開する
+        quantityUnits.add(Format.fromMap(maps[i]));
+      }
+    }
+    print("[quantityUnit]Select: ${quantityUnits.length}");
+    return quantityUnits;
+  }
+
+
   //////////
   //insert//
   //////////
@@ -552,6 +622,32 @@ class DBHelper{
     }
   }
 
+  //version
+  Future<Version> insertVersion(Version version) async {
+    print('########[version]insert s:${version.s},q:${version.q}');
+    var dbClient = await db;
+    await dbClient.insert(VERSION_TABLE, version.toMap());
+//    print('####insert結果:${diary.id}');
+//    return version;
+  }
+
+  //seasoning
+  Future<void> insertSeasoning(List<Format> seasonings) async {
+    for(var i = 0; i < seasonings.length; i++){
+      print('########insertするレコード[seasonings]:${seasonings[i].id},${seasonings[i].name}');
+      var dbClient = await db;
+      var id = await dbClient.insert(SEASONING_TABLE, seasonings[i].toMap());
+    }
+  }
+
+  //quantityunit
+  Future<void> insertQuantityunit(List<Format> quantityunits) async {
+    for(var i = 0; i < quantityunits.length; i++){
+      print('########insertするレコード[quantityunits]:${quantityunits[i].id},${quantityunits[i].name}');
+      var dbClient = await db;
+      var id = await dbClient.insert(QUANTITYUNIT_TABLE, quantityunits[i].toMap());
+    }
+  }
 
   //////////
   //update//
@@ -607,6 +703,20 @@ class DBHelper{
     print('####[Diary]update結果:${result}');
   }
 
+  //バージョンを更新
+  //version
+  Future<void> updateVersion({String colum,double version}) async {
+    print('########バージョンupdate:${colum}:${version}');
+    var dbClient = await db;
+    //json形式にして送る
+    var result;
+    if(colum == 's'){
+      result = await dbClient.rawUpdate('UPDATE $VERSION_TABLE SET $S = ? WHERE $ID = ?',[version,1]);
+    }else{
+      result = await dbClient.rawUpdate('UPDATE $VERSION_TABLE SET $Q = ? WHERE $ID = ?',[version,1]);
+    }
+    print('####バージョンupdate結果:${result}');
+  }
 
   //////////
   //delete//
@@ -740,6 +850,22 @@ class DBHelper{
     var result = await dbClient.delete(
         DIARY_RECIPI_TABLE, where: '$RECIPI_ID = ?', whereArgs: [recipi_id]);
     print('####[diary_recipi]deleteレシピID結果:${result}');
+  }
+
+  //seasoning
+  Future<void> deleteSeasoning() async {
+    print("########[seasoning]delete");
+    var dbClient = await db;
+    var result = await dbClient.delete(SEASONING_TABLE);
+    print('####[seasoning]delete結果:${result}');
+  }
+
+  //quantityUnit
+  Future<void> deleteQuantityUnit() async {
+    print("########[QuantityUnit]delete");
+    var dbClient = await db;
+    var result = await dbClient.delete(QUANTITYUNIT_TABLE);
+    print('####[QuantityUnit]delete結果:${result}');
   }
 
   //DB CLOSE
