@@ -296,7 +296,7 @@ class _RecipiDetailState extends State<RecipiDetail>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.cyan,
+        backgroundColor: Colors.brown[100 * (1 % 9)],
         leading: backBtn(),
         elevation: 0.0,
         title: Center(

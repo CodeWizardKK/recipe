@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -29,10 +31,54 @@ class _DiaryDetailState extends State<DiaryDetail>{
   int _photoIndex = 0;                     //サムネイルで表示する写真のindexを格納
   int _backScreen = 0;                   //戻る画面を格納[0:レシピのレシピ一覧 1:レシピのフォルダ別レシピ一覧 2:ごはん日記の日記詳細レシピ一覧 3:ホーム画面]
 
+  List<Recipi> _recipisLazy = List<Recipi>(); //遅延読み込み用リスト
+  bool _isLoadingRecipi = false;                               //true:遅延読み込み中
+  int _recipiCurrentLength = 0;                                //遅延読み込み件数を格納
+
+  final int increment = 10; //読み込み件数
+
   @override
   void initState() {
+    init();
    super.initState();
-    _getItem();
+  }
+
+  void init() async {
+    await this._getItem();
+    _recipisLazy.clear();
+    //レシピリスト用遅延読み込み
+    await this._loadMoreRecipi();
+
+  }
+
+  //レシピリスト用遅延読み込み
+  Future _loadMoreRecipi() async {
+    print('+++++_loadMoreRecipi+++++++');
+    if(mounted){
+      setState(() {
+        _isLoadingRecipi = true;
+      });
+    }
+
+    await Future.delayed(const Duration(seconds: 1));
+    for (var i = _recipiCurrentLength; i < _recipiCurrentLength + increment; i++) {
+      if( i < this._recipis.length){
+        if(mounted){
+          setState(() {
+            _recipisLazy.add(_recipis[i]);
+          });
+        }
+      }else{
+        break;
+      }
+
+    }
+    if(mounted){
+      setState(() {
+        _isLoadingRecipi = false;
+        _recipiCurrentLength = _recipisLazy.length;
+      });
+    }
   }
 
   _getItem() async {
@@ -108,142 +154,6 @@ class _DiaryDetailState extends State<DiaryDetail>{
 //    setState((){
 //      this._recipi = Provider.of<Detail>(context, listen: false).getRecipi();
 //    });
-  }
-
-  //レシピリストエリア
-  Column _onList(){
-    List<Widget> column = new List<Widget>();
-    //MYレシピを展開する
-    for(var i=0; i < this._recipis.length; i++){
-      List ingredients = [];
-      String ingredientsTX = '';
-
-      //レシピIDに紐づく材料を取得する
-      for(var k = 0;k < this._recipis[i].ingredients.length;k++){
-          ingredients.add(this._recipis[i].ingredients[k].name);
-      }
-      //配列の全要素を順に連結した文字列を作成
-      ingredientsTX = ingredients.join(',');
-
-      column.add(
-        SizedBox(
-          width: MediaQuery.of(context).size.width,
-          height: 150,
-          child: Container(
-            color: Colors.white,
-            padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
-            child: InkWell(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    //サムネイルエリア
-                    this._recipis[i].recipi.thumbnail.isNotEmpty
-                        ? SizedBox(
-                      height: 100,
-                      width: 100,
-                      child: Container(
-                        child: Image.file(File(this._recipis[i].recipi.thumbnail),fit: BoxFit.cover,),
-                      ),
-                    )
-                        : SizedBox(
-                      height: 100,
-                      width: 100,
-                      child: Container(
-                        color: Colors.grey,
-                        child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
-                      ),
-                    ),
-                    //タイトル、材料、タグエリア
-                    Container(
-//                      color: Colors.grey,
-                      width: MediaQuery.of(context).size.width * 0.7,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          //タイトル
-                          Container(
-                            height: 50,
-                            padding: EdgeInsets.all(5),
-                            child: Text('${this._recipis[i].recipi.title}',
-                              maxLines: 2,
-                              style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold
-                              ),),
-                          ),
-                          //材料
-                          Container(
-                            height: 40,
-                            padding: EdgeInsets.all(5),
-//                            child: Text('${ingredients.join(',')}',
-                            child: Text('${ingredientsTX}',
-                              maxLines: 2,
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey
-                              ),),
-                          ),
-                          //タグ
-                          if(this._recipis[i].tags.length > 0)
-                            Container(
-//                              width: MediaQuery.of(context).size.width * 0.5,
-//                              color: Colors.grey,
-                              height: 30,
-                              padding: EdgeInsets.only(left: 5,right: 5),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: <Widget>[
-                                  //タグicon
-                                  Container(
-                                    child: Icon(Icons.local_offer,size: 15,color: Colors.brown,),
-                                  ),
-                                  //タグ名　最大5件まで
-                                  for(var k = 0; k<this._recipis[i].tags.length;k++)
-                                    Container(
-                                      padding: EdgeInsets.all(2),
-                                      child: SizedBox(
-                                        child: Container(
-                                          padding: EdgeInsets.all(5),
-                                          color: Colors.brown,
-
-                                          child: Text('${this._recipis[i].tags[k].name}',
-                                            style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.white
-                                            ),
-                                            maxLines: 1,),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          //フォルダicon
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                onTap: (){
-                  print('recipiID:${this._recipis[i].recipi.id},thumbnail:${this._recipis[i].recipi.thumbnail}');
-                  _onRecipiDetail(index: i);
-                }
-            ),
-          ),
-        ),
-      );
-      //線
-      column.add(
-        Divider(
-          color: Colors.grey,
-          height: 0.5,
-          thickness: 0.5,
-        ),
-      );
-    }
-    return Column(
-      children: column,
-    );
   }
 
   //レシピを選択時処理
@@ -371,7 +281,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.cyan,
+        backgroundColor: Colors.brown[100 * (1 % 9)],
         leading: backBtn(),
         elevation: 0.0,
         title: Center(
@@ -389,7 +299,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
           editBtn(),
         ],
       ),
-      body: scrollArea(),
+      body: this._recipis.length > 0  ? recipiListArea() : scrollArea()
     );
   }
 
@@ -424,6 +334,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
 
   //レシピ詳細
   Widget scrollArea(){
+    print('レシピなし');
     return Container(
       child: SingleChildScrollView(
         key: GlobalKey(),
@@ -440,13 +351,13 @@ class _DiaryDetailState extends State<DiaryDetail>{
           crossAxisAlignment: CrossAxisAlignment.center,
           children:
                <Widget>[
-                 line(),
+//                 line(),
                  dateCategoryArea(),   //日付 分類
                  thumbnailArea(),     //選択した画像
                  photosArea(),        //写真リスト
                  bodyArea(),          //本文
-                 recipiArea(),
-                 recipiListArea(),
+//                 recipiArea(),
+//                 recipiListArea(),
 //                 line(),
               ]
       ),
@@ -565,13 +476,14 @@ class _DiaryDetailState extends State<DiaryDetail>{
       height: MediaQuery.of(context).size.height * 0.05,
       width: MediaQuery.of(context).size.width,
       child: Container(
-        color: Colors.white30,
+        color: Colors.brown[100 * (2 % 9)],
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Container(
               padding: EdgeInsets.all(10),
               child: Text('${_displayDate(_diary.date)}', style: TextStyle(
+                  color: Colors.brown[700],
                   fontSize: 15,
                   fontWeight: FontWeight.bold
               ),),
@@ -582,6 +494,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
               _diary.category == 1
                 ? Container()
                 : Text('${_displayCategory(_diary.category)}', style: TextStyle(
+                  color: Colors.brown[700],
                     fontSize: 15,
                     fontWeight: FontWeight.bold
                 ),),
@@ -609,9 +522,10 @@ class _DiaryDetailState extends State<DiaryDetail>{
           height: MediaQuery.of(context).size.height * 0.05,
           width: MediaQuery.of(context).size.width,
           child: Container(
-              color: Colors.white30,
+              color: Colors.brown[100 * (2 % 9)],
               padding: EdgeInsets.all(15),
               child: Text('レシピ', style: TextStyle(
+              color: Colors.brown[700],
               fontSize: 15,
               fontWeight: FontWeight.bold
               ),),
@@ -628,8 +542,167 @@ class _DiaryDetailState extends State<DiaryDetail>{
 
   //レシピリスト
   Widget recipiListArea(){
-    return Container(
-      child: _onList(),
+    print('レシピあり');
+    return
+      LazyLoadScrollView(
+        isLoading: _isLoadingRecipi,
+        onEndOfPage: () => _loadMoreRecipi(),
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: _recipisLazy.length,
+          itemBuilder: (context,position){
+            if(_isLoadingRecipi && position == _recipisLazy.length - 1){
+              if(this._recipis.length == _recipisLazy.length){
+                return createRecipi(position);
+              } else{
+                return Center(child: CircularProgressIndicator(),);
+              }
+            } else {
+              if(position == 0){
+                return createDiary(position);
+              }else{
+                return createRecipi(position);
+              }
+            }
+          }
+        ),
+      );
+  }
+
+  Widget createDiary(int index) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children:
+      <Widget>[
+        dateCategoryArea(), //日付 分類
+        thumbnailArea(), //選択した画像
+        photosArea(), //写真リスト
+        bodyArea(), //本文
+        recipiArea(),
+        createRecipi(index),
+      ]
     );
+  }
+
+    //レシピリストの生成
+  Widget createRecipi(int index){
+
+      List ingredients = [];
+      String ingredientsTX = '';
+
+      //レシピIDに紐づく材料が存在した場合
+      if(this._recipis[index].ingredients.length > 0){
+        //nameのみ取得し配列を生成
+        this._recipis[index].ingredients.forEach((ingredient) => ingredients.add(ingredient.name));
+        //上記の配列の全要素を順に連結した文字列を作成
+        ingredientsTX = ingredients.join(',');
+      }
+
+      return
+        SizedBox(
+          width: MediaQuery.of(context).size.width,
+          height: 150,
+          child: Container(
+            color: Colors.white,
+            padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
+            child: InkWell(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    //サムネイルエリア
+                    this._recipis[index].recipi.thumbnail.isNotEmpty
+                        ? SizedBox(
+                      height: 100,
+                      width: 100,
+                      child: Container(
+                        child: Image.file(File(this._recipis[index].recipi.thumbnail),fit: BoxFit.cover,),
+                      ),
+                    )
+                        : SizedBox(
+                      height: 100,
+                      width: 100,
+                      child: Container(
+                        color: Colors.grey,
+                        child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
+                      ),
+                    ),
+                    //タイトル、材料、タグエリア
+                    Container(
+//                      color: Colors.grey,
+                      width: MediaQuery.of(context).size.width * 0.7,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          //タイトル
+                          Container(
+                            height: 50,
+                            padding: EdgeInsets.all(5),
+                            child: Text('${this._recipis[index].recipi.title}',
+                              maxLines: 2,
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold
+                              ),),
+                          ),
+                          //材料
+                          Container(
+                            height: 40,
+                            padding: EdgeInsets.all(5),
+//                            child: Text('${ingredients.join(',')}',
+                            child: Text('${ingredientsTX}',
+                              maxLines: 2,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey
+                              ),),
+                          ),
+                          //タグ
+                          if(this._recipis[index].tags.length > 0)
+                            Container(
+//                              width: MediaQuery.of(context).size.width * 0.5,
+//                              color: Colors.grey,
+                              height: 30,
+                              padding: EdgeInsets.only(left: 5,right: 5),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: <Widget>[
+                                  //タグicon
+                                  Container(
+                                    child: Icon(Icons.local_offer,size: 15,color: Colors.brown,),
+                                  ),
+                                  //タグ名　最大5件まで
+                                  for(var k = 0; k<this._recipis[index].tags.length;k++)
+                                    Container(
+                                      padding: EdgeInsets.all(2),
+                                      child: SizedBox(
+                                        child: Container(
+                                          padding: EdgeInsets.all(5),
+                                          color: Colors.brown,
+
+                                          child: Text('${this._recipis[index].tags[k].name}',
+                                            style: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.white
+                                            ),
+                                            maxLines: 1,),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          //フォルダicon
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                onTap: (){
+                  print('recipiID:${this._recipis[index].recipi.id},thumbnail:${this._recipis[index].recipi.thumbnail}');
+                  _onRecipiDetail(index: index);
+                }
+            ),
+          ),
+      );
   }
 }

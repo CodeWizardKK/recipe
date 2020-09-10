@@ -4,9 +4,11 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/store/diary/edit_state.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
+import 'package:recipe_app/services/Common.dart';
 import 'package:recipe_app/model/diary/Diary.dart';
 import 'package:recipe_app/model/diary/edit/Photo.dart';
 import 'package:recipe_app/model/diary/edit/Recipi.dart';
@@ -22,9 +24,15 @@ class AlbumList extends StatefulWidget {
 class _AlbumListState extends State<AlbumList>{
 
   DBHelper dbHelper;
+  Common common;
   List<DPhoto> _photoAll = List<DPhoto>(); //アルバム
   bool _isCheck = false;                   //true:右上Checkアイコン押下時
   List<bool> _selected = List<bool>();     //右上Checkアイコン押下時に表示するチェックボックス
+
+  List<DPhoto> _lazy = List<DPhoto>(); //遅延読み込み用リスト
+  bool _isLoading = false;             //true:遅延読み込み中
+  int _currentLength = 0;              //遅延読み込み件数を格納
+  final int increment = 22;            //読み込み件数
 
   @override
   void initState() {
@@ -35,10 +43,43 @@ class _AlbumListState extends State<AlbumList>{
   //初期処理
   void init(){
     dbHelper = DBHelper();
+    common = Common();
     //戻る画面をセット　2:ごはん日記の日記詳細レシピ一覧
     Provider.of<Display>(context, listen: false).setBackScreen(4);
     //レコードリフレッシュ
     refreshImages();
+    //レシピリスト用遅延読み込み
+    _lazy.clear();
+    this._loadMore();
+  }
+
+  //レシピリスト用遅延読み込み
+  Future _loadMore() async {
+    print('+++++_loadMore+++++++');
+    if(mounted){
+      setState(() {
+        _isLoading = true;
+      });
+    }
+
+    await Future.delayed(const Duration(seconds: 1));
+    for (var i = _currentLength; i < _currentLength + increment; i++) {
+      if( i < this._photoAll.length){
+        if(mounted){
+          setState(() {
+            _lazy.add(_photoAll[i]);
+          });
+        }
+      }else{
+        break;
+      }
+    }
+    if(mounted){
+      setState(() {
+        _isLoading = false;
+        _currentLength = _lazy.length;
+      });
+    }
   }
 
   //表示しているレコードのリセットし、最新のレコードを取得し、表示
@@ -200,7 +241,7 @@ class _AlbumListState extends State<AlbumList>{
     return Scaffold(
       drawer: _isCheck ? null : drawerNavigation(),
       appBar: AppBar(
-        backgroundColor: Colors.cyan,
+        backgroundColor: Colors.brown[100 * (1 % 9)],
         elevation: 0.0,
         title: Center(
           child: Text(_isCheck ? '${_selectedCount()}個選択':'レシピ',
@@ -238,7 +279,7 @@ class _AlbumListState extends State<AlbumList>{
       child: ListView(
         children: <Widget>[
           Container(
-            color: Colors.cyan,
+            color: Colors.brown[100 * (1 % 9)],
             child: ListTile(
               title: Center(
                 child: Text('設定',
@@ -252,7 +293,7 @@ class _AlbumListState extends State<AlbumList>{
             ),
           ),
           ListTile(
-            leading: Icon(Icons.folder_open,color: Colors.cyan,),
+            leading: Icon(Icons.folder_open,color: Colors.brown[100 * (1 % 9)],),
             title: Text('フォルダの管理',
               style: TextStyle(
 //                fontWeight: FontWeight.bold
@@ -268,7 +309,7 @@ class _AlbumListState extends State<AlbumList>{
             thickness: 0.5,
           ),
           ListTile(
-            leading: Icon(Icons.local_offer,color: Colors.cyan,),
+            leading: Icon(Icons.local_offer,color: Colors.brown[100 * (1 % 9)],),
             title: Text('タグの管理',
               style: TextStyle(
 //                  fontWeight: FontWeight.bold
@@ -290,67 +331,86 @@ class _AlbumListState extends State<AlbumList>{
 
   //画像リスト
   Widget buildGridView(){
-    return GridView.count(
-      crossAxisCount:4,
-      crossAxisSpacing: 2.0,
-      mainAxisSpacing: 2.0,
-      shrinkWrap: true,
-      children: List.generate(_photoAll.length, (index){
-        return Container(
-          child: Stack(
-            alignment: AlignmentDirectional.center,
-            children: <Widget>[
-              InkWell(
-                onTap: (){
-                  _isCheck
-                  ? setState((){
-                      _selected[index] = !_selected[index];
-//                      print('selected:${this._selected}');
-                    })
-                  : _onDetail(photo: _photoAll[index]);
-                },
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  child: Image.file(File(_photoAll[index].path),fit: BoxFit.cover,),
-                ),
-              ),
-              _isCheck
-              ? _selected[index]
-                ? InkWell(
-                    onTap: (){
-                      setState(() {
-                        _selected[index] = !_selected[index];
-//                        print('selected:${this._selected}');
-                      });
-                    },
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                    color: Colors.black26,
-                    )
-              )
-                : Container()
-              : Container(),
-              _isCheck
-              ? _selected[index]
-                ? Container(
-                  child: IconButton(
-                    icon: Icon(Icons.check_circle_outline,color: Colors.white,size: 30,),
-                    onPressed: (){
-                      setState(() {
-                        _selected[index] = !_selected[index];
-//                        print('selected:${this._selected}');
-                      });
-                    },
-                  ),
-                )
-                : Container()
-              : Container(),
-            ],
-          ),
-        );
+    return
+      LazyLoadScrollView(
+        isLoading: _isLoading,
+        onEndOfPage: () => _loadMore(),
+    child:
+      GridView.builder(
+        itemCount: _lazy.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 2.0,
+          mainAxisSpacing: 2.0,
+        ),
+        itemBuilder: (context, position) {
+          if(_isLoading && position == _lazy.length - 1){
+            if(this._photoAll.length == _lazy.length){
+              return createAlbum(position);
+            } else{
+              return Center(child: CircularProgressIndicator(),);
+            }
+          } else {
+            return createAlbum(position);
+          }
       }),
+    );
+  }
+
+  Widget createAlbum(int index){
+    return Container(
+      child: Stack(
+        alignment: AlignmentDirectional.center,
+        children: <Widget>[
+          InkWell(
+            onTap: (){
+              _isCheck
+                  ? setState((){
+                _selected[index] = !_selected[index];
+//                      print('selected:${this._selected}');
+              })
+                  : _onDetail(photo: _photoAll[index]);
+            },
+            child: Container(
+              width: 150,
+              height: 150,
+              child: Image.file(File(common.replaceImageDiary(_photoAll[index].path)),fit: BoxFit.cover,),
+            ),
+          ),
+          _isCheck
+              ? _selected[index]
+              ? InkWell(
+              onTap: (){
+                setState(() {
+                  _selected[index] = !_selected[index];
+//                        print('selected:${this._selected}');
+                });
+              },
+              child: Container(
+                width: 150,
+                height: 150,
+                color: Colors.black26,
+              )
+          )
+              : Container()
+              : Container(),
+          _isCheck
+              ? _selected[index]
+              ? Container(
+            child: IconButton(
+              icon: Icon(Icons.check_circle_outline,color: Colors.white,size: 30,),
+              onPressed: (){
+                setState(() {
+                  _selected[index] = !_selected[index];
+//                        print('selected:${this._selected}');
+                });
+              },
+            ),
+          )
+              : Container()
+              : Container(),
+        ],
+      ),
     );
   }
 
@@ -369,7 +429,7 @@ class _AlbumListState extends State<AlbumList>{
                 : (){
               _onShareSave();
             },
-            color: Colors.cyan,
+            color: Colors.brown[100 * (1 % 9)],
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
@@ -393,7 +453,7 @@ class _AlbumListState extends State<AlbumList>{
           color: Colors.white,
           child: Text('完了',
             style: TextStyle(
-              color: Colors.cyan,
+              color: Colors.brown[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),
@@ -434,8 +494,8 @@ class _AlbumListState extends State<AlbumList>{
             type: BottomNavigationBarType.fixed,
 //      backgroundColor: Colors.redAccent,
 //      fixedColor: Colors.black12,
-            selectedItemColor: Colors.black87,
-            unselectedItemColor: Colors.black26,
+            selectedItemColor: Colors.brown[100 * (3 % 9)],
+            unselectedItemColor: Colors.brown[100 * (1 % 9)],
             iconSize: 30,
             selectedFontSize: 10,
             unselectedFontSize: 10,

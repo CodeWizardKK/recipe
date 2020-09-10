@@ -4,9 +4,12 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
+
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/store/detail_state.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
+import 'package:recipe_app/services/Common.dart';
 import 'package:recipe_app/model/Myrecipi.dart';
 import 'package:recipe_app/model/MstFolder.dart';
 import 'package:recipe_app/model/Tag.dart';
@@ -23,6 +26,7 @@ class RecipiListGroupFolder extends StatefulWidget{
 class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
 
   DBHelper dbHelper;
+  Common common;
   MstFolder _folder;                          //選択したフォルダ情報を格納
   List<Ingredient> _ingredients;              //材料リストを格納
   List _displayList;                          //チェックボック付きレシピリストor検索リスト
@@ -37,6 +41,15 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
   List<Check> _displayTags;
   List<Check> _oldTags;
 
+  List<CheckRecipi> _displayRecipisLazy = List<CheckRecipi>(); //遅延読み込み用リスト
+  bool _isLoadingRecipi = false;                               //true:遅延読み込み中
+  int _recipiCurrentLength = 0;                                //遅延読み込み件数を格納
+
+  List<CheckRecipi> _displaySearchsLazy = List<CheckRecipi>(); //遅延読み込み用リスト
+  bool _isLoadingSearch = false;                               //true:遅延読み込み中
+  int _searchCurrentLength = 0;                                //遅延読み込み件数を格納
+  final int increment = 10; //読み込み件数
+
   @override
   void initState() {
     super.initState();
@@ -46,6 +59,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
   void init(){
     //初期化
     this.dbHelper = DBHelper();
+    this.common = Common();
     this._ingredients = [];
     this._displayList = [];
     this._recipis = [];
@@ -55,8 +69,70 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
     this._tags = [];
     this._displayTags = [];
     this._oldTags = [];
+    _displayRecipisLazy.clear();
+    _displaySearchsLazy.clear();
     //レコードリフレッシュ
     this.refreshImages();
+    //レシピリスト用遅延読み込み
+    this._loadMoreRecipi();
+  }
+
+  //レシピリスト用遅延読み込み
+  Future _loadMoreRecipi() async {
+    print('+++++_loadMoreRecipi+++++++');
+    if(mounted){
+      setState(() {
+        _isLoadingRecipi = true;
+      });
+    }
+
+    await Future.delayed(const Duration(seconds: 1));
+    for (var i = _recipiCurrentLength; i < _recipiCurrentLength + increment; i++) {
+      if( i < this._displayRecipis.length){
+//          if(this._displayRecipis.length -1 >= i){
+      if(mounted){
+        setState(() {
+          print(_displayRecipis[i].title);
+          _displayRecipisLazy.add(_displayRecipis[i]);
+        });
+      }
+      }else{
+        break;
+      }
+
+    }
+
+    if(mounted){
+      setState(() {
+        _isLoadingRecipi = false;
+        _recipiCurrentLength = _displayRecipisLazy.length;
+      });
+    }
+  }
+
+  //検索リスト用遅延読み込み
+  Future _loadMoreSearch() async {
+    print('+++++_loadMoreSearch+++++++');
+    setState(() {
+      _isLoadingSearch = true;
+    });
+
+    await new Future.delayed(const Duration(seconds: 1));
+    for (var i = _searchCurrentLength; i < _searchCurrentLength + increment; i++) {
+      if( i < this._displaySearchs.length){
+//      if(this._displaySearchs.length -1 >= i){
+        setState(() {
+          _displaySearchsLazy.add(_displaySearchs[i]);
+        });
+      }else{
+        break;
+      }
+
+    }
+    setState(() {
+      _isLoadingSearch = false;
+      _searchCurrentLength = _displaySearchsLazy.length;
+    });
   }
 
   //表示しているレコードのリセットし、最新のレコードを取得し、表示
@@ -132,7 +208,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
       String mstTagIdsTX = tagIds.join(',');
       //タグ検索結果
       var recipiIds = await dbHelper.getTagsGropByRecipiId(mstTagIdsTX,tagIds.length);
-      print('タグ検索結果：${recipiIds.length}');
+//      print('タグ検索結果：${recipiIds.length}');
 
       setState(() {
         this._searchs.clear();
@@ -173,36 +249,48 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
       //チェックBox付き検索結果の生成
       setState(() {
         this._displaySearchs = Provider.of<Display>(context, listen: false).createDisplaySearchList();
+        this._displaySearchsLazy.clear();
+        this._searchCurrentLength = 0;
       });
+//      print('タグ選択あり');
+//      print('②');
+      await this._loadMoreSearch();
 
       //タグ選択なしの場合
     }else{
       setState(() {
         this._displaySearchs = Provider.of<Display>(context, listen: false).createDisplaySearchListTX();
+        this._displaySearchsLazy.clear();
+        this._searchCurrentLength = 0;
       });
+//      print('タグ選択なし');
+//      print('③');
+      await this._loadMoreSearch();
     }
 
   }
 
   //検索処理
   void _onSearch(String searchText){
+    //検索欄が未入力の場合
     if(searchText.isEmpty){
+      //seachフラグ解除
       setState(() {
         this._isSeach = false;
       });
-      print('false');
+      //検索欄が未入力の場合でタグ検索ありの場合
       if(this._isTagSeach){
         _onTagSearch();
       }
       return;
     }
-
+    //検索欄が入力されている場合
     setState(() {
       this._isSeach = true;
       _searchs.clear(); //検索結果用リストのリセット
     });
 
-    //タグ検索ありの場合
+    //タグ検索あり(+テキスト検索あり)の場合
     if(this._isTagSeach){
       //検索結果を取得
       var searchs = Provider.of<Display>(context, listen: false).getSearchs();
@@ -215,25 +303,43 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
           });
         }
       }
+      setState(() {
+        //検索結果をstoreに保存
+        Provider.of<Display>(context, listen: false).setSearchsTX(_searchs);
+        //チェックBox付き検索結果の生成
+        this._displaySearchs = Provider.of<Display>(context, listen: false).createDisplaySearchListTX();
+      });
 
-      //
+      //タグ検索なし(+テキスト検索あり)の場合
     }else{
-    for(var i=0; i<_recipis.length;i++){
-      String title = _recipis[i].title;
-      if(title.toLowerCase().contains(searchText.toLowerCase())) {
-        setState(() {
-          _searchs.add(_recipis[i]);
-        });
+      for(var i=0; i<_recipis.length;i++){
+        String title = _recipis[i].title;
+        if(title.toLowerCase().contains(searchText.toLowerCase())) {
+          setState(() {
+            _searchs.add(_recipis[i]);
+          });
+        }
       }
-    }
-    //検索結果をstoreに保存
-    Provider.of<Display>(context, listen: false).setSearchsTX(_searchs);
+      //検索結果をstoreに保存
+      Provider.of<Display>(context, listen: false).setSearchsTX(_searchs);
+      //検索結果をstoreに保存
+      Provider.of<Display>(context, listen: false).setSearchs(_searchs);
+      setState(() {
+        //チェックBox付き検索結果の生成
+        this._displaySearchs = Provider.of<Display>(context, listen: false).createDisplaySearchList();
+      });
     }
 
-    //検索結果をstoreに保存
-    Provider.of<Display>(context, listen: false).setSearchs(_searchs);
-    //チェックBox付き検索結果の生成
-    this._displaySearchs = Provider.of<Display>(context, listen: false).createDisplaySearchList();
+    setState(() {
+      this._displaySearchsLazy.clear();
+      this._searchCurrentLength = 0;
+    });
+//    print('⑤,${this._displaySearchs.length}');
+    this._loadMoreSearch();
+//    //検索結果をstoreに保存
+//    Provider.of<Display>(context, listen: false).setSearchs(_searchs);
+//    //チェックBox付き検索結果の生成
+//    this._displaySearchs = Provider.of<Display>(context, listen: false).createDisplaySearchList();
   }
 
   //新規投稿
@@ -280,17 +386,17 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
   //レシピを選択時処理
   void _onDetail({int index}) async {
     //選択したレシピのindexをsetする
-    Provider.of<Detail>(context, listen: false).setRecipi(_recipis[index]);
+    Provider.of<Detail>(context, listen: false).setRecipi(this._displayList[index]);
 
-    if(_recipis[index].type == 2){
-      var ingredients = await dbHelper.getIngredients(_recipis[index].id);
+    if(this._displayList[index].type == 2){
+      var ingredients = await dbHelper.getIngredients(this._displayList[index].id);
       print('①${ingredients.length}');
       Provider.of<Detail>(context, listen: false).setIngredients(ingredients);
-      var howTos = await dbHelper.getHowtos(_recipis[index].id);
+      var howTos = await dbHelper.getHowtos(this._displayList[index].id);
       print('②${howTos.length}');
       Provider.of<Detail>(context, listen: false).setHowTos(howTos);
     }else{
-      var photos = await dbHelper.getRecipiPhotos(_recipis[index].id);
+      var photos = await dbHelper.getRecipiPhotos(this._displayList[index].id);
       Provider.of<Detail>(context, listen: false).setPhotos(photos);
     }
     //2:詳細画面へ遷移
@@ -324,196 +430,20 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
 //    _init();
   }
 
-  //MYレシピエリア
-  Column _onList(){
-    if(this._isSeach || _isTagSeach){
-      this._displayList = this._displaySearchs;
-    }else{
-      this._displayList = this._displayRecipis;
-    }
-    List<Widget> column = new List<Widget>();
-    //MYレシピを展開する
-    for(var i=0; i < this._displayList.length; i++){
-      List ingredients = [];
-      List<Tag> tags = [];
-      String ingredientsTX = '';
-
-      //レシピIDに紐づく材料を取得する
-      for(var k = 0;k < this._ingredients.length;k++){
-        if(this._displayList[i].id == this._ingredients[k].recipi_id){
-          ingredients.add(this._ingredients[k].name);
-        }
-      }
-      //配列の全要素を順に連結した文字列を作成
-      ingredientsTX = ingredients.join(',');
-
-      //レシピIDに紐づくタグを取得する
-      for(var k = 0;k < this._tags.length;k++){
-        if(this._displayList[i].id == this._tags[k].recipi_id){
-          tags.add(this._tags[k]);
-        }
-      }
-      column.add(
-        SizedBox(
-          width: MediaQuery.of(context).size.width,
-          height: 150,
-          child: Container(
-            color: Colors.white,
-            padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
-            child: InkWell(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    if(this._isCheck)
-                      Container(
-                          width: MediaQuery.of(context).size.width * 0.1,
-                          child:Checkbox(
-                            value: this._displayList[i].isCheck,
-                            onChanged: (bool value){
-                              _onItemCheck(index: i);
-                              print('ID:${this._displayList[i].id},name:${this._displayList[i].title},isCheck:${this._displayList[i].isCheck}');
-                            },
-                          )
-                      ),
-                    //サムネイルエリア
-                    this._displayList[i].thumbnail.isNotEmpty
-                        ? Card(
-                      child: Container(
-                        height: 100,
-                        width: 100,
-                        child: Image.file(File(this._displayList[i].thumbnail),fit: BoxFit.cover,),
-                      ),
-                    )
-                        : Card(
-                      child: Container(
-                        height: 100,
-                        width: 100,
-                        color: Colors.grey,
-                        child: Icon(Icons.restaurant,color: Colors.white,size: 50,),
-                      ),
-                    ),
-                    //タイトル、材料、タグエリア
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.56,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          //タイトル
-                          Container(
-                            height: 50,
-                            padding: EdgeInsets.all(5),
-                            child: Text('${this._displayList[i].title}',
-                              maxLines: 2,
-                              style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold
-                              ),),
-                          ),
-                          //材料
-                          Container(
-                            height: 40,
-                            padding: EdgeInsets.all(5),
-//                            child: Text('${ingredients.join(',')}',
-                            child: Text('${ingredientsTX}',
-                              maxLines: 2,
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey
-                              ),),
-                          ),
-                          //タグ
-                          if(tags.length > 0)
-                            Container(
-                              height: 30,
-                              padding: EdgeInsets.only(left: 5,right: 5),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: <Widget>[
-                                  //タグicon
-                                  Container(
-                                    child: Icon(Icons.local_offer,size: 15,color: Colors.brown,),
-                                  ),
-                                  //タグ名　最大5件まで
-                                  for(var k = 0; k<tags.length;k++)
-                                    Container(
-                                      padding: EdgeInsets.all(2),
-                                      child: SizedBox(
-                                        child: Container(
-                                          padding: EdgeInsets.all(5),
-                                          color: Colors.brown,
-
-                                          child: Text('${tags[k].name}',
-                                            style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.white
-                                            ),
-                                            maxLines: 1,),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          //フォルダicon
-                        ],
-                      ),
-                    ),
-                    //フォルダエリア
-                    if(!this._isCheck)
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.15,
-                        height: 150,
-                        child: Container(
-                          padding: EdgeInsets.all(5),
-                          child: InkWell(
-                            child: Icon(Icons.folder,color: Colors.orangeAccent,size: 30,),
-                            onTap: (){
-                              _onFolderTap(index: i,ingredients: ingredientsTX,tags: tags,type: 0);
-                            },
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                onTap: (){
-                  if(this._isCheck){
-                    _onItemCheck(index: i);
-                  }else{
-                    _onDetail(index: i);
-                  }
-                }
-            ),
-          ),
-        ),
-      );
-      //線
-      column.add(
-        Divider(
-          color: Colors.grey,
-          height: 0.5,
-          thickness: 0.5,
-        ),
-      );
-    }
-    return Column(
-      children: column,
-    );
-  }
-
   //レシピリストのフォルダアイコンtap時処理
   void _onFolderTap({int index,String ingredients,List<Tag> tags,int type}){
     //フォルダアイコン押下時
     if(type == 0) {
-      print('選択したレシピID:${_recipis[index].id}');
+      print('選択したレシピID:${this._displayList[index].id}');
       print('${ingredients}');
       //選択したレシピの内容をsetする
-      Provider.of<Detail>(context, listen: false).setRecipi(_recipis[index]);
+      Provider.of<Detail>(context, listen: false).setRecipi(this._displayList[index]);
       //レシピIDに紐づく材料リストをsetする
       Provider.of<Display>(context, listen: false).setIngredientTX(ingredients);
       //レシピIDに紐づくタグリストをsetする
       Provider.of<Display>(context, listen: false).setTags(tags);
       //レシピIDに紐づくフォルダIDをsetする
-      Provider.of<Display>(context, listen: false).setFolderId(_recipis[index].folder_id);
+      Provider.of<Display>(context, listen: false).setFolderId(this._displayList[index].folder_id);
 
       //フォルダボタン、タグ付けボタン押下時
     }else{
@@ -589,9 +519,25 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
           }
         }
       }
+      setState(() {
+        //検索リスト用遅延読み込みリセット
+        this._displaySearchsLazy.clear();
+        this._searchCurrentLength = 0;
+
+      });
+      //検索リスト用遅延読み込み
+      await this._loadMoreSearch();
     }
     //レコードリフレッシュ
-    refreshImages();
+    await refreshImages();
+    setState(() {
+      //レシピリスト用遅延読み込みリセット
+      this._displayRecipisLazy.clear();
+      this._recipiCurrentLength = 0;
+
+    });
+    //レシピリスト用遅延読み込み
+    await this._loadMoreRecipi();
 
     setState(() {
       this._isCheck = !this._isCheck;
@@ -622,7 +568,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                   Padding(
                     padding: EdgeInsets.only(right: 20),
                     child: IconButton(
-                      icon: Icon(Icons.close,color: Colors.cyan,size: 30,),
+                      icon: Icon(Icons.close,color: Colors.brown[100 * (1 % 9)],size: 30,),
                       onPressed: (){
                         for(var i = 0; i < this._displayTags.length; i++){
                           if(this._displayTags[i].id == this._oldTags[i].id){
@@ -640,7 +586,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                   ),
                   Text('タグで検索',
                     style: TextStyle(
-                        color: Colors.cyan
+                        color: Colors.brown[100 * (1 % 9)]
                     ),
                   ),
                   Container(
@@ -648,7 +594,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                     child: Padding(
                       padding: EdgeInsets.all(10),
                       child: FlatButton(
-                        color: Colors.cyan,
+                        color: Colors.brown[100 * (1 % 9)],
                         child: Text('OK',
                           style: TextStyle(
                             color: Colors.white,
@@ -813,7 +759,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.cyan,
+        backgroundColor: Colors.brown[100 * (1 % 9)],
         leading: backBtn(),
         elevation: 0.0,
         title: Center(
@@ -835,7 +781,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
           addBtn(),
         ],
       ),
-      body:scrollArea(),
+      body: showList(),
       bottomNavigationBar: bottomNavigationBar(),
     );
   }
@@ -860,7 +806,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
           color: Colors.white,
           child: Text('完了',
             style: TextStyle(
-              color: Colors.cyan,
+              color: Colors.brown[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),
@@ -902,8 +848,8 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
           return BottomNavigationBar(
             currentIndex: Display.currentIndex,
             type: BottomNavigationBarType.fixed,
-            selectedItemColor: Colors.black87,
-            unselectedItemColor: Colors.black26,
+            selectedItemColor: Colors.brown[100 * (3 % 9)],
+            unselectedItemColor: Colors.brown[100 * (1 % 9)],
             iconSize: 30,
             selectedFontSize: 10,
             unselectedFontSize: 10,
@@ -933,130 +879,107 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
     );
   }
 
-  Widget scrollArea(){
-    return Container(
-      child: SingleChildScrollView(
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children:
-              _isCheck
-                  ? <Widget>[
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.8,
-                  width: MediaQuery.of(context).size.width,
-                  child: SingleChildScrollView(
-                    child: showList(),
+  //フォルダ、タグ付け、削除するボタン
+  Widget buttonArea(){
+    return
+    !_isCheck
+      ? Container()
+      : SizedBox(
+      height: MediaQuery.of(context).size.height * 0.05,
+      width: MediaQuery.of(context).size.width,
+      child: SafeArea(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Container(
+              width: 130,
+              child: Padding(
+                padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
+                child: FlatButton(
+                  color: Colors.brown[100 * (1 % 9)],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      const Icon(Icons.folder_open,color: Colors.white,),
+                      const Text('フォルダ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
+                    ],
                   ),
+                  onPressed: _onDisabled() ? null :(){
+                    _onFolderTap(type: 1);
+                    print('フォルダ');
+                  },
                 ),
-                SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.05,
-                    width: MediaQuery.of(context).size.width,
-                    child: SafeArea(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Container(
-                            width: 130,
-                            child: Padding(
-                              padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
-                              child: FlatButton(
-                                color: Colors.cyan,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    const Icon(Icons.folder_open,color: Colors.white,),
-                                    const Text('フォルダ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
-                                  ],
-                                ),
-                                onPressed: _onDisabled() ? null :(){
-                                  _onFolderTap(type: 1);
-                                  print('フォルダ');
-                                },
-                              ),
-                            ),
-                          ),
-                          Container(
-                            width: 130,
-                            child: Padding(
-                              padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
-                              child: FlatButton(
-                                color: Colors.cyan,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    const Icon(Icons.local_offer,color: Colors.white,),
-                                    const Text('タグ付け', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
-                                  ],
-                                ),
-                                onPressed: _onDisabled() ? null :(){
-                                  _onFolderTap(type: 2);
-                                  print('タグ付け');
-                                },
-                              ),
-                            ),
-                          ),
-                          Container(
-                            width: 130,
-                            child: Padding(
-                              padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
-                              child: FlatButton(
-                                color: Colors.redAccent,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    const Icon(Icons.delete_outline,color: Colors.white,),
-                                    const Text('削除する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
-                                  ],
-                                ),
-                                onPressed: _onDisabled() ? null :(){
-                                  _onDelete();
-                                  print('削除する');
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                )
-              ]
-                  : <Widget>[
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.85,
-                  width: MediaQuery.of(context).size.width,
-                  child: SingleChildScrollView(
-                    child: showList(),
+              ),
+            ),
+            Container(
+              width: 130,
+              child: Padding(
+                padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
+                child: FlatButton(
+                  color: Colors.brown[100 * (1 % 9)],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      const Icon(Icons.local_offer,color: Colors.white,),
+                      const Text('タグ付け', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
+                    ],
                   ),
+                  onPressed: _onDisabled() ? null :(){
+                    _onFolderTap(type: 2);
+                    print('タグ付け');
+                  },
                 ),
-              ]
-          )
+              ),
+            ),
+            Container(
+              width: 130,
+              child: Padding(
+                padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
+                child: FlatButton(
+                  color: Colors.redAccent,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      const Icon(Icons.delete_outline,color: Colors.white,),
+                      const Text('削除する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
+                    ],
+                  ),
+                  onPressed: _onDisabled() ? null :(){
+                    _onDelete();
+                    print('削除する');
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   //リストページ全体
   Widget showList(){
-    return Container(
-      alignment: Alignment.center,
-      child: Column(
+    return
+      Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children:
         _isSeach || _isTagSeach
-            ? <Widget>[
-              searchArea(), //検索欄
-              line(),
-              searchResultArea(), //検索結果
-              line(),
-              searchResultListArea(), //検索結果リスト
-            ]
-            : <Widget>[
-              searchArea(), //検索欄
-              line(),
-              myrecipiArea(), //MYレシピ
-              line(),
-              myrecipiListArea(), //MYレシピリスト
-            ],
-      ),
+        ? <Widget>[
+          searchArea(), //検索欄
+          line(),
+          searchResultArea(), //検索結果
+          line(),
+          Expanded(child:searchResultListArea()),//検索結果リスト
+          buttonArea(),
+        ]
+        : <Widget>[
+          searchArea(), //検索欄
+          line(),
+          myrecipiArea(), //MYレシピ
+          line(),
+          Expanded(child:myrecipiListArea()), //MYレシピリスト
+          buttonArea(),
+        ],
     );
   }
 
@@ -1091,7 +1014,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                     ),
                     Container(
                       padding: EdgeInsets.all(10),
-                      child: Text('${_displayList.length}品', style: TextStyle(
+                      child: Text('${_displayRecipis.length}品', style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold
                       ),),
@@ -1126,7 +1049,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                     ),
                     Container(
                       padding: EdgeInsets.all(10),
-                      child: Text('${_displayList.length}品', style: TextStyle(
+                      child: Text('${_displaySearchs.length}品', style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold
                       ),),
@@ -1141,16 +1064,234 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
 
   //MYレシピリスト
   Widget myrecipiListArea(){
-    return Container(
-      child: _onList(),
-    );
+    return
+      LazyLoadScrollView(
+        isLoading: _isLoadingRecipi,
+        onEndOfPage: () => _loadMoreRecipi(),
+        child:
+        ListView.builder(
+            shrinkWrap: true,
+            itemCount: _displayRecipisLazy.length,
+            itemBuilder: (context,position){
+              if(_isLoadingRecipi && position == _displayRecipisLazy.length - 1){
+                if(this._displayRecipis.length == _displayRecipisLazy.length){
+                  print('${_displayRecipisLazy[position].title}');
+                  return createRecipi(position);
+                } else{
+                  return Center(child: CircularProgressIndicator(),);
+                }
+              } else {
+                return createRecipi(position);
+              }
+            }
+        ),
+      );
   }
 
   //検索結果リスト
   Widget searchResultListArea(){
-    return Container(
-      child: _onList(),
+    return
+      LazyLoadScrollView(
+        isLoading: _isLoadingSearch,
+        onEndOfPage: () => _loadMoreSearch(),
+        child:
+        ListView.builder(
+            shrinkWrap: true,
+            itemCount: _displaySearchsLazy.length,
+            itemBuilder: (context,position){
+              if(_isLoadingSearch && position == _displaySearchsLazy.length - 1){
+                if(this._displaySearchs.length == _displaySearchsLazy.length){
+                  return createRecipi(position);
+                } else{
+                  return Center(child: CircularProgressIndicator(),);
+                }
+              } else {
+                return createRecipi(position);
+              }
+            }
+        ),
+      );
+  }
+
+  //レシピリストの生成
+  Widget createRecipi(int index){
+
+    if(_isSeach || _isTagSeach){
+      this._displayList = this._displaySearchs;
+    }else{
+      this._displayList = this._displayRecipis;
+    }
+
+    List ingredients = [];
+    List<Tag> tags = [];
+    String ingredientsTX = '';
+
+    var displayTargetIndex = this._displayList[index].id;
+
+    //レシピIDに紐づく材料を取得する
+    var ingredientList = this._ingredients.where(
+            (ing) =>  ing.recipi_id == displayTargetIndex
     );
+
+//    print('###材料：${ingredientList.length}');
+
+    //レシピIDに紐づく材料が存在した場合
+    if(ingredientList.length > 0){
+      //nameのみ取得し配列を生成
+      ingredientList.forEach((ingredient) => ingredients.add(ingredient.name));
+      //上記の配列の全要素を順に連結した文字列を作成
+      ingredientsTX = ingredients.join(',');
+    }
+
+    //レシピIDに紐づくタグを取得する
+    var tagList = this._tags.where(
+            (_tag) => _tag.recipi_id == displayTargetIndex
+    );
+
+//    print('###タグ：${tagList.length}');
+
+    if(tagList.length > 0){
+      tagList.forEach((tag) => tags.add(tag));
+    }
+
+    //MYレシピを展開する
+    return
+      SizedBox(
+        width: MediaQuery.of(context).size.width,
+        height: 150,
+        child: Container(
+          color: Colors.white,
+          padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
+          child: InkWell(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  if(this._isCheck)
+                    Container(
+                        width: MediaQuery.of(context).size.width * 0.1,
+//                      padding: EdgeInsets.all(5),
+                        child:Checkbox(
+                          value: this._displayList[index].isCheck,
+                          onChanged: (bool value){
+                            _onItemCheck(index: index);
+                            print('ID:${this._displayList[index].id},name:${this._displayList[index].title},isCheck:${this._displayList[index].isCheck}');
+                          },
+                        )
+                    ),
+                  //サムネイルエリア
+                  this._displayList[index].thumbnail.isNotEmpty
+                      ? Card(
+                    child: Container(
+                      height: 100,
+                      width: 100,
+                      child: Image.file(File(common.replaceImage(this._displayList[index].thumbnail)),fit: BoxFit.cover,),
+                    ),
+                  )
+                      : Card(
+                    child: Container(
+                      height: 100,
+                      width: 100,
+                      color: Colors.grey,
+                      child: Icon(Icons.restaurant,color: Colors.white,size: 50,),
+                    ),
+                  ),
+                  //タイトル、材料、タグエリア
+                  Container(
+//                      color: Colors.grey,
+                    width: MediaQuery.of(context).size.width * 0.56,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        //タイトル
+                        Container(
+                          height: 50,
+                          padding: EdgeInsets.all(5),
+                          child: Text('${this._displayList[index].title}',
+                            maxLines: 2,
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold
+                            ),),
+                        ),
+                        //材料
+                        Container(
+                          height: 40,
+                          padding: EdgeInsets.all(5),
+//                            child: Text('${ingredients.join(',')}',
+                          child: Text('${ingredientsTX}',
+                            maxLines: 2,
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey
+                            ),),
+                        ),
+                        //タグ
+                        if(tags.length > 0)
+                          Container(
+//                              width: MediaQuery.of(context).size.width * 0.5,
+//                              color: Colors.grey,
+                            height: 30,
+                            padding: EdgeInsets.only(left: 5,right: 5),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: <Widget>[
+                                //タグicon
+                                Container(
+                                  child: Icon(Icons.local_offer,size: 15,color: Colors.brown,),
+                                ),
+                                //タグ名　最大5件まで
+                                for(var k = 0; k<tags.length;k++)
+                                  Container(
+                                    padding: EdgeInsets.all(2),
+                                    child: SizedBox(
+                                      child: Container(
+                                        padding: EdgeInsets.all(5),
+                                        color: Colors.brown,
+
+                                        child: Text('${tags[k].name}',
+                                          style: TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.white
+                                          ),
+                                          maxLines: 1,),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        //フォルダicon
+                      ],
+                    ),
+                  ),
+                  //フォルダエリア
+                  if(!this._isCheck)
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.15,
+                      height: 150,
+                      child: Container(
+//                          color: Colors.greenAccent,
+                        padding: EdgeInsets.all(5),
+                        child: InkWell(
+                          child: Icon(Icons.folder,color: Colors.orangeAccent,size: 30,),
+                          onTap: (){
+                            _onFolderTap(index: index,ingredients: ingredientsTX,tags: tags,type: 0);
+                          },
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              onTap: (){
+                if(this._isCheck){
+                  _onItemCheck(index: index);
+                }else{
+                  _onDetail(index: index);
+                }
+              }
+          ),
+        ),
+      );
   }
 
   //検索欄

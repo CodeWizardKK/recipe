@@ -4,9 +4,12 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
+import 'package:sticky_headers/sticky_headers.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/store/diary/edit_state.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
+import 'package:recipe_app/services/Common.dart';
 import 'package:recipe_app/model/diary/Diary.dart';
 import 'package:recipe_app/model/diary/edit/Photo.dart';
 import 'package:recipe_app/model/diary/edit/Recipi.dart';
@@ -23,7 +26,13 @@ class DiaryList extends StatefulWidget {
 class _DiaryListState extends State<DiaryList>{
 
   DBHelper dbHelper;
+  Common common;
   List<DisplayDiaryGroupDate> _displayDiaryGroupDates = List<DisplayDiaryGroupDate>();
+
+  List<DisplayDiaryGroupDate> _lazy = List<DisplayDiaryGroupDate>(); //遅延読み込み用リスト
+  bool _isLoading = false;                               //true:遅延読み込み中
+  int _currentLength = 0;                                //遅延読み込み件数を格納
+  final int increment = 5; //読み込み件数
 
   @override
   void initState() {
@@ -34,10 +43,44 @@ class _DiaryListState extends State<DiaryList>{
   //初期処理
   void init(){
     dbHelper = DBHelper();
+    common = Common();
     //戻る画面をセット　2:ごはん日記の日記詳細レシピ一覧
     Provider.of<Display>(context, listen: false).setBackScreen(2);
     //レコードリフレッシュ
-    refreshImages();
+    this.refreshImages();
+    this._lazy.clear();
+    //レシピリスト用遅延読み込み
+    this._loadMore();
+  }
+
+  //レシピリスト用遅延読み込み
+  Future _loadMore() async {
+    print('+++++_loadMore+++++++');
+    if(mounted){
+      setState(() {
+        _isLoading = true;
+      });
+    }
+
+    await Future.delayed(const Duration(seconds: 1));
+    for (var i = _currentLength; i < _currentLength + increment; i++) {
+      if( i < this._displayDiaryGroupDates.length){
+        if(mounted){
+          setState(() {
+            _lazy.add(_displayDiaryGroupDates[i]);
+          });
+        }
+      }else{
+        break;
+      }
+
+    }
+    if(mounted){
+      setState(() {
+        _isLoading = false;
+        _currentLength = _lazy.length;
+      });
+    }
   }
 
   //表示しているレコードのリセットし、最新のレコードを取得し、表示
@@ -99,6 +142,7 @@ class _DiaryListState extends State<DiaryList>{
 
       displayDiarys.clear();
       this._displayDiaryGroupDates.add(displayDiaryGroupDate);
+      this._displayDiaryGroupDates.sort((a,b) => b.id.compareTo(a.id));
     }
 //    for(var i = 0; i < this._displayDiaryGroupDates.length; i++){
 //      print('######################################################');
@@ -186,193 +230,6 @@ class _DiaryListState extends State<DiaryList>{
     Provider.of<Display>(context, listen: false).setState(2);
   }
 
-  //ごはん日記リスト
-  Column _onList(){
-    this._displayDiaryGroupDates.sort((a,b) => b.id.compareTo(a.id));
-    List<Widget> column = new List<Widget>();
-    //ごはん日記を展開する
-    for(var i = 0; i < this._displayDiaryGroupDates.length; i++){
-      String month = this._displayDiaryGroupDates[i].month.substring(0,4) +'年' + this._displayDiaryGroupDates[i].month.substring(5,7) + '月';
-      //線
-      column.add(
-        Divider(
-          color: Colors.grey,
-          height: 0.5,
-          thickness: 0.5,
-        ),
-      );
-      column.add(
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.05,
-            width: MediaQuery.of(context).size.width,
-            child: Container(
-              color: Colors.white30,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    child: Text('${month}', style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold
-                    ),),
-                  ),
-                ],
-              ),
-            ),
-          ),
-      );
-      for(var j = 0; j < this._displayDiaryGroupDates[i].displayDiarys.length; j++){
-        //日付取得
-        DateTime date = DateTime.parse(this._displayDiaryGroupDates[i].displayDiarys[j].date);
-        //サムネイル取得
-        String thumbnail = '';
-        if(this._displayDiaryGroupDates[i].displayDiarys[j].photos.length != 0){
-          for(var k = 0; k < this._displayDiaryGroupDates[i].displayDiarys[j].photos.length; k++){
-            if(this._displayDiaryGroupDates[i].displayDiarys[j].thumbnail == this._displayDiaryGroupDates[i].displayDiarys[j].photos[k].no){
-              thumbnail = this._displayDiaryGroupDates[i].displayDiarys[j].photos[k].path;
-              break;
-            }
-          }
-        }
-        //線
-        column.add(
-          Divider(
-            color: Colors.grey,
-            height: 0.5,
-            thickness: 0.5,
-          ),
-        );
-        column.add(
-          SizedBox(
-            width: MediaQuery.of(context).size.width,
-            height: 120,
-            child: Container(
-              color: Colors.white,
-              padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
-              child: InkWell(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      //サムネイルエリア
-                      thumbnail.isNotEmpty
-                      ? Card(
-                      child: Container(
-                        height: 100,
-                        width: 100,
-                        child: Image.file(File(thumbnail),fit: BoxFit.cover,),
-                          ),
-                      )
-                      : Card(
-                      child: Container(
-                        height: 100,
-                        width: 100,
-                        color: Colors.grey,
-                        child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
-                      ),
-                      ),
-                      //本文
-                      Container(
-  //                      color: Colors.grey,
-                        width: MediaQuery.of(context).size.width * 0.5,
-                        child: Container(
-                              height: 50,
-                              padding: EdgeInsets.all(5),
-                              child: Text('${this._displayDiaryGroupDates[i].displayDiarys[j].body}',
-                                maxLines: 2,
-                                style: TextStyle(
-                                    fontSize: 15,
-  //                                  fontWeight: FontWeight.bold
-                                ),),
-                            ),
-                      ),
-                      //日付エリア
-                      Container(
-  //                      color: Colors.orangeAccent,
-                        width: MediaQuery.of(context).size.width * 0.2,
-                        padding: EdgeInsets.only(top: 10,bottom: 10,left: 5,right: 5),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                SizedBox(
-  //                              width: MediaQuery.of(context).size.width * 0.15,
-                                  height: 25,
-                                  child: Container(
-  //                          color: Colors.greenAccent,
-  //                                  padding: EdgeInsets.all(5),
-                                    child: Text('${date.day}',
-                                      style: TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 25,
-                                          fontWeight: FontWeight.bold
-                                      ),),
-                                  ),
-                                ),
-                                SizedBox(
-  //                              width: MediaQuery.of(context).size.width * 0.15,
-                                  height: 25,
-                                  child: Container(
-    //                            color: Colors.orangeAccent,
-                                    padding: EdgeInsets.only(top: 7,right: 5,left: 5),
-                                    child: Text('${this._displayWeekday(date.weekday)}',
-                                      style: TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold
-                                      ),),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-  //                          width: MediaQuery.of(context).size.width * 0.15,
-                              height: 30,
-                              child: Container(
-//                            color: Colors.blue,
-                                padding: EdgeInsets.all(5),
-                                child:
-                                  this._displayDiaryGroupDates[i].displayDiarys[j].category == 1
-                                  ? Container()
-                                  : Text('${this._displayCategory(this._displayDiaryGroupDates[i].displayDiarys[j].category)}',
-                                    style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold
-                                    ),
-                                  ),
-  //                              Icon(Icons.wb_sunny,color: Colors.grey,size: 25,),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  onTap: (){
-                    _onDetail(diary: this._displayDiaryGroupDates[i].displayDiarys[j]);
-                  }
-              ),
-            ),
-          ),
-        );
-      }
-    }
-    //線
-    column.add(
-      Divider(
-        color: Colors.grey,
-        height: 0.5,
-        thickness: 0.5,
-      ),
-    );
-    return Column(
-      children: column,
-    );
-  }
-
   //曜日
   String _displayWeekday(weekday){
     if(weekday == 1){
@@ -447,12 +304,21 @@ class _DiaryListState extends State<DiaryList>{
     Provider.of<Display>(context, listen: false).setState(3);
   }
 
+  //サムネイルの取得
+  String _getThumbnail(displayDiarys){
+    for(var i = 0; i < displayDiarys.photos.length; i++) {
+      if (displayDiarys.thumbnail == displayDiarys.photos[i].no) {
+        return displayDiarys.photos[i].path;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: drawerNavigation(),
       appBar: AppBar(
-        backgroundColor: Colors.cyan,
+        backgroundColor: Colors.brown[100 * (1 % 9)],
         elevation: 0.0,
         title: Center(
           child: const Text('レシピ',
@@ -469,7 +335,7 @@ class _DiaryListState extends State<DiaryList>{
           addBtn(context),
         ],
       ),
-      body:scrollArea(),
+      body:diaryListArea(),
       bottomNavigationBar: bottomNavigationBar(context),
 //      floatingActionButton: floatBtn(),
     );
@@ -481,7 +347,7 @@ class _DiaryListState extends State<DiaryList>{
       child: ListView(
         children: <Widget>[
           Container(
-            color: Colors.cyan,
+            color: Colors.brown[100 * (1 % 9)],
             child: ListTile(
               title: Center(
                 child: Text('設定',
@@ -495,7 +361,7 @@ class _DiaryListState extends State<DiaryList>{
             ),
           ),
           ListTile(
-            leading: Icon(Icons.folder_open,color: Colors.cyan,),
+            leading: Icon(Icons.folder_open,color: Colors.brown[100 * (1 % 9)],),
             title: Text('フォルダの管理',
               style: TextStyle(
 //                fontWeight: FontWeight.bold
@@ -511,7 +377,7 @@ class _DiaryListState extends State<DiaryList>{
             thickness: 0.5,
           ),
           ListTile(
-            leading: Icon(Icons.local_offer,color: Colors.cyan,),
+            leading: Icon(Icons.local_offer,color: Colors.brown[100 * (1 % 9)],),
             title: Text('タグの管理',
               style: TextStyle(
 //                  fontWeight: FontWeight.bold
@@ -531,26 +397,6 @@ class _DiaryListState extends State<DiaryList>{
     );
   }
 
-  //リスト全体
-  Widget scrollArea(){
-    return Container(
-      child: SingleChildScrollView(
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.85,
-                  width: MediaQuery.of(context).size.width,
-                  child: SingleChildScrollView(
-                    child: myrecipiListArea(),
-                  ),
-                ),
-              ]
-          )
-      ),
-    );
-  }
-
   //線
   Widget line(){
     return Divider(
@@ -561,15 +407,168 @@ class _DiaryListState extends State<DiaryList>{
   }
 
   //ごはん日記リスト
-  Widget myrecipiListArea(){
-    return Container(
-      child: _onList(),
+  Widget diaryListArea(){
+    return
+      LazyLoadScrollView(
+        isLoading: _isLoading,
+        onEndOfPage: () => _loadMore(),
+        child:
+          ListView.builder(
+            shrinkWrap: true,
+            itemCount: _lazy.length,
+            itemBuilder: (context, position) {
+              if(_isLoading && position == _lazy.length - 1){
+                if(this._displayDiaryGroupDates.length == _lazy.length){
+                  return createDiary(position);
+                } else{
+                  return Center(child: CircularProgressIndicator(),);
+                }
+              } else {
+                return createDiary(position);
+              }
+    }),
+      );
+  }
+
+  Widget createDiary(int index){
+    String month = this._displayDiaryGroupDates[index].month.substring(0,4) +'年' + this._displayDiaryGroupDates[index].month.substring(5,7) + '月';
+    //ごはん日記を展開する
+    return StickyHeader(
+        header:
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.05,
+          width: MediaQuery.of(context).size.width,
+          child: Container(
+            color: Colors.brown[100 * (2 % 9)],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Container(
+                  padding: EdgeInsets.all(10),
+                  child: Text('${month}', style: TextStyle(
+                      color: Colors.brown[700],
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold
+                  ),),
+                ),
+              ],
+            ),
+          ),
+        ),
+        content: Column(
+          children: List<int>.generate(_displayDiaryGroupDates[index].displayDiarys.length, (index) => index).map((diaryIndex) =>
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                height: 120,
+                child: Container(
+                  color: Colors.white,
+                  padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
+                  child: InkWell(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          //サムネイルエリア
+                          this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].photos.length > 0
+                              ? Card(
+                            child: Container(
+                              height: 100,
+                              width: 100,
+                              child: Image.file(File(common.replaceImageDiary(_getThumbnail(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex]))),fit: BoxFit.cover,),
+                            ),
+                          )
+                              : Card(
+                            child: Container(
+                              height: 100,
+                              width: 100,
+                              color: Colors.grey,
+                              child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
+                            ),
+                          ),
+                          //本文
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.5,
+                            child: Container(
+                              height: 50,
+                              padding: EdgeInsets.all(5),
+                              child: Text('${this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].body}',
+                                maxLines: 2,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                ),),
+                            ),
+                          ),
+                          //日付エリア
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.2,
+                            padding: EdgeInsets.only(top: 10,bottom: 10,left: 5,right: 5),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    SizedBox(
+                                      height: 25,
+                                      child: Container(
+                                        child: Text('${DateTime.parse(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].date).day}',
+                                          style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 25,
+                                              fontWeight: FontWeight.bold
+                                          ),),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 25,
+                                      child: Container(
+                                        padding: EdgeInsets.only(top: 7,right: 5,left: 5),
+                                        child: Text('${this._displayWeekday(DateTime.parse(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].date).weekday)}',
+                                          style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold
+                                          ),),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 30,
+                                  child: Container(
+                                    padding: EdgeInsets.all(5),
+                                    child:
+                                    this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].category == 1
+                                        ? Container()
+                                        : Text('${this._displayCategory(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].category)}',
+                                      style: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      onTap: (){
+                        _onDetail(diary: this._displayDiaryGroupDates[index].displayDiarys[diaryIndex]);
+                      }
+                  ),
+                ),
+              ),
+          ).toList(),
+        )
     );
   }
 
+
   Widget checkBtn(){
     return IconButton(
-        icon: const Icon(Icons.check_circle_outline,color: Colors.cyan,size:30,),
+        color: Colors.brown[100 * (1 % 9)],
+        icon: const Icon(Icons.check_circle_outline,size:30,),
         onPressed: null
     );
   }
@@ -592,8 +591,8 @@ class _DiaryListState extends State<DiaryList>{
             type: BottomNavigationBarType.fixed,
 //      backgroundColor: Colors.redAccent,
 //      fixedColor: Colors.black12,
-            selectedItemColor: Colors.black87,
-            unselectedItemColor: Colors.black26,
+            selectedItemColor: Colors.brown[100 * (3 % 9)],
+            unselectedItemColor: Colors.brown[100 * (1 % 9)],
             iconSize: 30,
             selectedFontSize: 10,
             unselectedFontSize: 10,

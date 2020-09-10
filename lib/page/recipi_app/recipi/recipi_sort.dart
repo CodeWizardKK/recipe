@@ -8,6 +8,7 @@ import 'package:recipe_app/model/Tag.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/store/detail_state.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
+import 'package:recipe_app/services/Common.dart';
 import 'package:recipe_app/model/Myrecipi.dart';
 import 'package:recipe_app/model/MstFolder.dart';
 import 'package:recipe_app/model/MstTag.dart';
@@ -23,12 +24,13 @@ class RecipiSort extends StatefulWidget{
 class _RecipiSortState extends State<RecipiSort>{
 
   DBHelper dbHelper;
-  List<MstFolder> _Mfolders;     //フォルダマスタ
-  List<MstTag> _Mtags;           //タグマスタ
+  Common common;
+  List<MstFolder> _Mfolders = List<MstFolder>();     //フォルダマスタ
+  List<MstTag> _Mtags = List<MstTag>();           //タグマスタ
 
-  List<Check> _folders;          //チェックボック付きフォルダリスト
-  List<Check> _tags;             //チェックボックス付きタグリスト
-  List<Check> _oldTags;          //チェックボック付きフォルダリスト
+  List<Check> _folders  = List<Check>();          //チェックボック付きフォルダリスト
+  List<Check> _tags = List<Check>();             //チェックボックス付きタグリスト
+  List<Check> _oldTags = List<Check>();          //チェックボック付きフォルダリスト
 
   String _name = '';             //モーダルにて入力した値
   int _sortType = 0;             //表示タイプ 0:全表示 1:フォルダのみ 2:タグのみ
@@ -45,6 +47,7 @@ class _RecipiSortState extends State<RecipiSort>{
 
   _getItem() async {
     dbHelper = DBHelper();
+    common = Common();
     this._Mfolders = [];
     this._Mtags = [];
     this._oldTags = [];
@@ -549,12 +552,12 @@ class _RecipiSortState extends State<RecipiSort>{
                 children: <Widget>[
                   Container(
 //                    padding: EdgeInsets.all(10),
-                    child: Icon(Icons.add_circle_outline,color: Colors.cyan,)
+                    child: Icon(Icons.add_circle_outline,color: Colors.brown[100 * (1 % 9)],)
                   ),
                   Container(
                     padding: EdgeInsets.all(10),
                     child: Text('新しいフォルダ',style: TextStyle(
-                        color: Colors.cyan,
+                        color: Colors.brown[100 * (1 % 9)],
                         fontSize: 20,
                         fontWeight: FontWeight.bold
                     ),),
@@ -686,12 +689,12 @@ class _RecipiSortState extends State<RecipiSort>{
                 children: <Widget>[
                   Container(
 //                    padding: EdgeInsets.all(10),
-                    child: Icon(Icons.add_circle_outline,color: Colors.cyan,)
+                    child: Icon(Icons.add_circle_outline,color: Colors.brown[100 * (1 % 9)],)
                   ),
                   Container(
                     padding: EdgeInsets.all(10),
                     child: Text('新しいタグ',style: TextStyle(
-                        color: Colors.cyan,
+                        color: Colors.brown[100 * (1 % 9)],
                         fontSize: 20,
                         fontWeight: FontWeight.bold
                     ),),
@@ -738,7 +741,7 @@ class _RecipiSortState extends State<RecipiSort>{
                 Padding(
                   padding: EdgeInsets.only(right: 20),
                   child: IconButton(
-                      icon: Icon(Icons.close,color: Colors.cyan,size: 30,),
+                      icon: Icon(Icons.close,color: Colors.brown[100 * (1 % 9)],size: 30,),
                     onPressed: (){
                       Navigator.pop(context);
                     },
@@ -746,7 +749,7 @@ class _RecipiSortState extends State<RecipiSort>{
                 ),
                 Text( type == 1 ? '新しいフォルダ' : '新しいタグ',
                   style: TextStyle(
-                      color: Colors.cyan
+                      color: Colors.brown[100 * (1 % 9)]
                   ),
                 ),
               ],
@@ -774,7 +777,7 @@ class _RecipiSortState extends State<RecipiSort>{
                 child: Padding(
                   padding: EdgeInsets.all(10),
                   child: FlatButton(
-                    color: Colors.cyan,
+                    color: Colors.brown[100 * (1 % 9)],
                     child: Text('保存',
                       style: TextStyle(
                         color: Colors.white,
@@ -811,7 +814,7 @@ class _RecipiSortState extends State<RecipiSort>{
                 Padding(
                   padding: EdgeInsets.only(right: 20),
                   child: IconButton(
-                    icon: Icon(Icons.close,color: Colors.cyan,size: 30,),
+                    icon: Icon(Icons.close,color: Colors.brown[100 * (1 % 9)],size: 30,),
                     onPressed: (){
                       Navigator.pop(context);
                     },
@@ -819,7 +822,7 @@ class _RecipiSortState extends State<RecipiSort>{
                 ),
                 Text( type == 1 ? 'フォルダ名の変更' : 'タグ名の変更',
                   style: TextStyle(
-                      color: Colors.cyan
+                      color: Colors.brown[100 * (1 % 9)]
                   ),
                 ),
               ],
@@ -847,7 +850,7 @@ class _RecipiSortState extends State<RecipiSort>{
                 child: Padding(
                   padding: EdgeInsets.all(10),
                   child: FlatButton(
-                    color: Colors.cyan,
+                    color: Colors.brown[100 * (1 % 9)],
                     child: Text('保存',
                       style: TextStyle(
                         color: Colors.white,
@@ -870,7 +873,7 @@ class _RecipiSortState extends State<RecipiSort>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.cyan,
+        backgroundColor: Colors.brown[100 * (1 % 9)],
         leading: closeBtn(),
         elevation: 0.0,
         title: Center(
@@ -947,7 +950,7 @@ class _RecipiSortState extends State<RecipiSort>{
           color: Colors.white,
           child: Text(_isCheck ? '完了' : '保存',
             style: TextStyle(
-              color: Colors.cyan,
+              color: Colors.brown[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),
@@ -1062,7 +1065,7 @@ class _RecipiSortState extends State<RecipiSort>{
             height: 100,
             width: 100,
             child: Container(
-              child: Image.file(File(Detail.recipi.thumbnail),fit: BoxFit.cover,),
+              child: Image.file(File(common.replaceImage(Detail.recipi.thumbnail)),fit: BoxFit.cover,),
             ),
           )
               : SizedBox(

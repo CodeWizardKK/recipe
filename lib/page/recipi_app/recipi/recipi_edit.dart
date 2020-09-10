@@ -5,12 +5,15 @@ import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+
 import 'package:recipe_app/model/Myrecipi.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/store/detail_state.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
+import 'package:recipe_app/services/Common.dart';
 import 'package:recipe_app/model/edit/Titleform.dart';
 import 'package:recipe_app/model/edit/Ingredient.dart';
 import 'package:recipe_app/model/edit/Photo.dart';
@@ -26,6 +29,7 @@ class RecipiEdit extends StatefulWidget{
 class _RecipiEditState extends State<RecipiEdit>{
 
   DBHelper dbHelper;
+  Common common;
   int _selectedID;                //編集するID
 //  String _thumbnail;            //サムネイル DB送信用
   int _type;                      //レシピ種別 1:写真レシピ 2:MYレシピ 3:テキストレシピ
@@ -46,6 +50,7 @@ class _RecipiEditState extends State<RecipiEdit>{
   void initState() {
     super.initState();
     dbHelper = DBHelper();
+    common = Common();
     setState(() {
       //戻る画面を取得
       this._backScreen = Provider.of<Display>(context, listen: false).getBackScreen();
@@ -385,54 +390,62 @@ class _RecipiEditState extends State<RecipiEdit>{
   Future<void> _getAndSaveImageFromDevice({ImageSource source,bool thumbnail,bool edit,Photo photo,int index}) async {
 
     // 撮影/選択したFileが返ってくる
+//    File imageFile = await ImagePicker.pickImage(source: source,imageQuality: 50);
     File imageFile = await ImagePicker.pickImage(source: source);
-    //変換
-//    var imageByte = await imageFile.readAsBytes();
-//    String imgString = await base64Encode(imageByte);
 
-    // 撮影せずに閉じた場合はnullになる
+    // 画像が選択されなかった場合はスキップ
     if (imageFile == null) {
       return;
     }
-
     print('###setしたimagepath:${imageFile.path}');
 
-//    一時的にローカル保存
-//    var savedFile = await FileController.saveLocalImage(imageFile); //追加
-//    this.imageFiles.add(savedFile);
+    File thumbnailfile = imageFile;
+    //サムネイル用にファイル名を変更
+    String thumbnailPath = common.replaceImage(thumbnailfile.path);
 
-//    setState(() {
-      //サムネイル画像の場合
-      if(thumbnail){
-        //スキャンレシピの場合
-        if(_type == 3 ){
-          //写真のトリミング処理の呼び出し
-          await this._cropImage(imageFile: imageFile);
-          //文字変換処理の呼び出し
-          await this._vision();
+    // flutter_image_compressで指定サイズ／品質に圧縮
+    List<int> thumbnailresult = await FlutterImageCompress.compressWithFile(
+      thumbnailfile.absolute.path,
+      minWidth: 200,
+      minHeight: 200,
+      quality: 50,
+    );
+
+    // 圧縮したファイルを端末の拡張ディスクに保存
+    File saveFile = File(thumbnailPath);
+    await saveFile.writeAsBytesSync(thumbnailresult, flush: true, mode: FileMode.write);
+    print('saveFile:${saveFile.path}');
+
+    //サムネイル画像の場合
+    if(thumbnail){
+      //スキャンレシピの場合
+      if(_type == 3 ){
+        //写真のトリミング処理の呼び出し
+        await this._cropImage(imageFile: imageFile);
+        //文字変換処理の呼び出し
+        await this._vision();
+      }else{
+        setState(() {
+          //セット
+          Provider.of<Display>(context, listen: false).setThumbnail(imageFile.path);
+        });
+      }
+    //写真エリアの場合
+    }else{
+      //写真追加の場合
+      Photo photo = Photo(path: imageFile.path);
+        if(!edit){
+          setState(() {
+            Provider.of<Display>(context, listen: false).addPhoto(photo);
+          });
+          //写真変更の場合
         }else{
           setState(() {
-            //セット
-            Provider.of<Display>(context, listen: false).setThumbnail(imageFile.path);
+            Provider.of<Display>(context, listen: false).setPhoto(index,photo);
           });
         }
-      //写真エリアの場合
-      }else{
-        //写真追加の場合
-        Photo photo = Photo(path: imageFile.path);
-          if(!edit){
-            setState(() {
-              Provider.of<Display>(context, listen: false).addPhoto(photo);
-            });
-            //写真変更の場合
-          }else{
-            setState(() {
-              Provider.of<Display>(context, listen: false).setPhoto(index,photo);
-            });
-          }
 
-      }
-//    });
+    }
   }
 
   //写真のトリミング処理
@@ -546,12 +559,12 @@ class _RecipiEditState extends State<RecipiEdit>{
                 children: <Widget>[
                   Container(
 //                    padding: EdgeInsets.all(10),
-                    child: Icon(Icons.add_circle_outline,color: Colors.cyan,)
+                    child: Icon(Icons.add_circle_outline,color: Colors.brown[100 * (1 % 9)],)
                   ),
                   Container(
                     padding: EdgeInsets.all(10),
                     child: Text('材料を追加',style: TextStyle(
-                        color: Colors.cyan,
+                        color: Colors.brown[100 * (1 % 9)],
                         fontSize: 20,
                         fontWeight: FontWeight.bold
                     ),),
@@ -650,12 +663,12 @@ class _RecipiEditState extends State<RecipiEdit>{
                 children: <Widget>[
                   Container(
 //                    padding: EdgeInsets.all(10),
-                    child: Icon(Icons.add_circle_outline,color: Colors.cyan,)
+                    child: Icon(Icons.add_circle_outline,color: Colors.brown[100 * (1 % 9)],)
                   ),
                   Container(
                     padding: EdgeInsets.all(10),
                     child: Text('作り方を追加',style: TextStyle(
-                        color: Colors.cyan,
+                        color: Colors.brown[100 * (1 % 9)],
                         fontSize: 20,
                         fontWeight: FontWeight.bold
                     ),),
@@ -721,12 +734,12 @@ class _RecipiEditState extends State<RecipiEdit>{
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Container(
-                      child: Icon(Icons.add_circle_outline,color: Colors.cyan,)
+                      child: Icon(Icons.add_circle_outline,color: Colors.brown[100 * (1 % 9)],)
                   ),
                   Container(
                     padding: EdgeInsets.all(10),
                     child: Text('写真を追加',style: TextStyle(
-                        color: Colors.cyan,
+                        color: Colors.brown[100 * (1 % 9)],
                         fontSize: 20,
                         fontWeight: FontWeight.bold
                     ),),
@@ -900,7 +913,7 @@ class _RecipiEditState extends State<RecipiEdit>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.cyan,
+        backgroundColor: Colors.brown[100 * (1 % 9)],
         leading: _isDescriptionEdit ? Container() : closeBtn(),
         elevation: 0.0,
         title: Center(
@@ -933,13 +946,13 @@ class _RecipiEditState extends State<RecipiEdit>{
       child: Padding(
         padding: EdgeInsets.all(10),
         child: FlatButton(
-          color: _isDescriptionEdit ? Colors.cyan : Colors.white,
+          color: _isDescriptionEdit ? Colors.brown[100 * (1 % 9)] : Colors.white,
 //          shape: RoundedRectangleBorder(
 //            borderRadius: BorderRadius.circular(10.0),
 //          ),
           child: Text('完了',
             style: TextStyle(
-              color: _isDescriptionEdit ? Colors.cyan : Colors.cyan,
+              color: _isDescriptionEdit ? Colors.brown[100 * (1 % 9)] : Colors.brown[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),

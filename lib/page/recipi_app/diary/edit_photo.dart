@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:async';
 
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,7 @@ import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/store/diary/edit_state.dart';
 import 'package:recipe_app/model/diary/edit/Photo.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:recipe_app/services/Common.dart';
 
 
 class EditPhoto extends StatefulWidget{
@@ -18,6 +20,7 @@ class EditPhoto extends StatefulWidget{
 
 class _EditPhotoState extends State<EditPhoto>{
 
+  Common common;
   List<DPhoto> _photos = List<DPhoto>();
   List<DPhoto> _photosOld = List<DPhoto>();
   String _error = 'No Error Dectected';
@@ -30,6 +33,7 @@ class _EditPhotoState extends State<EditPhoto>{
 
   //初期処理
   void init(){
+    common = Common();
     this._photos = Provider.of<Edit>(context, listen: false).getPhotos();
     for(var i = 0; i < this._photos.length; i++){
       this._photosOld.add(this._photos[i]);
@@ -45,13 +49,13 @@ class _EditPhotoState extends State<EditPhoto>{
     try{
       files = await FilePicker.getMultiFile(
         type: FileType.custom,
-        allowedExtensions: ['jpg','png']
+        allowedExtensions: ['JPG','JPEG','jpg','jpeg','PNG','png'],
       );
 
-//      resultList = await MultiImagePicker.pickImages(
+//      var resultList = await MultiImagePicker.pickImages(
 //          maxImages: 300,
 ////          enableCamera: true,
-//        selectedAssets: this.images,
+////        selectedAssets: this.images,
 //        cupertinoOptions: CupertinoOptions(takePhotoIcon: "chat"),
 //        materialOptions: MaterialOptions(
 //          actionBarColor: "#abcdef",
@@ -61,17 +65,45 @@ class _EditPhotoState extends State<EditPhoto>{
 //          selectCircleStrokeColor: "#000000"
 //        ),
 //      );
+//      for(var i = 0; i < resultList.length; i++){
+//        resultList[i].
+//      }
+
+
+
     } on Exception catch(e){
       error = e.toString();
     }
 
     if(!mounted) return;
 
-    setState(() {
       if(files != null) {
         for(var i = 0; i < files.length; i++){
           DPhoto photo = DPhoto(path: files[i].path);
-          this._photos.add(photo);
+          setState(() {
+            this._photos.add(photo);
+          });
+
+          File thumbnailfile = files[i];
+          //サムネイル用にファイル名を変更
+          String thumbnailPath = common.replaceImageDiary(thumbnailfile.path);
+
+          // flutter_image_compressで指定サイズ／品質に圧縮
+          List<int> thumbnailresult = await FlutterImageCompress.compressWithFile(
+            thumbnailfile.absolute.path,
+            minWidth: 200,
+            minHeight: 200,
+            quality: 50,
+          );
+
+          // 圧縮したファイルを端末の拡張ディスクに保存
+          File saveFile = File(thumbnailPath);
+          await saveFile.writeAsBytesSync(thumbnailresult, flush: true, mode: FileMode.write);
+//          File saveFile = await files[i].copy(thumbnailPath);
+          print('saveFile:${saveFile.path}');
+//          saveFile.copy('/storage/emulated/0/Android/data/com.example.recipe_app/files/Pictures/test20200910_thumb.jpg');
+
+
         }
 //        print('++++++++++++++++++++++++++++++++++++++++');
 //        for(var i = 0; i < this._photos.length; i++){
@@ -79,8 +111,9 @@ class _EditPhotoState extends State<EditPhoto>{
 //        }
 //        print('++++++++++++++++++++++++++++++++++++++++');
       }
-      this._error = error;
-    });
+      setState(() {
+        this._error = error;
+      });
   }
 
   //イメージのno取得処理
@@ -120,7 +153,7 @@ class _EditPhotoState extends State<EditPhoto>{
         builder: (context, Display, _) {
           return Scaffold(
             appBar: AppBar(
-              backgroundColor: Colors.cyan,
+              backgroundColor: Colors.brown[100 * (1 % 9)],
               leading: closeBtn(),
               elevation: 0.0,
               title: Center(
@@ -240,7 +273,7 @@ class _EditPhotoState extends State<EditPhoto>{
           color: Colors.white,
           child: Text('保存',
             style: TextStyle(
-              color: Colors.cyan,
+              color: Colors.brown[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),
