@@ -5,8 +5,6 @@ import 'package:flutter_awesome_buttons/flutter_awesome_buttons.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/model/edit/Ingredient.dart';
 import 'package:flutter/services.dart';
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:recipe_app/model/Format.dart';
 
 class EditIngredient extends StatefulWidget{
@@ -26,9 +24,11 @@ class _EditIngredientState extends State<EditIngredient>{
   @override
   void initState() {
     super.initState();
-    //ローカルjson
-    this.getLocalSeasoningJsonData();
-    this.getLocalQuantityUnitJsonData();
+    setState(() {
+    this._seasonings = Provider.of<Display>(context, listen: false).getSeasonings();
+    this._quantityunit = Provider.of<Display>(context, listen: false).getQuantityunits();
+    });
+
     //新規or更新かジャッチする
     _index = Provider.of<Display>(context, listen: false).getEditIndex();
 //    print('index:${_index}');
@@ -37,62 +37,13 @@ class _EditIngredientState extends State<EditIngredient>{
       //選択した材料の取得
       Ingredient item = Provider.of<Display>(context, listen: false).getIngredient(_index);
       print('[更新]no:${item.no},name:${item.name},quantity:${item.quantity}');
-      this._name.text = item.name;
-      this._quantity.text = item.quantity;
-    }
-  }
-
-  //材料ローカルjsonファイル読み込み
-  Future<String> _loadSeasoningAsset() async {
-    return await rootBundle.loadString('json/seasoning.json');
-  }
-
-  //分量単位ローカルjsonファイル読み込み
-  Future<String> _loadQuantityUnitAsset() async {
-    return await rootBundle.loadString('json/quantityUnit.json');
-  }
-
-  //材料ローカルjson データセット
-  Future<void> getLocalSeasoningJsonData() async {
-    setState(() {
-      this._seasonings.clear();
-    });
-    String jsonString = await _loadSeasoningAsset();
-    //データを個別に扱えるようデコードする
-    final jsonResponse = json.decode(jsonString);
-    List seasonings = jsonResponse['seasonings'];
-//      print('### getJSON: ${jsonResponse.toString()}');
-    for(var i = 0; i < seasonings.length; i++){
-      Format seasoning = Format(id: seasonings[i]['id'],name: seasonings[i]['name']);
       setState(() {
-        this._seasonings.add(seasoning);
+        this._name.text = item.name;
+        this._quantity.text = item.quantity;
       });
     }
-//    for(var i = 0; i < this._seasonings.length; i++){
-//      print('id:${this._seasonings[i].id},name:${this._seasonings[i].name}');
-//    }
   }
 
-  //分量単位ローカルjson データセット
-  Future<void> getLocalQuantityUnitJsonData() async {
-    setState(() {
-      this._quantityunit.clear();
-    });
-    String jsonString = await _loadQuantityUnitAsset();
-    //データを個別に扱えるようデコードする
-    final jsonResponse = json.decode(jsonString);
-    List quantityunit = jsonResponse['quantityunits'];
-//      print('### getJSON: ${jsonResponse.toString()}');
-    for(var i = 0; i < quantityunit.length; i++){
-      Format seasoning = Format(id: quantityunit[i]['id'],name: quantityunit[i]['name']);
-      setState(() {
-        this._quantityunit.add(seasoning);
-      });
-    }
-//    for(var i = 0; i < this._quantityunit.length; i++){
-//      print('id:${this._quantityunit[i].id},name:${this._quantityunit[i].name}');
-//    }
-  }
 
   //保存ボタン押下時処理
   void _onSubmit(){
@@ -151,7 +102,7 @@ class _EditIngredientState extends State<EditIngredient>{
         builder: (context, Display, _) {
           return Scaffold(
             appBar: AppBar(
-              backgroundColor: Colors.cyan,
+              backgroundColor: Colors.brown[100 * (1 % 9)],
               leading: closeBtn(),
               elevation: 0.0,
               title: Center(
@@ -410,7 +361,7 @@ class _EditIngredientState extends State<EditIngredient>{
 //          ),
           child: Text('保存',
             style: TextStyle(
-              color: Colors.cyan,
+              color: Colors.brown[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),

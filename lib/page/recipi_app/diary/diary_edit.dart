@@ -362,7 +362,7 @@ class _DiaryEditState extends State<DiaryEdit>{
       builder: (context,Edit,_){
         return Scaffold(
           appBar: AppBar(
-            backgroundColor: Colors.cyan,
+            backgroundColor: Colors.brown[100 * (1 % 9)],
             leading: closeBtn(),
             elevation: 0.0,
             title: Center(
@@ -398,7 +398,7 @@ class _DiaryEditState extends State<DiaryEdit>{
 //          ),
           child: Text('保存',
             style: TextStyle(
-              color: Colors.cyan,
+              color: Colors.brown[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),
@@ -468,13 +468,13 @@ class _DiaryEditState extends State<DiaryEdit>{
                               size: 25,
                               color: Edit.date.isEmpty
                                     ? Colors.grey
-                                    : Colors.cyan
+                                    : Colors.brown[100 * (1 % 9)]
                           ),
                           label: Text('日付',
                             style: TextStyle(
                               color: Edit.date.isEmpty
                                   ? Colors.grey
-                                  : Colors.cyan,
+                                  : Colors.brown[100 * (1 % 9)],
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),),
@@ -506,13 +506,13 @@ class _DiaryEditState extends State<DiaryEdit>{
                             size: 25,
                             color: Edit.category == 1
                                 ? Colors.grey
-                                : Colors.cyan,
+                                : Colors.brown[100 * (1 % 9)],
                           ),
                           label: Text('分類',
                             style: TextStyle(
                               color: Edit.category == 1
                                   ? Colors.grey
-                                  : Colors.cyan,
+                                  : Colors.brown[100 * (1 % 9)],
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),),
@@ -543,13 +543,13 @@ class _DiaryEditState extends State<DiaryEdit>{
                           size: 25,
                           color: Edit.recipis.length == 0
                               ? Colors.grey
-                              : Colors.cyan,
+                              : Colors.brown[100 * (1 % 9)],
                         ),
                         label: Text('料理',
                           style: TextStyle(
                             color: Edit.recipis.length == 0
                                 ? Colors.grey
-                                : Colors.cyan,
+                                : Colors.brown[100 * (1 % 9)],
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),),
@@ -578,13 +578,13 @@ class _DiaryEditState extends State<DiaryEdit>{
                             size: 25,
                             color: Edit.photos.length == 0
                                 ? Colors.grey
-                                : Colors.cyan,
+                                : Colors.brown[100 * (1 % 9)],
                           ),
                           label: Text('写真',
                             style: TextStyle(
                               color: Edit.photos.length == 0
                                   ? Colors.grey
-                                  : Colors.cyan,
+                                  : Colors.brown[100 * (1 % 9)],
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),),

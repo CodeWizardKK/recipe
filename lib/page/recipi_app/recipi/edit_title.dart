@@ -82,7 +82,7 @@ class _EditTitleState extends State<EditTitle>{
       builder: (context, Display, _) {
         return Scaffold(
           appBar: AppBar(
-            backgroundColor: Colors.cyan,
+            backgroundColor: Colors.brown[100 * (1 % 9)],
             leading: closeBtn(),
             elevation: 0.0,
             title: Center(
@@ -427,7 +427,7 @@ class _EditTitleState extends State<EditTitle>{
 //          ),
           child: Text('保存',
             style: TextStyle(
-              color: Colors.cyan,
+              color: Colors.brown[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),
