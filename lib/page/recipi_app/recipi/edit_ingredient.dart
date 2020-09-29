@@ -1,13 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_awesome_buttons/flutter_awesome_buttons.dart';
-import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/model/edit/Ingredient.dart';
 import 'package:flutter/services.dart';
 import 'package:recipe_app/model/Format.dart';
+import 'package:recipe_app/services/database/DBHelper.dart';
 
 class EditIngredient extends StatefulWidget{
+
+  Ingredient ingredient = Ingredient();
+
+  EditIngredient({Key key, @required this.ingredient}) : super(key: key);
 
   @override
   _EditIngredientState createState() => _EditIngredientState();
@@ -15,51 +20,70 @@ class EditIngredient extends StatefulWidget{
 
 class _EditIngredientState extends State<EditIngredient>{
 
+  DBHelper dbHelper;
   final _name = TextEditingController();      //材料名
   final _quantity = TextEditingController();  //分量
-  int _index;                                 //選択された材料のindex番号
+  bool _isNew = false;                        //true:新規 false:更新
   List<Format> _seasonings = List();          //調味料リスト
   List<Format> _quantityunit = List();        //分量単位リスト
+  Ingredient _ingredient = Ingredient();      //値を更新(セット)し返す
 
   @override
   void initState() {
     super.initState();
-    setState(() {
-    this._seasonings = Provider.of<Display>(context, listen: false).getSeasonings();
-    this._quantityunit = Provider.of<Display>(context, listen: false).getQuantityunits();
-    });
+    _init();
+  }
 
-    //新規or更新かジャッチする
-    _index = Provider.of<Display>(context, listen: false).getEditIndex();
-//    print('index:${_index}');
-    //更新の場合
-    if(_index != -1){
-      //選択した材料の取得
-      Ingredient item = Provider.of<Display>(context, listen: false).getIngredient(_index);
-      print('[更新]no:${item.no},name:${item.name},quantity:${item.quantity}');
+  Future<void> _init() async {
+    dbHelper = DBHelper();
+    //seasonings、quantityunitの取得
+    var seasonings = await dbHelper.getSeasoning();
+    var quantityunit = await dbHelper.getQuantityUnit();
+    setState(() {
+      this._seasonings = seasonings;
+      this._quantityunit = quantityunit;
+      this._ingredient = widget.ingredient;
+    });
+    //追加or更新チェック
+    if(this._ingredient.id == null){
       setState(() {
-        this._name.text = item.name;
-        this._quantity.text = item.quantity;
+        this._isNew = true;
+      });
+    } else {
+      setState(() {
+        this._isNew = false;
       });
     }
+      //選択した材料の取得
+//      print('選択した材料 no:${this._ingredient.no},name:${this._ingredient.name},quantity:${this._ingredient.quantity}');
+      setState(() {
+        this._name.text = this._ingredient.name;
+        this._quantity.text = this._ingredient.quantity;
+      });
   }
 
 
   //保存ボタン押下時処理
   void _onSubmit(){
-    Ingredient ingredient;
     //更新の場合
-    if(_index != -1){
-      ingredient = Ingredient(name: _name.text,quantity: _quantity.text);
-      //選択した材料の更新処理
-      Provider.of<Display>(context, listen: false).setIngredient(_index,ingredient);
-      return;
-    }
-    //入力内容が未入力以外の場合
-    if(!_isEmptyCheck()){
-      ingredient = Ingredient(name: _name.text,quantity: _quantity.text);
-      //材料リストへの追加
-      Provider.of<Display>(context, listen: false).addIngredient(ingredient);
+    if(!_isNew){
+      this._ingredient.name = _name.text;
+      this._ingredient.quantity = _quantity.text;
+      print('id:${this._ingredient.id},no:${this._ingredient.no},name:${this._ingredient.name},quantity:${this._ingredient.quantity}');
+      Navigator.pop(context,this._ingredient);
+    //新規の場合
+    } else {
+      //入力内容が未入力以外の場合
+      if(!_isEmptyCheck()){
+        this._ingredient.id = -1;
+        this._ingredient.name = _name.text;
+        this._ingredient.quantity = _quantity.text;
+//        print('id:${this._ingredient.id},no:${this._ingredient.no},name:${this._ingredient.name},quantity:${this._ingredient.quantity}');
+        Navigator.pop(context,this._ingredient);
+      //未入力の場合
+      } else {
+        Navigator.pop(context);
+      }
     }
   }
 
@@ -73,44 +97,21 @@ class _EditIngredientState extends State<EditIngredient>{
     return true;
   }
 
-  //削除ボタン押下時処理
-  void _onDelete(){
-    print('####delete');
-    //材料リストの取得
-    List<Ingredient> ingredients = Provider.of<Display>(context, listen: false).getIngredients();
-    //該当の材料を削除
-    ingredients.removeAt(_index);
-    for(var i = 0; i < ingredients.length; i++){
-      //noを採番し直す
-      ingredients[i].no =  i + 1;
-      print('no:${ingredients[i].no},name:${ingredients[i].name},quantity:${ingredients[i].quantity}');
-    }
-    //新しく生成した材料リストをセットする
-//    Provider.of<Display>(context, listen: false).setIngredients(ingredients);
-  }
-
-  //編集画面の状態の切り替え
-  void _changeEditType(editType){
-    Provider.of<Display>(context, listen: false).setEditType(editType);
-    //
-    Provider.of<Display>(context, listen: false).setEditIndex(-1);
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Consumer<Display>(
-        builder: (context, Display, _) {
+//    return Consumer<Display>(
+//        builder: (context, Display, _) {
           return Scaffold(
             appBar: AppBar(
-              backgroundColor: Colors.brown[100 * (1 % 9)],
+              backgroundColor: Colors.deepOrange[100 * (1 % 9)],
               leading: closeBtn(),
               elevation: 0.0,
               title: Center(
-                child: Text( Display.id == -1 ? 'レシピを作成' :'レシピを編集',
+                child: Text( '材料',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+//                    fontWeight: FontWeight.bold,
                     fontFamily: 'Roboto',
                   ),
                 ),
@@ -121,8 +122,8 @@ class _EditIngredientState extends State<EditIngredient>{
             ),
             body: scrollArea(),
           );
-        }
-    );
+//        }
+//    );
   }
 
   //レシピ編集
@@ -167,7 +168,7 @@ class _EditIngredientState extends State<EditIngredient>{
         height: 50,
 //        width: MediaQuery.of(context).size.width,
         child: Container(
-          color: Colors.grey,
+          color: Colors.deepOrange[100 * (2 % 9)],
           child: Row(
 //            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -216,12 +217,12 @@ class _EditIngredientState extends State<EditIngredient>{
                 children: <Widget>[
                   RoundedButton(
                     title: '${_seasonings[index].name}',
-                    buttonColor: Colors.orangeAccent,
+                    buttonColor: Colors.amber[100 * (1 % 9)],
                     onPressed: () {
                       setState(() {
                         _name.text = _seasonings[index].name;
                       });
-                      print('${_seasonings[index].name}');
+//                      print('${_seasonings[index].name}');
                     },
                   ),
                   SizedBox(width: 2.0,)
@@ -241,7 +242,7 @@ class _EditIngredientState extends State<EditIngredient>{
         height: 50,
 //        width: MediaQuery.of(context).size.width,
         child: Container(
-          color: Colors.grey,
+          color: Colors.deepOrange[100 * (2 % 9)],
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -290,7 +291,7 @@ class _EditIngredientState extends State<EditIngredient>{
                   children: <Widget>[
                     RoundedButton(
                       title: '${_quantityunit[index].name}',
-                      buttonColor: Colors.orangeAccent,
+                      buttonColor: Colors.amber[100 * (1 % 9)],
                       onPressed: () {
                         setState(() {
                           if(_quantityunit[index].id < 5){
@@ -325,7 +326,7 @@ class _EditIngredientState extends State<EditIngredient>{
   //削除ボタン
   Widget deleteButtonArea() {
     return
-     _index != -1
+     !_isNew
       ? Container(
        margin: const EdgeInsets.all(50),
         padding: const EdgeInsets.all(10),
@@ -336,10 +337,9 @@ class _EditIngredientState extends State<EditIngredient>{
             icon: Icon(Icons.delete,color: Colors.white,),
             label: Text('材料を削除する'),
             textColor: Colors.white,
-            color: Colors.redAccent,
+            color: Colors.red[100 * (3 % 9)],
             onPressed:(){
-              _onDelete();
-              _changeEditType(0); //タイトル
+              Navigator.pop(context,'delete');
             },
           ),
         ),
@@ -361,14 +361,13 @@ class _EditIngredientState extends State<EditIngredient>{
 //          ),
           child: Text('保存',
             style: TextStyle(
-              color: Colors.brown[100 * (1 % 9)],
+              color: Colors.deepOrange[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),
           onPressed: (){
             //入力したdataをstoreへ保存
             _onSubmit();
-            _changeEditType(0); //タイトル
           },
         ),
       ),
@@ -378,9 +377,9 @@ class _EditIngredientState extends State<EditIngredient>{
   //ｘボタン
   Widget closeBtn(){
     return IconButton(
-      icon: const Icon(Icons.close,color: Colors.white,size: 35,),
+      icon: const Icon(Icons.close,color: Colors.white,size: 30,),
       onPressed: (){
-        _changeEditType(0); //編集TOP
+        Navigator.pop(context);
       },
     );
   }

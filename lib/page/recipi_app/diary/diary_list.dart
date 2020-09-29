@@ -5,9 +5,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
+import 'package:recipe_app/page/recipi_app/diary/diary_detail.dart';
+import 'package:recipe_app/page/recipi_app/diary/diary_edit.dart';
+import 'package:recipe_app/page/recipi_app/recipi/recipi_sort.dart';
 import 'package:sticky_headers/sticky_headers.dart';
 import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/store/diary/edit_state.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
 import 'package:recipe_app/services/Common.dart';
 import 'package:recipe_app/model/diary/Diary.dart';
@@ -16,6 +18,9 @@ import 'package:recipe_app/model/diary/edit/Recipi.dart';
 import 'package:recipe_app/model/diary/DisplayDiary.dart';
 import 'package:recipe_app/model/diary/DisplayDiaryGroupDate.dart';
 import 'package:intl/intl.dart';
+
+import 'package:recipe_app/updater.dart';
+
 
 class DiaryList extends StatefulWidget {
 
@@ -32,7 +37,7 @@ class _DiaryListState extends State<DiaryList>{
   List<DisplayDiaryGroupDate> _lazy = List<DisplayDiaryGroupDate>(); //遅延読み込み用リスト
   bool _isLoading = false;                               //true:遅延読み込み中
   int _currentLength = 0;                                //遅延読み込み件数を格納
-  final int increment = 5; //読み込み件数
+  final int increment = 6; //読み込み件数
 
   @override
   void initState() {
@@ -44,8 +49,6 @@ class _DiaryListState extends State<DiaryList>{
   void init(){
     dbHelper = DBHelper();
     common = Common();
-    //戻る画面をセット　2:ごはん日記の日記詳細レシピ一覧
-    Provider.of<Display>(context, listen: false).setBackScreen(2);
     //レコードリフレッシュ
     this.refreshImages();
     this._lazy.clear();
@@ -86,10 +89,11 @@ class _DiaryListState extends State<DiaryList>{
   //表示しているレコードのリセットし、最新のレコードを取得し、表示
   Future<void> refreshImages() async {
 
-    List<Diary> diarys = List<Diary>();
-    List<DPhoto> photos = List<DPhoto>();
-    List<DRecipi> recipis = List<DRecipi>();
-    List<DisplayDiary> displayDiarys = List<DisplayDiary>();
+    List<Diary> diarys = [];
+    List<DPhoto> photos = [];
+    List<DRecipi> recipis = [];
+    List<DisplayDiary> displayDiarys = [];
+    this._displayDiaryGroupDates = [];
 
     //月別リストの取得
     var groups = await dbHelper.getDiaryMonth();
@@ -214,20 +218,45 @@ class _DiaryListState extends State<DiaryList>{
   }
 
   //編集処理
-  void _onEdit(int selectedId,BuildContext context){
-    print('selectId[${selectedId}]');
-    //idをset
-    Provider.of<Display>(context, listen: false).setId(selectedId);
-    if(selectedId == -1){
+  void _onEdit(int selectedId){
+//    print('selectId[${selectedId}]');
       //Date　=> String
       DateFormat formatter = DateFormat('yyyy-MM-dd');
       String dateString = formatter.format(DateTime.now());
-      Provider.of<Edit>(context, listen: false).setDate(dateString);
-      //編集フォームリセット処理
-      Provider.of<Edit>(context, listen: false).reset();
-    }
+      DisplayDiary diary = DisplayDiary(
+          id: selectedId
+          ,body: ''
+          ,date: dateString
+          ,category: 1
+          ,thumbnail: 1
+          ,photos: []
+          ,recipis: []
+      );
+    this._showEdit(diary: diary);
+  }
+
+  void _showEdit({DisplayDiary diary}){
     //編集画面へ遷移
-    Provider.of<Display>(context, listen: false).setState(2);
+    Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => DiaryEdit(diary: diary),
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+//      print('①${result}');
+      //新規投稿の場合
+      if(result != 'newClose'){
+        //最新のリストを取得し展開する
+        this.refreshImages();
+        setState(() {
+          //レシピリスト用遅延読み込みリセット
+          this._lazy.clear();
+          this._currentLength = 0;
+        });
+        //レシピリスト用遅延読み込み
+        this._loadMore();
+      }
+    });
   }
 
   //曜日
@@ -272,13 +301,35 @@ class _DiaryListState extends State<DiaryList>{
   }
 
   //日記を選択時処理
-  void _onDetail({DisplayDiary diary}) async {
-    //選択した日記をセットする
-    Provider.of<Edit>(context, listen: false).setDiary(diary);
-    //2:詳細画面へ遷移
-    Provider.of<Display>(context, listen: false).setState(1);
-
+  void _onDetail({DisplayDiary dd}) async {
+    DisplayDiary diary = dd;
+    this._showDetail(diary: diary);
   }
+
+  //詳細画面へ遷移
+  void _showDetail({ DisplayDiary diary }){
+    Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => DiaryDetail(diary: diary,selectedPhoto: DPhoto(id: -1),),
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+//      print('②${result}');
+      //削除または更新の場合
+      if(result == 'delete' || result == 'update'){
+        //最新のリストを取得し展開する
+        this.refreshImages();
+        setState(() {
+          //レシピリスト用遅延読み込みリセット
+          this._lazy.clear();
+          this._currentLength = 0;
+        });
+        //レシピリスト用遅延読み込み
+        this._loadMore();
+      }
+    });
+  }
+
 
   //レシピリストのフォルダアイコンtap時処理
   void _onFolderTap({int type}){
@@ -292,16 +343,18 @@ class _DiaryListState extends State<DiaryList>{
       //タイトルセット
       title = 'タグの管理';
     }
-    //フォルダ、タグ管理画面でのタイトルをset
-    Provider.of<Display>(context, listen: false).setSortTitle(title);
-    //フォルダ、タグ管理画面での表示タイプをset
-    Provider.of<Display>(context, listen: false).setSortType(type);
-//    //戻る画面をセット
-//    Provider.of<Display>(context, listen: false).setBackScreen(2);
-    //レシピをset
-    Provider.of<Display>(context, listen: false).setCurrentIndex(1);
-    //3:フォルダ、タグ管理画面をset
-    Provider.of<Display>(context, listen: false).setState(3);
+    this._showSort(title: title, type: type);
+  }
+
+  //レシピの整理画面へ遷移
+  void _showSort({ String title, int type}){
+    Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => RecipiSort(sortType: type,title: title ),
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+    });
   }
 
   //サムネイルの取得
@@ -318,14 +371,14 @@ class _DiaryListState extends State<DiaryList>{
     return Scaffold(
       drawer: drawerNavigation(),
       appBar: AppBar(
-        backgroundColor: Colors.brown[100 * (1 % 9)],
+        backgroundColor: Colors.deepOrange[100 * (1 % 9)],
         elevation: 0.0,
         title: Center(
           child: const Text('レシピ',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
+              fontSize: 20,
+//              fontWeight: FontWeight.bold,
               fontFamily: 'Roboto',
             ),
           ),
@@ -335,7 +388,7 @@ class _DiaryListState extends State<DiaryList>{
           addBtn(context),
         ],
       ),
-      body:diaryListArea(),
+      body:diaryList(),
       bottomNavigationBar: bottomNavigationBar(context),
 //      floatingActionButton: floatBtn(),
     );
@@ -347,7 +400,7 @@ class _DiaryListState extends State<DiaryList>{
       child: ListView(
         children: <Widget>[
           Container(
-            color: Colors.brown[100 * (1 % 9)],
+            color: Colors.deepOrange[100 * (1 % 9)],
             child: ListTile(
               title: Center(
                 child: Text('設定',
@@ -361,7 +414,7 @@ class _DiaryListState extends State<DiaryList>{
             ),
           ),
           ListTile(
-            leading: Icon(Icons.folder_open,color: Colors.brown[100 * (1 % 9)],),
+            leading: Icon(Icons.folder_open,color: Colors.deepOrange[100 * (1 % 9)],),
             title: Text('フォルダの管理',
               style: TextStyle(
 //                fontWeight: FontWeight.bold
@@ -377,7 +430,7 @@ class _DiaryListState extends State<DiaryList>{
             thickness: 0.5,
           ),
           ListTile(
-            leading: Icon(Icons.local_offer,color: Colors.brown[100 * (1 % 9)],),
+            leading: Icon(Icons.local_offer,color: Colors.deepOrange[100 * (1 % 9)],),
             title: Text('タグの管理',
               style: TextStyle(
 //                  fontWeight: FontWeight.bold
@@ -406,8 +459,17 @@ class _DiaryListState extends State<DiaryList>{
     );
   }
 
+  Widget diaryList(){
+    return Stack(
+      children: [
+        listViewArea(),
+        updater(),
+      ],
+    );
+  }
+
   //ごはん日記リスト
-  Widget diaryListArea(){
+  Widget listViewArea(){
     return
       LazyLoadScrollView(
         isLoading: _isLoading,
@@ -439,16 +501,16 @@ class _DiaryListState extends State<DiaryList>{
           height: MediaQuery.of(context).size.height * 0.05,
           width: MediaQuery.of(context).size.width,
           child: Container(
-            color: Colors.brown[100 * (2 % 9)],
+            color: Colors.deepOrange[100 * (2 % 9)],
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Container(
                   padding: EdgeInsets.all(10),
                   child: Text('${month}', style: TextStyle(
-                      color: Colors.brown[700],
+                      color: Colors.white,
                       fontSize: 15,
-                      fontWeight: FontWeight.bold
+//                      fontWeight: FontWeight.bold
                   ),),
                 ),
               ],
@@ -459,7 +521,7 @@ class _DiaryListState extends State<DiaryList>{
           children: List<int>.generate(_displayDiaryGroupDates[index].displayDiarys.length, (index) => index).map((diaryIndex) =>
               SizedBox(
                 width: MediaQuery.of(context).size.width,
-                height: 120,
+                height: 100,
                 child: Container(
                   color: Colors.white,
                   padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
@@ -471,17 +533,17 @@ class _DiaryListState extends State<DiaryList>{
                           this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].photos.length > 0
                               ? Card(
                             child: Container(
-                              height: 100,
-                              width: 100,
+                              height: 80,
+                              width: 80,
                               child: Image.file(File(common.replaceImageDiary(_getThumbnail(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex]))),fit: BoxFit.cover,),
                             ),
                           )
                               : Card(
                             child: Container(
-                              height: 100,
-                              width: 100,
-                              color: Colors.grey,
-                              child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
+                              height: 80,
+                              width: 80,
+                              color: Colors.amber[100 * (1 % 9)],
+                              child: Icon(Icons.restaurant,color: Colors.white,size: 50,),
                             ),
                           ),
                           //本文
@@ -512,8 +574,8 @@ class _DiaryListState extends State<DiaryList>{
                                       child: Container(
                                         child: Text('${DateTime.parse(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].date).day}',
                                           style: TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 25,
+                                              color: Colors.brown[100 * (2 % 9)],
+                                              fontSize: 23,
                                               fontWeight: FontWeight.bold
                                           ),),
                                       ),
@@ -524,7 +586,7 @@ class _DiaryListState extends State<DiaryList>{
                                         padding: EdgeInsets.only(top: 7,right: 5,left: 5),
                                         child: Text('${this._displayWeekday(DateTime.parse(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].date).weekday)}',
                                           style: TextStyle(
-                                              color: Colors.grey,
+                                              color: Colors.brown[100 * (2 % 9)],
                                               fontSize: 15,
                                               fontWeight: FontWeight.bold
                                           ),),
@@ -541,7 +603,7 @@ class _DiaryListState extends State<DiaryList>{
                                         ? Container()
                                         : Text('${this._displayCategory(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].category)}',
                                       style: TextStyle(
-                                          color: Colors.grey,
+                                          color: Colors.brown[100 * (2 % 9)],
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold
                                       ),
@@ -554,7 +616,7 @@ class _DiaryListState extends State<DiaryList>{
                         ],
                       ),
                       onTap: (){
-                        _onDetail(diary: this._displayDiaryGroupDates[index].displayDiarys[diaryIndex]);
+                        _onDetail(dd: this._displayDiaryGroupDates[index].displayDiarys[diaryIndex]);
                       }
                   ),
                 ),
@@ -567,17 +629,19 @@ class _DiaryListState extends State<DiaryList>{
 
   Widget checkBtn(){
     return IconButton(
-        color: Colors.brown[100 * (1 % 9)],
-        icon: const Icon(Icons.check_circle_outline,size:30,),
-        onPressed: null
+      color: Colors.white,
+      icon: const Icon(Icons.check_circle_outline,size:30,),
+      onPressed: null,
+      disabledColor: Colors.deepOrange[100 * (1 % 9)],
     );
   }
 
   Widget addBtn(BuildContext context){
     return IconButton(
-      icon: const Icon(Icons.add_circle_outline,color: Colors.white,size:30),
+      color: Colors.white,
+      icon: const Icon(Icons.add_circle_outline,size:30,),
       onPressed: (){
-        _onEdit(-1,context);
+        _onEdit(-1);
       },
     );
   }
@@ -589,10 +653,10 @@ class _DiaryListState extends State<DiaryList>{
           return BottomNavigationBar(
             currentIndex: Display.currentIndex,
             type: BottomNavigationBarType.fixed,
-//      backgroundColor: Colors.redAccent,
+            backgroundColor: Colors.deepOrange[100 * (1 % 9)],
 //      fixedColor: Colors.black12,
-            selectedItemColor: Colors.brown[100 * (3 % 9)],
-            unselectedItemColor: Colors.brown[100 * (1 % 9)],
+            selectedItemColor: Colors.white,
+            unselectedItemColor: Colors.deepOrange[100 * (2 % 9)],
             iconSize: 30,
             selectedFontSize: 10,
             unselectedFontSize: 10,

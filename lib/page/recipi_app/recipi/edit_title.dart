@@ -1,12 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_awesome_buttons/flutter_awesome_buttons.dart';
-import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/model/edit/Titleform.dart';
 
 class EditTitle extends StatefulWidget {
+
+  TitleForm titleForm = TitleForm();
+  int type;
+
+  EditTitle({Key key, @required this.titleForm, @required this.type}) : super(key: key);
 
   @override
   _EditTitleState createState() => _EditTitleState();
@@ -14,7 +17,6 @@ class EditTitle extends StatefulWidget {
 
 class _EditTitleState extends State<EditTitle>{
 
-//  TitleForm titleForm;
   final _title = TextEditingController();        //タイトル
   final _description = TextEditingController();  //説明/メモ
   final _quantity = TextEditingController();     //分量
@@ -25,10 +27,11 @@ class _EditTitleState extends State<EditTitle>{
   @override
   void initState() {
     super.initState();
-    TitleForm item = Provider.of<Display>(context, listen: false).getTitleForm();
+    //編集内容を取得
+    TitleForm item = widget.titleForm;
     //レシピ種別を取得
-    this._type = Provider.of<Display>(context, listen: false).getType();
-//    print('set!!!!!');
+    this._type = widget.type;
+    //編集内容を展開
     this._title.text = item.title;
     this._description.text = item.description;
     this._quantity.text = item.quantity.toString();
@@ -36,15 +39,10 @@ class _EditTitleState extends State<EditTitle>{
     this._time.text = item.time.toString();
   }
 
-  //編集画面の状態の切り替え
-  void _changeEditType(editType){
-    Provider.of<Display>(context, listen: false).setEditType(editType);
-  }
-
   //保存ボタン押下時処理
   void _onSubmit(){
     TitleForm titleForm = TitleForm(title: _title.text,description: _description.text,quantity: intParse(_quantity.text),unit: _unit,time: intParse(_time.text));
-    Provider.of<Display>(context, listen: false).setTitleForm(titleForm);
+    Navigator.pop(context,titleForm);
   }
 
   //string => int 変換
@@ -78,18 +76,16 @@ class _EditTitleState extends State<EditTitle>{
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<Display>(
-      builder: (context, Display, _) {
         return Scaffold(
           appBar: AppBar(
-            backgroundColor: Colors.brown[100 * (1 % 9)],
+            backgroundColor: Colors.deepOrange[100 * (1 % 9)],
             leading: closeBtn(),
             elevation: 0.0,
             title: Center(
-              child: Text( Display.id == -1 ? 'レシピを作成' :'レシピを編集',
+              child: Text( 'レシピ編集',
                 style: TextStyle(
                 color: Colors.white,
-                fontSize: 25,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Roboto',
                 ),
@@ -101,8 +97,6 @@ class _EditTitleState extends State<EditTitle>{
           ),
           body: scrollArea()
         );
-      }
-    );
   }
 
   //レシピ編集
@@ -111,7 +105,6 @@ class _EditTitleState extends State<EditTitle>{
       key: GlobalKey(),
       child: SingleChildScrollView(
         key: GlobalKey(),
-//        padding: const EdgeInsets.only(left: 10.0, right: 10.0),
         child: showForm(),
       ),
     );
@@ -162,14 +155,12 @@ class _EditTitleState extends State<EditTitle>{
         child: Container(
           color: Colors.grey,
           child: Row(
-//            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
             Container(
               padding: EdgeInsets.all(10),
               child: Text('タイトル',style: TextStyle(
                 color: Colors.white,
                   fontSize: 15,
-//                  fontWeight: FontWeight.bold
               ),),
             ),
           ],
@@ -203,18 +194,15 @@ class _EditTitleState extends State<EditTitle>{
     return
       SizedBox(
         height: 50,
-//        width: MediaQuery.of(context).size.width,
         child: Container(
           color: Colors.grey,
           child: Row(
-//            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
             Container(
               padding: EdgeInsets.all(10),
               child: Text('説明/メモ',style: TextStyle(
                 color: Colors.white,
                   fontSize: 15,
-//                  fontWeight: FontWeight.bold
               ),),
             ),
           ],
@@ -225,11 +213,9 @@ class _EditTitleState extends State<EditTitle>{
 
   //説明めも入力欄
   Widget descriptionInputArea(){
-//    print('####width:${MediaQuery.of(context).size.width}');
     return
       SizedBox(
         height: 150,
-//        width: _getWidth(MediaQuery.of(context).size.width),
         child: Container(
           width: 400,
           child: TextField(
@@ -251,7 +237,6 @@ class _EditTitleState extends State<EditTitle>{
     return
       SizedBox(
         height: 50,
-//        width: MediaQuery.of(context).size.width,
         child: Container(
           color: Colors.grey,
           child: Row(
@@ -262,7 +247,6 @@ class _EditTitleState extends State<EditTitle>{
                 child: Text('分量',style: TextStyle(
                   color: Colors.white,
                     fontSize: 15,
-//                    fontWeight: FontWeight.bold
                 ),),
               ),
             ],
@@ -275,10 +259,7 @@ class _EditTitleState extends State<EditTitle>{
   Widget quantityInputArea(){
     return
       SizedBox(
-//        height: MediaQuery.of(context).size.height * 0.08,
-//        width: MediaQuery.of(context).size.width,
         child: Container(
-//          color: Colors.white,
           width: 400,
           child: Column(
             children: <Widget>[
@@ -288,7 +269,6 @@ class _EditTitleState extends State<EditTitle>{
                   SizedBox(
                     width: 300,
                     child: TextField(
-//                      focusNode: _focus,
                       controller: _quantity,
                       autofocus: false,
                       keyboardType: TextInputType.numberWithOptions(decimal: true),
@@ -301,16 +281,11 @@ class _EditTitleState extends State<EditTitle>{
                   SizedBox(
                     height: 40,
                     width: 100,
-//                child: InkWell(
                     child: Padding(padding: EdgeInsets.only(top: 10),
                       child: Text('${_displayUnit(unit: _unit)}',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
-//                  onTap: (){
-//                    _changeUnit();
-//                  },
-//                ),
                   ),
                 ],
               ),
@@ -427,14 +402,13 @@ class _EditTitleState extends State<EditTitle>{
 //          ),
           child: Text('保存',
             style: TextStyle(
-              color: Colors.brown[100 * (1 % 9)],
+              color: Colors.deepOrange[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),
           onPressed: (){
             //入力したdataをstoreへ保存
             _onSubmit();
-            _changeEditType(0); //タイトル
           },
         ),
       ),
@@ -444,9 +418,9 @@ class _EditTitleState extends State<EditTitle>{
   //ｘボタン
   Widget closeBtn(){
     return IconButton(
-      icon: const Icon(Icons.close,color: Colors.white,size: 35,),
+      icon: const Icon(Icons.close,color: Colors.white,size: 30,),
       onPressed: (){
-        _changeEditType(0); //編集TOP
+        Navigator.pop(context);
       },
     );
   }

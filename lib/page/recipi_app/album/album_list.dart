@@ -5,8 +5,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
+import 'package:recipe_app/page/recipi_app/diary/diary_detail.dart';
+import 'package:recipe_app/page/recipi_app/diary/diary_edit.dart';
+import 'package:recipe_app/page/recipi_app/recipi/recipi_sort.dart';
 import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/store/diary/edit_state.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
 import 'package:recipe_app/services/Common.dart';
 import 'package:recipe_app/model/diary/Diary.dart';
@@ -14,6 +16,8 @@ import 'package:recipe_app/model/diary/edit/Photo.dart';
 import 'package:recipe_app/model/diary/edit/Recipi.dart';
 import 'package:recipe_app/model/diary/DisplayDiary.dart';
 import 'package:intl/intl.dart';
+
+import 'package:recipe_app/updater.dart';
 
 class AlbumList extends StatefulWidget {
 
@@ -44,8 +48,6 @@ class _AlbumListState extends State<AlbumList>{
   void init(){
     dbHelper = DBHelper();
     common = Common();
-    //戻る画面をセット　2:ごはん日記の日記詳細レシピ一覧
-    Provider.of<Display>(context, listen: false).setBackScreen(4);
     //レコードリフレッシュ
     refreshImages();
     //レシピリスト用遅延読み込み
@@ -93,7 +95,9 @@ class _AlbumListState extends State<AlbumList>{
       });
     });
 //    print('アルバム件数：${this._photoAll.length}');
-
+  print('************************');
+  this._photoAll.forEach((element) => print('${element.diary_id},${element.id},${element.no},${element.path}'));
+    print('************************');
   }
 
   //チェックボックスにて選択した値を返す
@@ -119,24 +123,46 @@ class _AlbumListState extends State<AlbumList>{
   }
 
   //編集処理
-  void _onEdit(int selectedId,BuildContext context){
+  void _onEdit(int selectedId){
 //    print('selectId[${selectedId}]');
-    //idをset
-    Provider.of<Display>(context, listen: false).setId(selectedId);
-    if(selectedId == -1){
       //Date　=> String
       DateFormat formatter = DateFormat('yyyy-MM-dd');
       String dateString = formatter.format(DateTime.now());
-      Provider.of<Edit>(context, listen: false).setDate(dateString);
-      //編集フォームリセット処理
-      Provider.of<Edit>(context, listen: false).reset();
-      //ごはん日記をset
-      Provider.of<Display>(context, listen: false).setCurrentIndex(2);
-    }
-    //編集画面へ遷移
-    Provider.of<Display>(context, listen: false).setState(2);
+      DisplayDiary diary = DisplayDiary(
+          id: selectedId
+          ,body: ''
+          ,date: dateString
+          ,category: 1
+          ,thumbnail: 1
+          ,photos: []
+          ,recipis: []
+      );
+    this._showEdit(diary: diary);
   }
 
+  void _showEdit({DisplayDiary diary}){
+    //編集画面へ遷移
+    Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => DiaryEdit(diary: diary),
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+//      print('④${result}');
+      //新規投稿の場合
+      if(result != 'newClose') {
+        //最新のリストを取得し展開する
+        this.refreshImages();
+        setState(() {
+          //レシピリスト用遅延読み込みリセット
+          this._lazy.clear();
+          this._currentLength = 0;
+        });
+        //レシピリスト用遅延読み込み
+        this._loadMore();
+      }
+    });
+  }
 
   //日記を選択時処理
   void _onDetail({DPhoto photo}) async {
@@ -175,15 +201,31 @@ class _AlbumListState extends State<AlbumList>{
         recipis: recipis,
       );
 
-    //選択した日記をセットする
-    Provider.of<Edit>(context, listen: false).setDiary(diary);
-    //ごはん日記をセットする
-    Provider.of<Display>(context, listen: false).setCurrentIndex(2);
-    //選択した写真をセットする
-    Provider.of<Edit>(context, listen: false).setSelectedPhoto(photo);
-    //2:詳細画面へ遷移
-    Provider.of<Display>(context, listen: false).setState(1);
+    this._showDetail(diary: diary,selectedPhoto: photo);
+  }
 
+  //詳細画面へ遷移
+  void _showDetail({ DisplayDiary diary ,DPhoto selectedPhoto}){
+    Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => DiaryDetail(diary: diary,selectedPhoto: selectedPhoto,),
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+//      print('⑤${result}');
+      //削除または更新の場合
+      if(result == 'delete' || result == 'update') {
+        //最新のリストを取得し展開する
+        this.refreshImages();
+        setState(() {
+          //レシピリスト用遅延読み込みリセット
+          this._lazy.clear();
+          this._currentLength = 0;
+        });
+        //レシピリスト用遅延読み込み
+        this._loadMore();
+      }
+    });
   }
 
   //右上チェックボタン押下時処理
@@ -199,14 +241,15 @@ class _AlbumListState extends State<AlbumList>{
     }
   }
 
-  void _onShareSave(){
-    List<DPhoto> photos = List<DPhoto>();
+  void _onShareSave() async {
+    List<String> photos = [];
     for(var i = 0; i < this._selected.length; i++){
       if(this._selected[i]){
-        photos.add(this._photoAll[i]);
+        photos.add(this._photoAll[i].path);
       }
     }
-    print('選択した写真の件数：${photos.length}');
+    //シェア機能の呼び出し
+    await common.takeImageScreenShot(photos);
     setState(() {
       this._isCheck = !this._isCheck;
     });
@@ -224,16 +267,18 @@ class _AlbumListState extends State<AlbumList>{
       //タイトルセット
       title = 'タグの管理';
     }
-    //フォルダ、タグ管理画面でのタイトルをset
-    Provider.of<Display>(context, listen: false).setSortTitle(title);
-    //フォルダ、タグ管理画面での表示タイプをset
-    Provider.of<Display>(context, listen: false).setSortType(type);
-    //戻る画面をセット
-    Provider.of<Display>(context, listen: false).setBackScreen(4);
-    //レシピをset
-    Provider.of<Display>(context, listen: false).setCurrentIndex(1);
-    //3:フォルダ、タグ管理画面をset
-    Provider.of<Display>(context, listen: false).setState(3);
+    this._showSort(title: title, type: type);
+  }
+
+  //レシピの整理画面へ遷移
+  void _showSort({ String title, int type}){
+    Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => RecipiSort(sortType: type,title: title ),
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+    });
   }
 
   @override
@@ -241,14 +286,14 @@ class _AlbumListState extends State<AlbumList>{
     return Scaffold(
       drawer: _isCheck ? null : drawerNavigation(),
       appBar: AppBar(
-        backgroundColor: Colors.brown[100 * (1 % 9)],
+        backgroundColor: Colors.deepOrange[100 * (1 % 9)],
         elevation: 0.0,
         title: Center(
           child: Text(_isCheck ? '${_selectedCount()}個選択':'レシピ',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
+              fontSize: 20,
+//              fontWeight: FontWeight.bold,
               fontFamily: 'Roboto',
             ),
           ),
@@ -262,12 +307,7 @@ class _AlbumListState extends State<AlbumList>{
           addBtn(context),
         ],
       ),
-      body: Column(
-        children: <Widget>[
-          Expanded(child: buildGridView(),),
-          shareAndSaveBtn(),
-        ],
-      ),
+      body: albumList(),
       bottomNavigationBar: bottomNavigationBar(context),
 //      floatingActionButton: floatBtn(),
     );
@@ -279,7 +319,7 @@ class _AlbumListState extends State<AlbumList>{
       child: ListView(
         children: <Widget>[
           Container(
-            color: Colors.brown[100 * (1 % 9)],
+            color: Colors.deepOrange[100 * (1 % 9)],
             child: ListTile(
               title: Center(
                 child: Text('設定',
@@ -293,7 +333,7 @@ class _AlbumListState extends State<AlbumList>{
             ),
           ),
           ListTile(
-            leading: Icon(Icons.folder_open,color: Colors.brown[100 * (1 % 9)],),
+            leading: Icon(Icons.folder_open,color: Colors.deepOrange[100 * (1 % 9)],),
             title: Text('フォルダの管理',
               style: TextStyle(
 //                fontWeight: FontWeight.bold
@@ -309,7 +349,7 @@ class _AlbumListState extends State<AlbumList>{
             thickness: 0.5,
           ),
           ListTile(
-            leading: Icon(Icons.local_offer,color: Colors.brown[100 * (1 % 9)],),
+            leading: Icon(Icons.local_offer,color: Colors.deepOrange[100 * (1 % 9)],),
             title: Text('タグの管理',
               style: TextStyle(
 //                  fontWeight: FontWeight.bold
@@ -329,8 +369,23 @@ class _AlbumListState extends State<AlbumList>{
     );
   }
 
+  Widget albumList(){
+    return Stack(
+      children: [
+        Column(
+          children: <Widget>[
+            Expanded(child: gridViewArea(),),
+            shareAndSaveBtn(),
+          ],
+        ),
+        updater(),
+      ],
+    );
+
+  }
+
   //画像リスト
-  Widget buildGridView(){
+  Widget gridViewArea(){
     return
       LazyLoadScrollView(
         isLoading: _isLoading,
@@ -429,7 +484,7 @@ class _AlbumListState extends State<AlbumList>{
                 : (){
               _onShareSave();
             },
-            color: Colors.brown[100 * (1 % 9)],
+            color: Colors.deepOrange[100 * (1 % 9)],
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
@@ -453,7 +508,7 @@ class _AlbumListState extends State<AlbumList>{
           color: Colors.white,
           child: Text('完了',
             style: TextStyle(
-              color: Colors.brown[100 * (1 % 9)],
+              color: Colors.deepOrange[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),
@@ -469,7 +524,8 @@ class _AlbumListState extends State<AlbumList>{
 
   Widget checkBtn(){
     return IconButton(
-        icon: const Icon(Icons.check_circle_outline,color: Colors.white,size:30,),
+        color: Colors.white,
+        icon: const Icon(Icons.check_circle_outline,size:30,),
         onPressed: (){
           _onCheck();
         }
@@ -478,9 +534,10 @@ class _AlbumListState extends State<AlbumList>{
 
   Widget addBtn(BuildContext context){
     return IconButton(
-      icon: const Icon(Icons.add_circle_outline,color: Colors.white,size:30),
+      color: Colors.white,
+      icon: const Icon(Icons.add_circle_outline,size:30,),
       onPressed: (){
-        _onEdit(-1,context);
+        _onEdit(-1);
       },
     );
   }
@@ -492,10 +549,10 @@ class _AlbumListState extends State<AlbumList>{
           return BottomNavigationBar(
             currentIndex: Display.currentIndex,
             type: BottomNavigationBarType.fixed,
-//      backgroundColor: Colors.redAccent,
+            backgroundColor: Colors.deepOrange[100 * (1 % 9)],
 //      fixedColor: Colors.black12,
-            selectedItemColor: Colors.brown[100 * (3 % 9)],
-            unselectedItemColor: Colors.brown[100 * (1 % 9)],
+            selectedItemColor: Colors.white,
+            unselectedItemColor: Colors.deepOrange[100 * (2 % 9)],
             iconSize: 30,
             selectedFontSize: 10,
             unselectedFontSize: 10,

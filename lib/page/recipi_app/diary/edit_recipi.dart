@@ -2,13 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
 
 import 'package:recipe_app/services/database/DBHelper.dart';
 import 'package:recipe_app/services/Common.dart';
-import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/store/diary/edit_state.dart';
 import 'package:recipe_app/model/Myrecipi.dart';
 import 'package:recipe_app/model/edit/Ingredient.dart';
 import 'package:recipe_app/model/Tag.dart';
@@ -17,8 +14,13 @@ import 'package:recipe_app/model/diary/edit/Recipi.dart';
 
 class EditRecipi extends StatefulWidget{
 
+  List<DRecipi> recipis = List<DRecipi>();
+
   @override
   _EditRecipiState createState() => _EditRecipiState();
+
+  EditRecipi({Key key, @required this.recipis}) : super(key: key);
+
 }
 
 class _EditRecipiState extends State<EditRecipi>{
@@ -30,9 +32,7 @@ class _EditRecipiState extends State<EditRecipi>{
   List<Ingredient> _ingredients = List<Ingredient>();
   List<Tag> _tags = List<Tag>();
   List<DRecipi> _selectedRecipis = List<DRecipi>();
-  List<DRecipi> _selectedRecipisOld = List<DRecipi>();
-
-  List<Myrecipi> _recipisLazy = List<Myrecipi>(); //遅延読み込み用リスト
+  List<Myrecipi> _recipisLazy = List<Myrecipi>();               //遅延読み込み用リスト
   bool _isLoadingRecipi = false;                               //true:遅延読み込み中
   int _recipiCurrentLength = 0;                                //遅延読み込み件数を格納
 
@@ -45,6 +45,9 @@ class _EditRecipiState extends State<EditRecipi>{
   }
 
   void init(){
+    setState(() {
+      this._selectedRecipis = [];
+    });
     this.getRecipiList();
     setState(() {
       _recipisLazy.clear();
@@ -109,53 +112,35 @@ class _EditRecipiState extends State<EditRecipi>{
     });
 
     //選択レシピリストをセット
-    this._selectedRecipis = Provider.of<Edit>(context, listen: false).getRecipis();
-    for(var i = 0; i < this._selectedRecipis.length; i++){
-      this._selectedRecipisOld.add(this._selectedRecipis[i]);
-    }
-
-//    //レシピの取得
-//    this._recipis = Provider.of<Display>(context, listen: false).getRecipis();
-//    //材料の取得
-//    this._ingredients = Provider.of<Display>(context, listen: false).getIngredients();
-//    //タグの取得
-//    this._tags = Provider.of<Display>(context, listen: false).getTags();
+    setState(() {
+      widget.recipis.forEach((recipi) => this._selectedRecipis.add(recipi));
+    });
   }
 
   //保存ボタン押下時処理
   void _onSubmit(){
-    //選択したレシピを保存
-    Provider.of<Edit>(context, listen: false).setRecipis(this._selectedRecipis);
-    this._changeEditType();
+    Navigator.pop(context,this._selectedRecipis);
   }
 
   //×ボタン押下時処理
   void _onClose(){
-    //編集前のレシピを保存
-    Provider.of<Edit>(context, listen: false).setRecipis(this._selectedRecipisOld);
-    this._changeEditType();
+    Navigator.pop(context,'close');
   }
 
-  //編集画面の状態の切り替え
-  void _changeEditType(){
-    Provider.of<Display>(context, listen: false).setEditType(0);
-  }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<Display>(
-        builder: (context, Display, _) {
           return Scaffold(
             appBar: AppBar(
-              backgroundColor: Colors.brown[100 * (1 % 9)],
+              backgroundColor: Colors.deepOrange[100 * (1 % 9)],
               leading: closeBtn(),
               elevation: 0.0,
               title: Center(
                 child: Text( 'レシピを追加',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+//                    fontWeight: FontWeight.bold,
                     fontFamily: 'Roboto',
                   ),
                 ),
@@ -167,15 +152,13 @@ class _EditRecipiState extends State<EditRecipi>{
             body: Column(
               children: <Widget>[
                 selectedArea(),//選択したレシピ
-                line(),
+//                line(),
                 titleArea(),//タイトル
-                line(),
+//                line(),
                 Expanded(child:recipiArea()),//レシピリスト
               ],
             ),
           );
-        }
-    );
   }
 
   //選択レシピリスト
@@ -235,30 +218,27 @@ class _EditRecipiState extends State<EditRecipi>{
 
   //タイトル
   Widget titleArea(){
-    return Consumer<Display>(
-        builder: (context,Display,_) {
           return
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.05,
               width: MediaQuery.of(context).size.width,
               child: Container(
-                color: Colors.white30,
+                color: Colors.deepOrange[100 * (2 % 9)],
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Container(
                       padding: EdgeInsets.all(10),
                       child: Text('レシピから選択', style: TextStyle(
+                        color: Colors.white,
                           fontSize: 15,
-                          fontWeight: FontWeight.bold
+//                          fontWeight: FontWeight.bold
                       ),),
                     ),
                   ],
                 ),
               ),
             );
-        }
-    );
   }
 
   //MYレシピリスト
@@ -309,12 +289,6 @@ class _EditRecipiState extends State<EditRecipi>{
       ingredientsTX = ingredients.join(',');
     }
 
-//      //レシピIDに紐づく材料を取得する
-//      for(var k = 0;k < this._ingredients.length;k++){
-//        if(this._recipis[index].id == this._ingredients[k].recipi_id){
-//          ingredients.add(this._ingredients[k].name);
-//        }
-//      }
 
     //レシピIDに紐づくタグを取得する
     var tagList = this._tags.where(
@@ -325,12 +299,6 @@ class _EditRecipiState extends State<EditRecipi>{
       tagList.forEach((tag) => tags.add(tag));
     }
 
-//      //レシピIDに紐づくタグを取得する
-//      for(var k = 0;k < this._tags.length;k++){
-//        if(this._recipis[index].id == this._tags[k].recipi_id){
-//          tags.add(this._tags[k]);
-//        }
-//      }
 
     //MYレシピを展開する
       return
@@ -403,7 +371,7 @@ class _EditRecipiState extends State<EditRecipi>{
                                 children: <Widget>[
                                   //タグicon
                                   Container(
-                                    child: Icon(Icons.local_offer,size: 15,color: Colors.brown,),
+                                    child: Icon(Icons.local_offer,size: 15,color: Colors.amber[100 * (1 % 9)],),
                                   ),
                                   //タグ名　最大5件まで
                                   for(var k = 0; k<tags.length;k++)
@@ -412,12 +380,12 @@ class _EditRecipiState extends State<EditRecipi>{
                                       child: SizedBox(
                                         child: Container(
                                           padding: EdgeInsets.all(5),
-                                          color: Colors.brown,
+                                          color: Colors.amber[100 * (1 % 9)],
 
                                           child: Text('${tags[k].name}',
                                             style: TextStyle(
                                                 fontSize: 10,
-                                                color: Colors.white
+                                                color: Colors.grey
                                             ),
                                             maxLines: 1,),
                                         ),
@@ -479,7 +447,7 @@ class _EditRecipiState extends State<EditRecipi>{
           color: Colors.white,
           child: Text('保存',
             style: TextStyle(
-              color: Colors.brown[100 * (1 % 9)],
+              color: Colors.deepOrange[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),
@@ -494,7 +462,7 @@ class _EditRecipiState extends State<EditRecipi>{
   //ｘボタン
   Widget closeBtn(){
     return IconButton(
-      icon: const Icon(Icons.close,color: Colors.white,size: 35,),
+      icon: const Icon(Icons.close,color: Colors.white,size: 30,),
       onPressed: (){
         _onClose();
       },

@@ -5,9 +5,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 
+import 'package:recipe_app/page/recipi_app/recipi/recipi_edit.dart';
+import 'package:recipe_app/page/recipi_app/recipi/recipi_sort.dart';
 import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/store/detail_state.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
 import 'package:recipe_app/services/Common.dart';
 import 'package:recipe_app/model/Myrecipi.dart';
@@ -15,7 +17,11 @@ import 'package:recipe_app/model/MstFolder.dart';
 import 'package:recipe_app/model/Tag.dart';
 import 'package:recipe_app/model/edit/Ingredient.dart';
 import 'package:recipe_app/model/CheckRecipi.dart';
-import 'package:recipe_app/model/Check.dart';
+import 'package:recipe_app/model/MstTag.dart';
+import 'package:recipe_app/model/edit/Howto.dart';
+import 'package:recipe_app/model/edit/Photo.dart';
+
+import 'package:recipe_app/updater.dart';
 
 class RecipiListGroupFolder extends StatefulWidget{
 
@@ -35,11 +41,12 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
   List<Myrecipi> _searchs;                    //検索結果リストを格納
   List<CheckRecipi> _displaySearchs;          //チェックボック付き検索結果リスト
   List<Tag> _tags;                            //タグリストを格納
+  List<MultiSelectItem<MstTag>> _displayTags; //DBから取得したレコードをMultiSelectItem型で格納
+  List<MstTag> _selectedtags;                 //タグ検索で選択したタグを格納
   bool _isSeach = false;                      //true:検索結果表示
   bool _isTagSeach = false;                   //true:タグ検索結果表示
   bool _isCheck = false;                      //true:チェックボックス表示
-  List<Check> _displayTags;
-  List<Check> _oldTags;
+  bool _isSelectedDelete = false;                //true:編集画面にて削除するボタン押下された場合
 
   List<CheckRecipi> _displayRecipisLazy = List<CheckRecipi>(); //遅延読み込み用リスト
   bool _isLoadingRecipi = false;                               //true:遅延読み込み中
@@ -68,11 +75,13 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
     this._displaySearchs = [];
     this._tags = [];
     this._displayTags = [];
-    this._oldTags = [];
+    this._selectedtags = [];
     _displayRecipisLazy.clear();
     _displaySearchsLazy.clear();
     //レコードリフレッシュ
     this.refreshImages();
+    //タグリスト取得
+    this._getTags();
     //レシピリスト用遅延読み込み
     this._loadMoreRecipi();
   }
@@ -89,19 +98,16 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
     await Future.delayed(const Duration(seconds: 1));
     for (var i = _recipiCurrentLength; i < _recipiCurrentLength + increment; i++) {
       if( i < this._displayRecipis.length){
-//          if(this._displayRecipis.length -1 >= i){
-      if(mounted){
-        setState(() {
-          print(_displayRecipis[i].title);
-          _displayRecipisLazy.add(_displayRecipis[i]);
-        });
-      }
-      }else{
+        if(mounted){
+          setState(() {
+            print(_displayRecipis[i].title);
+            _displayRecipisLazy.add(_displayRecipis[i]);
+          });
+        }
+      } else {
         break;
       }
-
     }
-
     if(mounted){
       setState(() {
         _isLoadingRecipi = false;
@@ -117,14 +123,13 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
       _isLoadingSearch = true;
     });
 
-    await new Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 1));
     for (var i = _searchCurrentLength; i < _searchCurrentLength + increment; i++) {
       if( i < this._displaySearchs.length){
-//      if(this._displaySearchs.length -1 >= i){
         setState(() {
           _displaySearchsLazy.add(_displaySearchs[i]);
         });
-      }else{
+      } else {
         break;
       }
 
@@ -164,8 +169,43 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
       this._displayRecipis = Provider.of<Display>(context, listen: false).createDisplayRecipiList(isFolderIdZero: false);
     });
 
-    this._displayTags = Provider.of<Display>(context, listen: false).createCheckList(type: 2);
-    this._oldTags = Provider.of<Display>(context, listen: false).createCheckList(type: 2);
+  }
+
+  //タグ検索用タグリスト
+  void _getTags({int type}) async {
+    List<MstTag> Mtags = [];
+    if(type == 1) {
+      //タグリストの取得
+      await dbHelper.getAllTags().then((item) {
+        setState(() {
+          _tags.clear();
+          _tags.addAll(item);
+        });
+      });
+    }else{
+      //タグマスタの取得
+      await dbHelper.getMstTags().then((item){
+        setState(() {
+          Mtags.clear();
+          Mtags.addAll(item);
+        });
+      });
+      setState(() {
+        _displayTags = Mtags
+            .map((mstTag) => MultiSelectItem<MstTag>(mstTag, mstTag.name))
+            .toList();
+      });
+//      //取得したタグマスタをstoreに保存
+//      Provider.of<Display>(context, listen: false).setMstTag(Mtags);
+
+      //タグリストの取得
+      await dbHelper.getAllTags().then((item){
+        setState(() {
+          _tags.clear();
+          _tags.addAll(item);
+        });
+      });
+    }
   }
 
   //ナビゲーションバー
@@ -177,16 +217,28 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
 
   //編集処理
   void _onEdit({int selectedId,int type}){
+    //選択したレシピのindexをsetする
+    Myrecipi recipi = Myrecipi
+      (
+        id: selectedId
+        , type: type
+        , thumbnail: ''
+        , title: ''
+        , description: ''
+        , quantity: 1
+        , unit: 1
+        , time: 0
+    );
     //編集画面へ遷移
-    print('selectId[${selectedId}]');
-    //idをset
-    Provider.of<Display>(context, listen: false).setId(selectedId);
-    //レシピ種別をset
-    Provider.of<Display>(context, listen: false).setType(type);
-    //材料をreset
-    Provider.of<Display>(context, listen: false).resetIngredients();
-    //2:編集状態をset
-    Provider.of<Display>(context, listen: false).setState(2);
+    Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => RecipiEdit(Nrecipi: recipi, Ningredients: [], NhowTos: [], Nphotos: []),
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+      //最新のリストを取得し展開する
+      this.refreshImages();
+    });
   }
 
   //タグで検索　OKボタン押下時処理
@@ -199,10 +251,8 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
     if(this._isTagSeach){
       //選択したタグIDを取得
       List tagIds = [];
-      for(var i = 0; i < this._displayTags.length; i++){
-        if(this._displayTags[i].isCheck){
-          tagIds.add(this._displayTags[i].id);
-        }
+      for(var i = 0; i < this._selectedtags.length; i++){
+        tagIds.add(this._selectedtags[i].id);
       }
       //検索するタグを連結した文字列を作成
       String mstTagIdsTX = tagIds.join(',');
@@ -217,7 +267,6 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
       //テキスト検索ありの場合
       if(this._isSeach){
         //検索結果を取得
-//        var searchs = Provider.of<Display>(context, listen: false).getSearchs();
         var searchs = Provider.of<Display>(context, listen: false).getSearchsTX();
 
         for(var i = 0; i < recipiIds.length; i++) {
@@ -265,6 +314,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
       });
 //      print('タグ選択なし');
 //      print('③');
+      this._getTags(type: 0);
       await this._loadMoreSearch();
     }
 
@@ -336,10 +386,6 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
     });
 //    print('⑤,${this._displaySearchs.length}');
     this._loadMoreSearch();
-//    //検索結果をstoreに保存
-//    Provider.of<Display>(context, listen: false).setSearchs(_searchs);
-//    //チェックBox付き検索結果の生成
-//    this._displaySearchs = Provider.of<Display>(context, listen: false).createDisplaySearchList();
   }
 
   //新規投稿
@@ -385,23 +431,51 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
 
   //レシピを選択時処理
   void _onDetail({int index}) async {
+    CheckRecipi item = this._displayList[index];
+    List<Ingredient> ingredients = [];
+    List<HowTo> howTos = [];
+    List<Photo> photos = [];
+
     //選択したレシピのindexをsetする
-    Provider.of<Detail>(context, listen: false).setRecipi(this._displayList[index]);
-
+    Myrecipi recipi = Myrecipi
+      (
+        id: item.id
+        , type: item.type
+        , thumbnail: item.thumbnail
+        , title: item.title
+        , description: item.description
+        , quantity: item.quantity
+        , unit: item.unit
+        , time: item.time
+        ,folder_id: item.folder_id
+    );
     if(this._displayList[index].type == 2){
-      var ingredients = await dbHelper.getIngredients(this._displayList[index].id);
-      print('①${ingredients.length}');
-      Provider.of<Detail>(context, listen: false).setIngredients(ingredients);
-      var howTos = await dbHelper.getHowtos(this._displayList[index].id);
-      print('②${howTos.length}');
-      Provider.of<Detail>(context, listen: false).setHowTos(howTos);
+      ingredients = await dbHelper.getIngredients(this._displayList[index].id);
+      howTos = await dbHelper.getHowtos(this._displayList[index].id);
     }else{
-      var photos = await dbHelper.getRecipiPhotos(this._displayList[index].id);
-      Provider.of<Detail>(context, listen: false).setPhotos(photos);
+      photos = await dbHelper.getRecipiPhotos(this._displayList[index].id);
     }
-    //2:詳細画面へ遷移
-    Provider.of<Display>(context, listen: false).setState(1);
+    this._showDetail(recipi: recipi, ingredients: ingredients,howTos: howTos,photos: photos);
+  }
 
+  //詳細画面へ遷移
+  void _showDetail({ Myrecipi recipi, List<Ingredient> ingredients, List<HowTo> howTos, List<Photo> photos }){
+    Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => RecipiEdit(Nrecipi: recipi,Ningredients: ingredients,NhowTos: howTos,Nphotos: photos,),
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+      if(result == 'delete'){
+        setState(() {
+          this._isSelectedDelete = true;
+        });
+        _onDelete(recipi: recipi);
+      } else {
+        //最新のリストを取得し展開する
+        this.refreshImages();
+      }
+    });
   }
 
   //フォルダ、タグ付け、削除するボタンの活性、非活性
@@ -423,8 +497,6 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
 
   //レシピリストへ戻るボタン押下時処理
   void _onBack(){
-    //フォルダ別レシピ一覧
-    Provider.of<Display>(context, listen: false).setBackScreen(0);
     //0 :一覧へ遷移
     Provider.of<Display>(context, listen: false).setState(0);
 //    _init();
@@ -432,35 +504,81 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
 
   //レシピリストのフォルダアイコンtap時処理
   void _onFolderTap({int index,String ingredients,List<Tag> tags,int type}){
+    // 0:フォルダアイコン押下時
+    // 1:フォルダボタン(checkbox) 2:タグ付けボタン(checkbox)
+
+    Myrecipi recipi;      //選択したレシピ
+    String title = '';    //タイトル
+    List ids = [];        //チェックしたレシピ(ID)を格納する
+
     //フォルダアイコン押下時
     if(type == 0) {
-      print('選択したレシピID:${this._displayList[index].id}');
-      print('${ingredients}');
-      //選択したレシピの内容をsetする
-      Provider.of<Detail>(context, listen: false).setRecipi(this._displayList[index]);
-      //レシピIDに紐づく材料リストをsetする
-      Provider.of<Display>(context, listen: false).setIngredientTX(ingredients);
-      //レシピIDに紐づくタグリストをsetする
-      Provider.of<Display>(context, listen: false).setTags(tags);
-      //レシピIDに紐づくフォルダIDをsetする
-      Provider.of<Display>(context, listen: false).setFolderId(this._displayList[index].folder_id);
+      CheckRecipi item = this._displayList[index];
+      //選択したレシピのindexをsetする
+      recipi = Myrecipi
+        (
+          id: item.id
+          , type: item.type
+          , thumbnail: item.thumbnail
+          , title: item.title
+          , description: item.description
+          , quantity: item.quantity
+          , unit: item.unit
+          , time: item.time
+          ,folder_id: item.folder_id
+      );
+      //タイトルセット
+      title = 'レシピの整理';
 
-      //フォルダボタン、タグ付けボタン押下時
+      //1:フォルダボタン(checkbox),2:タグ付けボタン(checkbox)
     }else{
       //チェックしたレシピ(ID)を格納する
-      List ids = [];
       for (var i = 0; i < this._displayList.length; i++) {
         if (this._displayList[i].isCheck) {
           ids.add(this._displayList[i].id);
         }
       }
-      Provider.of<Display>(context, listen: false).setIds(ids);
+      //タイトルセット
+      if(type == 1){
+        title = 'フォルダを選択';
+      }else{
+        title = 'タグを選択';
+      }
     }
-    //レシピの整理での表示タイプをset
-    Provider.of<Display>(context, listen: false).setSortType(type);
-    //3:レシピの整理をset
-    Provider.of<Display>(context, listen: false).setState(3);
+    this._showSort(recipi: recipi, ingredients: ingredients, tags: tags,title: title, type: type, ids: ids);
+  }
 
+  //レシピの整理画面へ遷移
+  void _showSort({ Myrecipi recipi, String ingredients, List<Tag> tags, String title, int type, List ids}){
+    Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => RecipiSort(Nrecipi: recipi,ingredientTX: ingredients,tags: tags,sortType: type,title: title,ids: ids, ),
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+      if(this._isCheck){
+        this._isCheck = false;
+      }
+      //最新のリストを取得し展開する
+      this.refreshImages();
+      //タグ検索ありの場合
+      if(_selectedtags.length != 0){
+        this._getTags(type: 1);
+        this._onTagSearch();
+      } else {
+        this._getTags(type: 0);
+      }
+      if(result == 'FolderUpdate'){
+        setState(() {
+          //レシピリスト用遅延読み込みリセット
+          this._displayRecipisLazy.clear();
+          this._recipiCurrentLength = 0;
+
+        });
+        //レシピリスト用遅延読み込み
+        this._loadMoreRecipi();
+      }
+    });
   }
 
   //右上チェックボタン押下時処理
@@ -471,42 +589,64 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
     //検索結果表示の場合
     if(this._isSeach || _isTagSeach){
       //チェックBox付き検索結果リストの生成
-      this._displaySearchs = Provider.of<Display>(context, listen: false).createDisplaySearchList();
+      setState(() {
+        this._displaySearchs.clear();
+        this._displaySearchs = Provider.of<Display>(context, listen: false).createDisplaySearchList();
+      });
     }else{
       //チェックBox付きレシピリストの生成
-      this._displayRecipis = Provider.of<Display>(context, listen: false).createDisplayRecipiList(isFolderIdZero: false);
+      setState(() {
+        this._displayRecipis.clear();
+        this._displayRecipis = Provider.of<Display>(context, listen: false).createDisplayRecipiList(isFolderIdZero: false);
+      });
     }
   }
 
   //削除処理
-  void _onDelete() async {
+  void _onDelete({Myrecipi recipi}) async {
     List ids = [];
-    //選択したレシピを削除
-//    ids.clear();
-    for(var i = 0; i < this._displayList.length; i++){
-      if(this._displayList[i].isCheck){
-        ids.add(this._displayList[i].id);
+    //編集画面に削除ボタン押下された場合
+    if(this._isSelectedDelete){
+      //レシピを削除
+      await dbHelper.deleteMyRecipi(recipi.id);
+      //レシピIDに紐づくタグを削除する
+      await dbHelper.deleteTagRecipiId(recipi.id);
+      //レシピIDに紐づく材料リストを削除
+      await dbHelper.deleteRecipiIngredient(recipi.id);
+      //レシピIDに紐づく作り方リストを削除
+      await dbHelper.deleteRecipiHowto(recipi.id);
+      //レシピIDに紐づく写真リストを削除
+      await dbHelper.deleteRecipiPhoto(recipi.id);
+      //レシピIDに紐づくごはん日記のレシピリストを削除する
+      await dbHelper.deleteDiaryRecipibyRecipiID(recipi.id);
+    } else {
+      for(var i = 0; i < this._displayList.length; i++){
+        if(this._displayList[i].isCheck){
+          ids.add(this._displayList[i].id);
+        }
       }
-    }
-    if(ids.length > 0){
-      print('削除するレシピID：${ids}');
-      //削除処理
-      for(var i = 0; i < ids.length; i++){
-        //レシピを削除
-        await dbHelper.deleteMyRecipi(ids[i]);
-        //レシピIDに紐づくタグを削除する
-        await dbHelper.deleteTagRecipiId(ids[i]);
-        //レシピIDに紐づく材料リストを削除
-        await dbHelper.deleteRecipiIngredient(ids[i]);
-        //レシピIDに紐づく作り方リストを削除
-        await dbHelper.deleteRecipiHowto(ids[i]);
-        //レシピIDに紐づく写真リストを削除
-        await dbHelper.deleteRecipiPhoto(ids[i]);
-        //レシピIDに紐づくごはん日記のレシピリストを削除する
-        await dbHelper.deleteDiaryRecipibyRecipiID(ids[i]);
+      if(ids.length > 0){
+        print('削除するレシピID：${ids}');
+        //削除処理
+        for(var i = 0; i < ids.length; i++){
+          //レシピを削除
+          await dbHelper.deleteMyRecipi(ids[i]);
+          //レシピIDに紐づくタグを削除する
+          await dbHelper.deleteTagRecipiId(ids[i]);
+          //レシピIDに紐づく材料リストを削除
+          await dbHelper.deleteRecipiIngredient(ids[i]);
+          //レシピIDに紐づく作り方リストを削除
+          await dbHelper.deleteRecipiHowto(ids[i]);
+          //レシピIDに紐づく写真リストを削除
+          await dbHelper.deleteRecipiPhoto(ids[i]);
+          //レシピIDに紐づくごはん日記のレシピリストを削除する
+          await dbHelper.deleteDiaryRecipibyRecipiID(ids[i]);
+        }
       }
+      setState(() {
+        this._isCheck = !this._isCheck;
+      });
     }
-
     //検索結果表示の場合
     if(this._isSeach || _isTagSeach){
       List<Myrecipi> searchs = Provider.of<Display>(context, listen: false).getSearchs();
@@ -514,6 +654,14 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
       for(var i = 0; i <ids.length; i++){
         for(var k = 0; k < this._displayList.length; k++){
           if(ids[i] == this._displayList[k].id){
+            this._displayList.removeAt(k);
+            searchs.removeAt(k);
+          }
+        }
+      }
+      if(_isSelectedDelete){
+        for(var k = 0; k < this._displayList.length; k++){
+          if(recipi.id == this._displayList[k].id){
             this._displayList.removeAt(k);
             searchs.removeAt(k);
           }
@@ -538,160 +686,22 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
     });
     //レシピリスト用遅延読み込み
     await this._loadMoreRecipi();
-
-    setState(() {
-      this._isCheck = !this._isCheck;
-    });
+    //削除完了したので、削除フラグをfalseに戻す
+    if(this._isSelectedDelete){
+      setState(() {
+        this._isSelectedDelete = !this._isSelectedDelete;
+      });
+    }
   }
 
   //タグ検索モーダルにてタグが選択されている場合trueを返す
   bool _isTagSeachFlg(){
-    for(var i = 0; i < this._displayTags.length; i++){
-      if(this._displayTags[i].isCheck){
-        return true;
-      }
+    if(_selectedtags == null || _selectedtags.isEmpty){
+      return false;
     }
-    return false;
+    return true;
   }
 
-  //タグ検索モーダル
-  Future<void> _onTag(){
-    return showDialog(
-        context: context,
-        builder: (context){
-          return StatefulBuilder(builder: (context, setState) {
-            return SimpleDialog(
-              backgroundColor: Colors.white,
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(right: 20),
-                    child: IconButton(
-                      icon: Icon(Icons.close,color: Colors.brown[100 * (1 % 9)],size: 30,),
-                      onPressed: (){
-                        for(var i = 0; i < this._displayTags.length; i++){
-                          if(this._displayTags[i].id == this._oldTags[i].id){
-                            setState(() {
-                              this._displayTags[i].isCheck = this._oldTags[i].isCheck;
-                            });
-                          }
-                        }
-                        setState(() {
-                          this._isTagSeach = this._isTagSeachFlg();
-                        });
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ),
-                  Text('タグで検索',
-                    style: TextStyle(
-                        color: Colors.brown[100 * (1 % 9)]
-                    ),
-                  ),
-                  Container(
-                    width: 90,
-                    child: Padding(
-                      padding: EdgeInsets.all(10),
-                      child: FlatButton(
-                        color: Colors.brown[100 * (1 % 9)],
-                        child: Text('OK',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                          ),
-                        ),
-                        onPressed: (){
-                          setState(() {
-                            for(var i = 0; i < this._displayTags.length; i++){
-                              if(this._displayTags[i].id == this._oldTags[i].id){
-                                this._oldTags[i].isCheck = this._displayTags[i].isCheck;
-                              }
-                            }
-                          });
-                          this._onTagSearch();
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              children: <Widget>[
-                for(var i = 0; i < this._displayTags.length; i++)
-                  SizedBox(
-                    child: Container(
-                      color: Colors.white,
-                      child: Column(
-                        children: <Widget>[
-                          InkWell(
-                              child: Row(
-                                children: <Widget>[
-                                  Container(
-                                    padding: EdgeInsets.all(5),
-                                    child: SizedBox(
-                                      height: 50,
-                                      width: 50,
-                                      child: Container(
-                                        color: Colors.grey,
-                                        child: Icon(Icons.local_offer,color: Colors.white,size: 30,),
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    width: MediaQuery.of(context).size.width * 0.5,
-                                    padding: EdgeInsets.all(5),
-                                    child: Text('${this._displayTags[i].name}',
-                                      maxLines: 1,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                      ),),
-                                  ),
-                                  Container(
-                                    padding: EdgeInsets.all(5),
-                                  ),
-                                  Container(
-                                    padding: EdgeInsets.all(5),
-                                    child: Checkbox(
-                                      value: this._displayTags[i].isCheck,
-                                      onChanged: (bool value){
-                                        setState(() {
-                                          this.onTagChange(index: i);
-                                        });
-                                      },
-                                    ),
-                                  )
-                                ],
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  this.onTagChange(index: i);
-                                });
-                              }
-                          ),
-                          Divider(
-                            color: Colors.grey,
-                            height: 0.5,
-                            thickness: 0.5,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          });
-        });
-  }
-
-  //タグ検索のチェックボックス
-  void onTagChange({int index}){
-    setState(() {
-      this._displayTags[index].isCheck = !this._displayTags[index].isCheck;
-      print('[display]id:${this._displayTags[index].id},name:${this._displayTags[index].name},isCheck:${this._displayTags[index].isCheck}');
-      print('[old]id:${this._oldTags[index].id},name:${this._oldTags[index].name},isCheck:${this._oldTags[index].isCheck}');
-    });
-  }
 
   //DBからレシピリストを取得
   Future<List<Myrecipi>> getRecipis() async {
@@ -703,8 +713,8 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
         allRecipis.addAll(item);
       });
     });
-    //取得したレシピをstoreに保存
-    Provider.of<Display>(context, listen: false).setRecipis(allRecipis);
+//    //取得したレシピをstoreに保存
+//    Provider.of<Display>(context, listen: false).setRecipis(allRecipis);
 
     return allRecipis;
   }
@@ -719,8 +729,6 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
         ingredients.addAll(item);
       });
     });
-    //取得した材料をstoreに保存
-    Provider.of<Display>(context, listen: false).setIngredients(this._ingredients);
 
     return ingredients;
   }
@@ -735,39 +743,33 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
         tags.addAll(item);
       });
     });
-    //取得したタグをstoreに保存
-    Provider.of<Display>(context, listen: false).setTags(_tags);
-
     return tags;
   }
 
   //チェックボックスにて選択した値を返す
-  String _selectedCount(){
+  int _selectedCount(){
     int count = 0;
     for(var i = 0; i < this._displayList.length; i++){
       if(this._displayList[i].isCheck){
         count++;
       }
     }
-    if(count == 0){
-      return '';
-    }
-    return count.toString();
+    return count;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.brown[100 * (1 % 9)],
+        backgroundColor: Colors.deepOrange[100 * (1 % 9)],
         leading: backBtn(),
         elevation: 0.0,
         title: Center(
           child: Text(_isCheck ? '${_selectedCount()}個選択':'${_folder.name}',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
+              fontSize: 20,
+//              fontWeight: FontWeight.bold,
               fontFamily: 'Roboto',
             ),
           ),
@@ -781,7 +783,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
           addBtn(),
         ],
       ),
-      body: showList(),
+      body: recipiList(),
       bottomNavigationBar: bottomNavigationBar(),
     );
   }
@@ -806,7 +808,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
           color: Colors.white,
           child: Text('完了',
             style: TextStyle(
-              color: Colors.brown[100 * (1 % 9)],
+              color: Colors.deepOrange[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),
@@ -823,7 +825,8 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
   //チェックボタン
   Widget checkBtn(){
     return IconButton(
-      icon: const Icon(Icons.check_circle_outline,color: Colors.white,size:30),
+      color: Colors.white,
+      icon: const Icon(Icons.check_circle_outline,size:30,),
       onPressed: (){
         _onCheck();
       },
@@ -833,7 +836,8 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
   //追加ボタン
   Widget addBtn(){
     return IconButton(
-      icon: const Icon(Icons.add_circle_outline,color: Colors.white,size:30),
+      color: Colors.white,
+      icon: const Icon(Icons.add_circle_outline,size:30,),
       onPressed: (){
         _onAdd();
       },
@@ -848,8 +852,10 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
           return BottomNavigationBar(
             currentIndex: Display.currentIndex,
             type: BottomNavigationBarType.fixed,
-            selectedItemColor: Colors.brown[100 * (3 % 9)],
-            unselectedItemColor: Colors.brown[100 * (1 % 9)],
+            backgroundColor: Colors.deepOrange[100 * (1 % 9)],
+//      fixedColor: Colors.black12,
+            selectedItemColor: Colors.white,
+            unselectedItemColor: Colors.deepOrange[100 * (2 % 9)],
             iconSize: 30,
             selectedFontSize: 10,
             unselectedFontSize: 10,
@@ -896,7 +902,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
               child: Padding(
                 padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
                 child: FlatButton(
-                  color: Colors.brown[100 * (1 % 9)],
+                  color: Colors.deepOrange[100 * (1 % 9)],
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
@@ -916,7 +922,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
               child: Padding(
                 padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
                 child: FlatButton(
-                  color: Colors.brown[100 * (1 % 9)],
+                  color: Colors.deepOrange[100 * (1 % 9)],
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
@@ -936,7 +942,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
               child: Padding(
                 padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
                 child: FlatButton(
-                  color: Colors.redAccent,
+                  color: Colors.red[100 * (3 % 9)],
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
@@ -957,6 +963,15 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
     );
   }
 
+  Widget recipiList(){
+    return Stack(
+      children: [
+        showList(),
+        updater()
+      ],
+    );
+  }
+
   //リストページ全体
   Widget showList(){
     return
@@ -966,17 +981,17 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
         _isSeach || _isTagSeach
         ? <Widget>[
           searchArea(), //検索欄
-          line(),
+//          line(),
           searchResultArea(), //検索結果
-          line(),
+//          line(),
           Expanded(child:searchResultListArea()),//検索結果リスト
           buttonArea(),
         ]
         : <Widget>[
           searchArea(), //検索欄
-          line(),
+//          line(),
           myrecipiArea(), //MYレシピ
-          line(),
+//          line(),
           Expanded(child:myrecipiListArea()), //MYレシピリスト
           buttonArea(),
         ],
@@ -1001,22 +1016,24 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
               height: MediaQuery.of(context).size.height * 0.05,
               width: MediaQuery.of(context).size.width,
               child: Container(
-                color: Colors.white30,
+                color: Colors.deepOrange[100 * (2 % 9)],
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Container(
                       padding: EdgeInsets.all(10),
                       child: Text('MYレシピ', style: TextStyle(
+                          color: Colors.white,
                           fontSize: 15,
-                          fontWeight: FontWeight.bold
+//                          fontWeight: FontWeight.bold
                       ),),
                     ),
                     Container(
                       padding: EdgeInsets.all(10),
                       child: Text('${_displayRecipis.length}品', style: TextStyle(
+                          color: Colors.white,
                           fontSize: 15,
-                          fontWeight: FontWeight.bold
+//                          fontWeight: FontWeight.bold
                       ),),
                     ),
                   ],
@@ -1036,22 +1053,24 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
               height: MediaQuery.of(context).size.height * 0.05,
               width: MediaQuery.of(context).size.width,
               child: Container(
-                color: Colors.white30,
+                color: Colors.deepOrange[100 * (2 % 9)],
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Container(
                       padding: EdgeInsets.all(10),
                       child: Text('検索結果', style: TextStyle(
+                          color: Colors.white,
                           fontSize: 15,
-                          fontWeight: FontWeight.bold
+//                          fontWeight: FontWeight.bold
                       ),),
                     ),
                     Container(
                       padding: EdgeInsets.all(10),
                       child: Text('${_displaySearchs.length}品', style: TextStyle(
+                          color: Colors.white,
                           fontSize: 15,
-                          fontWeight: FontWeight.bold
+//                          fontWeight: FontWeight.bold
                       ),),
                     ),
                   ],
@@ -1191,7 +1210,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                     child: Container(
                       height: 100,
                       width: 100,
-                      color: Colors.grey,
+                      color: Colors.amber[100 * (1 % 9)],
                       child: Icon(Icons.restaurant,color: Colors.white,size: 50,),
                     ),
                   ),
@@ -1237,7 +1256,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                               children: <Widget>[
                                 //タグicon
                                 Container(
-                                  child: Icon(Icons.local_offer,size: 15,color: Colors.brown,),
+                                  child: Icon(Icons.local_offer,size: 15,color: Colors.amber[100 * (1 % 9)]),
                                 ),
                                 //タグ名　最大5件まで
                                 for(var k = 0; k<tags.length;k++)
@@ -1246,12 +1265,12 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                                     child: SizedBox(
                                       child: Container(
                                         padding: EdgeInsets.all(5),
-                                        color: Colors.brown,
+                                        color: Colors.amber[100 * (1 % 9)],
 
                                         child: Text('${tags[k].name}',
                                           style: TextStyle(
                                               fontSize: 10,
-                                              color: Colors.white
+                                              color: Colors.grey
                                           ),
                                           maxLines: 1,),
                                       ),
@@ -1305,6 +1324,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
+              //テキスト検索エリア
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.8,
                 height: 40,
@@ -1324,17 +1344,33 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                   ),
                 ),
               ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.1,
-                height: 40,
-                child: Container(
-                  child: InkWell(
-                    child: Icon(Icons.local_offer,color: Colors.grey,size: 35,),
-                    onTap: (){
-                      print('tagTAP!!!!!!!');
-                      _onTag();
-                    },
-                  ),
+              //タグ検索エリア
+              Container(
+                decoration: BoxDecoration(
+//                  color: Colors.blueGrey,
+                ),
+                width: 60,
+                child: Column(
+                  children: <Widget>[
+                    MultiSelectBottomSheetField(
+                      initialChildSize: 0.40,
+                      listType: MultiSelectListType.CHIP,
+                      searchable: true,
+                      buttonIcon: Icon(Icons.local_offer,color: _selectedtags == null || _selectedtags.isEmpty ? Colors.grey : Colors.deepOrange[100 * (1 % 9)] ,size: 35,),
+                      buttonText: Text(""),
+                      title: Text("タグで検索"),
+//                      selectedColor: Colors.deepOrange[100 * (2 % 9)] ,
+//                      backgroundColor: Colors.blueGrey,
+//                      chipColor: Colors.white,
+                      items: _displayTags,
+                      onConfirm: (results) {
+                        setState(() {
+                          _selectedtags = results;
+                        });
+                        this._onTagSearch();
+                      },
+                    ),
+                  ],
                 ),
               ),
             ],

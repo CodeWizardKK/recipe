@@ -1,9 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/store/diary/edit_state.dart';
+
 import 'package:intl/intl.dart';
+import 'package:recipe_app/model/diary/DisplayDiary.dart';
+import 'package:recipe_app/page/recipi_app/diary/diary_edit.dart';
+
+import 'package:recipe_app/page/recipi_app/recipi/recipi_edit.dart';
+import 'package:recipe_app/page/recipi_app/recipi/recipi_sort.dart';
+import 'package:recipe_app/store/display_state.dart';
+import 'package:recipe_app/updater.dart';
+import 'package:recipe_app/model/Myrecipi.dart';
 
 class HomeList extends StatefulWidget{
 
@@ -12,7 +19,8 @@ class HomeList extends StatefulWidget{
 }
 
 class _HomeListState extends State<HomeList>{
-  final List<Map> _type = [
+
+  final List _type = [
     {
       'title':'写真レシピ',
       'image' :''
@@ -35,39 +43,58 @@ class _HomeListState extends State<HomeList>{
 
   void _changeBottomNavigation(int index,BuildContext context){
     Provider.of<Display>(context, listen: false).setCurrentIndex(index);
-    //一覧リストへ遷移
-    Provider.of<Display>(context, listen: false).setState(0);
+//    //一覧リストへ遷移
+//    Provider.of<Display>(context, listen: false).setState(0);
   }
 
   //編集処理
   void _onEdit({int selectedId,int type}){
     //編集画面へ遷移
     print('selectId[${selectedId}]');
-    //idをset
-    Provider.of<Display>(context, listen: false).setId(selectedId);
     //ごはん日記
     if(type == 4){
       DateFormat formatter = DateFormat('yyyy-MM-dd');
       String dateString = formatter.format(DateTime.now());
-      Provider.of<Edit>(context, listen: false).setDate(dateString);
-      //リセット処理
-      Provider.of<Edit>(context, listen: false).reset(); //編集フォーム
-      //ごはん日記をset
-      Provider.of<Display>(context, listen: false).setCurrentIndex(2);
+      DisplayDiary diary = DisplayDiary(
+          id: selectedId
+          ,body: ''
+          ,date: dateString
+          ,category: 1
+          ,thumbnail: 1
+          ,photos: []
+          ,recipis: []
+      );
+      //編集画面へ遷移
+      Navigator.push(context,
+          MaterialPageRoute(
+            builder: (context) => DiaryEdit(diary: diary),
+            fullscreenDialog: true,
+          )
+      ).then((result) {
+      });
      //レシピ
     }else{
-      //レシピ種別をset
-      Provider.of<Display>(context, listen: false).setType(type);
-      //材料をreset
-      Provider.of<Display>(context, listen: false).resetIngredients();
-      //レシピをset
-      Provider.of<Display>(context, listen: false).setCurrentIndex(1);
+      //選択したレシピのindexをsetする
+      Myrecipi recipi = Myrecipi
+        (
+          id: selectedId
+          , type: type
+          , thumbnail: ''
+          , title: ''
+          , description: ''
+          , quantity: 1
+          , unit: 1
+          , time: 0
+      );
+      //編集画面へ遷移
+      Navigator.push(context,
+          MaterialPageRoute(
+            builder: (context) => RecipiEdit(Nrecipi: recipi, Ningredients: [], NhowTos: [], Nphotos: []),
+            fullscreenDialog: true,
+          )
+      ).then((result) {
+      });
     }
-    //戻る画面をセット
-    Provider.of<Display>(context, listen: false).setBackScreen(3);
-    //2:編集状態をset
-    Provider.of<Display>(context, listen: false).setState(2);
-
   }
 
   //レシピリストのフォルダアイコンtap時処理
@@ -82,16 +109,18 @@ class _HomeListState extends State<HomeList>{
       //タイトルセット
       title = 'タグの管理';
     }
-    //フォルダ、タグ管理画面でのタイトルをset
-    Provider.of<Display>(context, listen: false).setSortTitle(title);
-    //フォルダ、タグ管理画面での表示タイプをset
-    Provider.of<Display>(context, listen: false).setSortType(type);
-    //戻る画面をセット
-    Provider.of<Display>(context, listen: false).setBackScreen(3);
-    //レシピをset
-    Provider.of<Display>(context, listen: false).setCurrentIndex(1);
-    //3:フォルダ、タグ管理画面をset
-    Provider.of<Display>(context, listen: false).setState(3);
+    this._showSort(title: title, type: type);
+  }
+
+  //レシピの整理画面へ遷移
+  void _showSort({ String title, int type}){
+    Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => RecipiSort(sortType: type,title: title ),
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+    });
   }
 
   @override
@@ -99,14 +128,14 @@ class _HomeListState extends State<HomeList>{
     return Scaffold(
       drawer: drawerNavigation(),
       appBar: AppBar(
-        backgroundColor: Colors.cyan,
+        backgroundColor: Colors.deepOrange[100 * (1 % 9)],
         elevation: 0.0,
         title: Center(
           child: const Text('レシピ',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
+              fontSize: 20,
+//              fontWeight: FontWeight.bold,
               fontFamily: 'Roboto',
             ),
           ),
@@ -116,19 +145,19 @@ class _HomeListState extends State<HomeList>{
           addBtn(),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: <Widget>[
-          Expanded(child: buildGridView(),),
-//          shareAndSaveBtn(),
+          buildGridView(),
+          updater(),
         ],
       ),
       bottomNavigationBar: bottomNavigationBar(context),
-//      floatingActionButton: floatBtn(),
     );
   }
 
   //リスト
   Widget buildGridView(){
+//    return Container();
     return GridView.count(
       crossAxisCount:2,
       crossAxisSpacing: 5.0,
@@ -136,12 +165,12 @@ class _HomeListState extends State<HomeList>{
       shrinkWrap: true,
       children: List.generate(_type.length, (index){
         return Container(
-          color: Colors.grey,
+          color: Colors.brown[100 * (index + 1 % 9)],
           child: InkWell(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Icon(Icons.camera_alt,color: Colors.white, size: 70),
+//                  Icon(Icons.camera_alt,color: Colors.white, size: 70),
 //                  SizedBox(width: 10,),
                   Column(
 //                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -176,7 +205,7 @@ class _HomeListState extends State<HomeList>{
       child: ListView(
         children: <Widget>[
           Container(
-            color: Colors.cyan,
+            color: Colors.deepOrange[100 * (1 % 9)],
             child: ListTile(
               title: Center(
                 child: Text('設定',
@@ -190,7 +219,7 @@ class _HomeListState extends State<HomeList>{
             ),
           ),
           ListTile(
-            leading: Icon(Icons.folder_open,color: Colors.cyan,),
+            leading: Icon(Icons.folder_open,color: Colors.deepOrange[100 * (1 % 9)],),
             title: Text('フォルダの管理',
               style: TextStyle(
 //                fontWeight: FontWeight.bold
@@ -206,7 +235,7 @@ class _HomeListState extends State<HomeList>{
             thickness: 0.5,
           ),
           ListTile(
-            leading: Icon(Icons.local_offer,color: Colors.cyan,),
+            leading: Icon(Icons.local_offer,color: Colors.deepOrange[100 * (1 % 9)],),
             title: Text('タグの管理',
               style: TextStyle(
 //                  fontWeight: FontWeight.bold
@@ -228,15 +257,19 @@ class _HomeListState extends State<HomeList>{
 
   Widget checkBtn(){
     return IconButton(
-      icon: const Icon(Icons.check_circle_outline,color: Colors.cyan,size:30,),
-      onPressed: null
+      color: Colors.white,
+      icon: const Icon(Icons.check_circle_outline,size:30,),
+      onPressed: null,
+      disabledColor: Colors.deepOrange[100 * (1 % 9)],
     );
   }
 
   Widget addBtn(){
     return IconButton(
-      icon: const Icon(Icons.add_circle_outline,color: Colors.cyan,size:30,),
-      onPressed: null
+      color: Colors.white,
+      icon: const Icon(Icons.add_circle_outline,size:30,),
+      onPressed: null,
+      disabledColor: Colors.deepOrange[100 * (1 % 9)],
     );
   }
 
@@ -247,10 +280,10 @@ class _HomeListState extends State<HomeList>{
           return BottomNavigationBar(
             currentIndex: Display.currentIndex,
             type: BottomNavigationBarType.fixed,
-//      backgroundColor: Colors.redAccent,
+            backgroundColor: Colors.deepOrange[100 * (1 % 9)],
 //      fixedColor: Colors.black12,
-            selectedItemColor: Colors.black87,
-            unselectedItemColor: Colors.black26,
+            selectedItemColor: Colors.white,
+            unselectedItemColor: Colors.deepOrange[100 * (2 % 9)],
             iconSize: 30,
             selectedFontSize: 10,
             unselectedFontSize: 10,

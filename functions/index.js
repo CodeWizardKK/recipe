@@ -7,8 +7,8 @@ const functions = require('firebase-functions');
 
    var val =
    {
-     "s":2.1,
-     "q":1.7
+     "s":2.2,
+     "q":1.8
    }
 
    functions.logger.info("get version!!!!", {structuredData: true});
@@ -52,6 +52,10 @@ const functions = require('firebase-functions');
         {
           "id":8,
           "name":"油"
+        },
+        {
+          "id":9,
+          "name":"バター"
         }
       ]
     }
@@ -92,6 +96,10 @@ const functions = require('firebase-functions');
         {
           "id":7,
           "name":"少々"
+        },
+        {
+          "id":8,
+          "name":"適量"
         }
       ]
     }

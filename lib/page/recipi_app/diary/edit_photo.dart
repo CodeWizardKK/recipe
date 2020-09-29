@@ -4,9 +4,6 @@ import 'dart:async';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/store/diary/edit_state.dart';
 import 'package:recipe_app/model/diary/edit/Photo.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:recipe_app/services/Common.dart';
@@ -14,15 +11,19 @@ import 'package:recipe_app/services/Common.dart';
 
 class EditPhoto extends StatefulWidget{
 
+  List<DPhoto> photos = List<DPhoto>();
+
   @override
   _EditPhotoState createState() => _EditPhotoState();
+
+  EditPhoto({Key key, @required this.photos}) : super(key: key);
+
 }
 
 class _EditPhotoState extends State<EditPhoto>{
 
   Common common;
-  List<DPhoto> _photos = List<DPhoto>();
-  List<DPhoto> _photosOld = List<DPhoto>();
+  List<DPhoto> _selectedPhotos = List<DPhoto>();
   String _error = 'No Error Dectected';
 
   @override
@@ -34,10 +35,10 @@ class _EditPhotoState extends State<EditPhoto>{
   //初期処理
   void init(){
     common = Common();
-    this._photos = Provider.of<Edit>(context, listen: false).getPhotos();
-    for(var i = 0; i < this._photos.length; i++){
-      this._photosOld.add(this._photos[i]);
-    }
+    setState(() {
+      this._selectedPhotos = [];
+      widget.photos.forEach((photo) => this._selectedPhotos.add(photo));
+    });
   }
 
   //+ボタン押下時処理
@@ -81,7 +82,7 @@ class _EditPhotoState extends State<EditPhoto>{
         for(var i = 0; i < files.length; i++){
           DPhoto photo = DPhoto(path: files[i].path);
           setState(() {
-            this._photos.add(photo);
+            this._selectedPhotos.add(photo);
           });
 
           File thumbnailfile = files[i];
@@ -106,8 +107,8 @@ class _EditPhotoState extends State<EditPhoto>{
 
         }
 //        print('++++++++++++++++++++++++++++++++++++++++');
-//        for(var i = 0; i < this._photos.length; i++){
-//          print('no:${this._photos[i].no},path:${this._photos[i].path}');
+//        for(var i = 0; i < this._selectedPhotos.length; i++){
+//          print('no:${this._selectedPhotos[i].no},path:${this._selectedPhotos[i].path}');
 //        }
 //        print('++++++++++++++++++++++++++++++++++++++++');
       }
@@ -118,50 +119,35 @@ class _EditPhotoState extends State<EditPhoto>{
 
   //イメージのno取得処理
   void _setNo(){
-    for(var i = 0; i < this._photos.length; i++){
-      this._photos[i].no = i + 1;
+    for(var i = 0; i < this._selectedPhotos.length; i++){
+      this._selectedPhotos[i].no = i + 1;
     }
-//    for(var i = 0; i < this._photos.length; i++){
-//      print('no:${this._photos[i].no},path:${this._photos[i].path}');
-//    }
   }
 
   //保存ボタン押下時処理
   void _onSubmit() async {
     await this._setNo();
-    //イメージを保存
-    Provider.of<Edit>(context, listen: false).setPhotos(this._photos);
-    this._changeEditType();
+    Navigator.pop(context,this._selectedPhotos);
   }
 
   //×ボタン押下時処理
   void _onClose(){
-    //編集前のイメージを保存
-    Provider.of<Edit>(context, listen: false).setPhotos(this._photosOld);
-    this._changeEditType();
-  }
-
-
-  //編集画面の状態の切り替え
-  void _changeEditType(){
-    Provider.of<Display>(context, listen: false).setEditType(0);
+    Navigator.pop(context,'close');
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<Display>(
-        builder: (context, Display, _) {
           return Scaffold(
             appBar: AppBar(
-              backgroundColor: Colors.brown[100 * (1 % 9)],
+              backgroundColor: Colors.deepOrange[100 * (1 % 9)],
               leading: closeBtn(),
               elevation: 0.0,
               title: Center(
                 child: Text( '写真を追加',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+//                    fontWeight: FontWeight.bold,
                     fontFamily: 'Roboto',
                   ),
                 ),
@@ -182,11 +168,9 @@ class _EditPhotoState extends State<EditPhoto>{
                 loadFiles();
               },
               child: Icon(Icons.add,size: 30,),
-              backgroundColor: Colors.redAccent,
+              backgroundColor: Colors.red[100 * (3 % 9)],
             ),
           );
-        }
-    );
   }
 
   //画像リスト表示
@@ -196,14 +180,14 @@ class _EditPhotoState extends State<EditPhoto>{
       crossAxisSpacing: 2.0,
       mainAxisSpacing: 2.0,
       shrinkWrap: true,
-      children: List.generate(_photos.length, (index){
+      children: List.generate(_selectedPhotos.length, (index){
         return Container(
           child:Stack(
             children: <Widget>[
               Container(
                 width: 300,
                 height: 300,
-                child: Image.file(File(_photos[index].path),fit: BoxFit.cover,),
+                child: Image.file(File(_selectedPhotos[index].path),fit: BoxFit.cover,),
               ),
               Positioned(
                 left: 100,
@@ -216,7 +200,7 @@ class _EditPhotoState extends State<EditPhoto>{
                     onPressed: (){
                       setState(() {
                         //イメージ削除
-                        _photos.removeAt(index);
+                        _selectedPhotos.removeAt(index);
                       });
                     },
                   ),
@@ -242,13 +226,6 @@ class _EditPhotoState extends State<EditPhoto>{
             ],
           ),
         );
-
-//        return Asset asset = images[index];
-//          return AssetThumb(
-//            asset: asset,
-//            width: 300,
-//            height: 300,
-//          );
       }),
     );
   }
@@ -273,7 +250,7 @@ class _EditPhotoState extends State<EditPhoto>{
           color: Colors.white,
           child: Text('保存',
             style: TextStyle(
-              color: Colors.brown[100 * (1 % 9)],
+              color: Colors.deepOrange[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),
@@ -289,7 +266,7 @@ class _EditPhotoState extends State<EditPhoto>{
   //ｘボタン
   Widget closeBtn(){
     return IconButton(
-      icon: const Icon(Icons.close,color: Colors.white,size: 35,),
+      icon: const Icon(Icons.close,color: Colors.white,size: 30,),
       onPressed: (){
         _onClose();
       },

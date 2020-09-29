@@ -3,13 +3,15 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/model/edit/Howto.dart';
 import 'package:image_picker/image_picker.dart';
 
 
 class EditHowTo extends StatefulWidget{
+
+  HowTo howTo = HowTo();
+
+  EditHowTo({Key key, @required this.howTo}) : super(key: key);
 
   @override
   _EditHowToState createState() => _EditHowToState();
@@ -19,40 +21,52 @@ class _EditHowToState extends State<EditHowTo>{
 
   final _memo= TextEditingController();    //作り方
   String _photo = '';                      //写真パス
-//  File _photoFile;                         //写真パスのファイル形式
-  int _index;                              //選択された作り方のindex番号
+  bool _isNew = false;                     //選択された作り方のindex番号
+  HowTo _howTo = HowTo();                  //値を更新(セット)し返す
 
   @override
   void initState() {
     super.initState();
-    //新規or更新かジャッチする
-    _index = Provider.of<Display>(context, listen: false).getEditIndex();
-//    print('index:${_index}');
-    //更新の場合
-    if(_index != -1){
-      //選択した材料の取得
-      HowTo item = Provider.of<Display>(context, listen: false).getHowTo(_index);
-      print('[更新]no:${item.no},memo:${item.memo},photo:${item.photo}');
-      this._memo.text = item.memo;
-      this._photo = item.photo;
+    setState(() {
+      this._howTo = widget.howTo;
+    });
+    //追加or更新チェック
+    if(this._howTo.id == null){
+      setState(() {
+        this._isNew = true;
+      });
+    } else {
+      setState(() {
+        this._isNew = false;
+      });
     }
+      //選択した作り方の取得
+      print('[更新]no:${this._howTo.no},memo:${this._howTo.memo},photo:${this._howTo.photo}');
+      this._memo.text = this._howTo.memo;
+      this._photo = this._howTo.photo;
   }
 
   //保存ボタン押下時処理
   void _onSubmit(){
     HowTo howto;
     //更新の場合
-    if(_index != -1){
-      howto = HowTo(memo: _memo.text,photo: _photo);
-      //選択した材料の更新処理
-      Provider.of<Display>(context, listen: false).setHowTo(_index,howto);
-      return;
-    }
-    //入力内容が未入力以外の場合
-    if(!_isEmptyCheck()) {
-      howto = HowTo(memo: _memo.text,photo: _photo);
-      //材料リストへの追加
-      Provider.of<Display>(context, listen: false).addHowTo(howto);
+    if(!_isNew){
+      this._howTo.memo = _memo.text;
+      this._howTo.photo = _photo;
+      print('id:${this._howTo.id},no:${this._howTo.no},name:${this._howTo.memo},quantity:${this._howTo.photo}');
+      Navigator.pop(context,this._howTo);
+    //新規の場合
+    } else {
+      //入力内容が未入力以外の場合
+      if(!_isEmptyCheck()) {
+        this._howTo.id = -1;
+        this._howTo.memo = _memo.text;
+        this._howTo.photo = _photo;
+        Navigator.pop(context,this._howTo);
+        //未入力の場合
+      } else {
+        Navigator.pop(context);
+      }
     }
   }
 
@@ -64,30 +78,6 @@ class _EditHowToState extends State<EditHowTo>{
       return false;
     }
     return true;
-  }
-
-
-  //削除ボタン押下時処理
-  void _onDelete(){
-    print('####delete');
-    //材料リストの取得
-    List<HowTo> howtos = Provider.of<Display>(context, listen: false).getHowTos();
-    //該当の材料を削除
-    howtos.removeAt(_index);
-    for(var i = 0; i < howtos.length; i++){
-      //noを採番し直す
-      howtos[i].no =  i + 1;
-      print('no:${howtos[i].no},memo:${howtos[i].memo},photo:${howtos[i].photo}');
-    }
-    //新しく生成した材料リストをセットする
-//    Provider.of<Display>(context, listen: false).setIngredients(ingredients);
-  }
-
-  //編集画面の状態の切り替え
-  void _changeEditType(editType){
-    Provider.of<Display>(context, listen: false).setEditType(editType);
-    //
-    Provider.of<Display>(context, listen: false).setEditIndex(-1);
   }
 
   //画像エリアtap時に表示するモーダル
@@ -146,30 +136,26 @@ class _EditHowToState extends State<EditHowTo>{
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<Display>(
-        builder: (context, Display, _) {
-          return Scaffold(
-            appBar: AppBar(
-              backgroundColor: Colors.brown[100 * (1 % 9)],
-              leading: closeBtn(),
-              elevation: 0.0,
-              title: Center(
-                child: Text( Display.id == -1 ? 'レシピを作成' :'レシピを編集',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Roboto',
-                  ),
-                ),
-              ),
-              actions: <Widget>[
-                completeBtn(),
-              ],
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.deepOrange[100 * (1 % 9)],
+        leading: closeBtn(),
+        elevation: 0.0,
+        title: Center(
+          child: Text( '作り方',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Roboto',
             ),
-            body: scrollArea(),
-          );
-        }
+          ),
+        ),
+        actions: <Widget>[
+          completeBtn(),
+        ],
+      ),
+      body: scrollArea(),
     );
   }
 
@@ -213,7 +199,7 @@ class _EditHowToState extends State<EditHowTo>{
         height: 50,
 //        width: MediaQuery.of(context).size.width,
         child: Container(
-          color: Colors.grey,
+          color: Colors.deepOrange[100 * (2 % 9)],
           child: Row(
 //            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -267,7 +253,7 @@ class _EditHowToState extends State<EditHowTo>{
                     child: Container(
                       height: 100,
                       width: 100,
-                      color: Colors.grey,
+                      color: Colors.amber[100 * (1 % 9)],
                       child: InkWell(
                           child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
                           onTap: (){
@@ -294,31 +280,6 @@ class _EditHowToState extends State<EditHowTo>{
       );
   }
 
-  //分量
-  Widget quantityArea(){
-    return
-      SizedBox(
-        height: 50,
-//        width: MediaQuery.of(context).size.width,
-        child: Container(
-          color: Colors.grey,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Container(
-                padding: EdgeInsets.all(10),
-                child: Text('分量',style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-//                    fontWeight: FontWeight.bold
-                ),),
-              ),
-            ],
-          ),
-        ),
-      );
-  }
-
   //線
   Widget line(){
     return
@@ -332,7 +293,7 @@ class _EditHowToState extends State<EditHowTo>{
   //削除ボタン
   Widget deleteButtonArea() {
     return
-      _index != -1
+      !_isNew
           ? Container(
         margin: const EdgeInsets.all(50),
         padding: const EdgeInsets.all(10),
@@ -343,10 +304,9 @@ class _EditHowToState extends State<EditHowTo>{
             icon: Icon(Icons.delete,color: Colors.white,),
             label: Text('作り方を削除する'),
             textColor: Colors.white,
-            color: Colors.redAccent,
+            color: Colors.red[100 * (3 % 9)],
             onPressed:(){
-              _onDelete();
-              _changeEditType(0); //編集TOP
+              Navigator.pop(context,'delete');
             },
           ),
         ),
@@ -367,14 +327,13 @@ class _EditHowToState extends State<EditHowTo>{
 //          ),
           child: Text('保存',
             style: TextStyle(
-              color: Colors.brown[100 * (1 % 9)],
+              color: Colors.deepOrange[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),
           onPressed: (){
             //入力したdataをstoreへ保存
             _onSubmit();
-            _changeEditType(0); //編集TOP
           },
         ),
       ),
@@ -384,9 +343,9 @@ class _EditHowToState extends State<EditHowTo>{
   //ｘボタン
   Widget closeBtn(){
     return IconButton(
-      icon: const Icon(Icons.close,color: Colors.white,size: 35,),
+      icon: const Icon(Icons.close,color: Colors.white,size: 30,),
       onPressed: (){
-        _changeEditType(0); //編集TOP
+        Navigator.pop(context);
       },
     );
   }

@@ -1,23 +1,28 @@
 import 'dart:io';
 
-import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/store/detail_state.dart';
-import 'package:recipe_app/store/diary/edit_state.dart';
+import 'package:intl/intl.dart';
+import 'package:recipe_app/page/recipi_app/diary/diary_edit.dart';
+
+import 'package:recipe_app/page/recipi_app/recipi/recipi_edit.dart';
 import 'package:recipe_app/model/edit/Ingredient.dart';
 import 'package:recipe_app/model/Tag.dart';
 import 'package:recipe_app/model/Myrecipi.dart';
 import 'package:recipe_app/model/Recipi.dart';
 import 'package:recipe_app/model/diary/DisplayDiary.dart';
 import 'package:recipe_app/model/diary/edit/Photo.dart';
+import 'package:recipe_app/model/edit/Howto.dart';
+import 'package:recipe_app/model/edit/Photo.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
-import 'package:intl/intl.dart';
+import 'package:recipe_app/services/Common.dart';
 
 class DiaryDetail extends StatefulWidget{
+
+  DisplayDiary diary = DisplayDiary();
+  DPhoto selectedPhoto = DPhoto();
+
+  DiaryDetail({Key key, @required this.diary, @required this.selectedPhoto}) : super(key: key);
 
   @override
   _DiaryDetailState createState() => _DiaryDetailState();
@@ -26,16 +31,14 @@ class DiaryDetail extends StatefulWidget{
 class _DiaryDetailState extends State<DiaryDetail>{
 
   DBHelper dbHelper;
+  Common common;
   DisplayDiary _diary = DisplayDiary();    //選択したごはん日記
   List<Recipi> _recipis = List<Recipi>();  //選択したごはん日記に紐づくレシピリストを格納
   int _photoIndex = 0;                     //サムネイルで表示する写真のindexを格納
-  int _backScreen = 0;                   //戻る画面を格納[0:レシピのレシピ一覧 1:レシピのフォルダ別レシピ一覧 2:ごはん日記の日記詳細レシピ一覧 3:ホーム画面]
 
-  List<Recipi> _recipisLazy = List<Recipi>(); //遅延読み込み用リスト
-  bool _isLoadingRecipi = false;                               //true:遅延読み込み中
-  int _recipiCurrentLength = 0;                                //遅延読み込み件数を格納
-
-  final int increment = 10; //読み込み件数
+  final int increment = 10;                   //読み込み件数
+  static GlobalKey previewContainer = GlobalKey();
+  bool _isUpdate = false;
 
   @override
   void initState() {
@@ -45,52 +48,18 @@ class _DiaryDetailState extends State<DiaryDetail>{
 
   void init() async {
     await this._getItem();
-    _recipisLazy.clear();
-    //レシピリスト用遅延読み込み
-    await this._loadMoreRecipi();
-
   }
 
-  //レシピリスト用遅延読み込み
-  Future _loadMoreRecipi() async {
-    print('+++++_loadMoreRecipi+++++++');
-    if(mounted){
-      setState(() {
-        _isLoadingRecipi = true;
-      });
-    }
-
-    await Future.delayed(const Duration(seconds: 1));
-    for (var i = _recipiCurrentLength; i < _recipiCurrentLength + increment; i++) {
-      if( i < this._recipis.length){
-        if(mounted){
-          setState(() {
-            _recipisLazy.add(_recipis[i]);
-          });
-        }
-      }else{
-        break;
-      }
-
-    }
-    if(mounted){
-      setState(() {
-        _isLoadingRecipi = false;
-        _recipiCurrentLength = _recipisLazy.length;
-      });
-    }
-  }
 
   _getItem() async {
     dbHelper = DBHelper();
+    common = Common();
     setState(() {
-      //戻る画面を取得
-      this._backScreen = Provider.of<Display>(context, listen: false).getBackScreen();
       //選択した日記の取得
-      this._diary = Provider.of<Edit>(context, listen: false).getDiary();
-      //アルバムから遷移してきた場合、tapした画像を選択状態にセットする
-      if(this._backScreen == 4){
-       DPhoto photo = Provider.of<Edit>(context, listen: false).getSelectedPhoto();
+      this._diary = widget.diary;
+      //アルバムから遷移してきた場合、tapした画像を選択状態にセット
+      if(widget.selectedPhoto.id != -1){
+       DPhoto photo = widget.selectedPhoto;
        for(var i = 0; i < this._diary.photos.length; i++){
          if(this._diary.photos[i].no == photo.no && this._diary.photos[i].path == photo.path ){
            this._photoIndex = i;
@@ -120,7 +89,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
       //レシピIDを元に材料を取得
       List<Ingredient> ingredients = await dbHelper.getIngredients(this._diary.recipis[i].recipi_id);
       //取得した値
-      Recipi recipi = Recipi(recipi: myrecipi,tags: tags,ingredients: ingredients);
+      Recipi recipi = Recipi(recipi: myrecipi,tags: tags,ingredients: ingredients,howto: [],photos: []);
       setState(() {
         this._recipis.add(recipi);
       });
@@ -150,80 +119,78 @@ class _DiaryDetailState extends State<DiaryDetail>{
 //    this._ingredients = [];
 //    this._howTos = [];
 //    this._photos = [];
-//    //選択したrecipiを取得
-//    setState((){
-//      this._recipi = Provider.of<Detail>(context, listen: false).getRecipi();
-//    });
   }
 
   //レシピを選択時処理
   void _onRecipiDetail({int index}) async {
-    //選択したレシピのindexをsetする
-    Provider.of<Detail>(context, listen: false).setRecipi(this._recipis[index].recipi);
-
     //MYレシピの場合
     if(this._recipis[index].recipi.type == 2){
-      //材料をセットする
-      Provider.of<Detail>(context, listen: false).setIngredients(this._recipis[index].ingredients);
       //作り方を取得する
-      var howTos = await dbHelper.getHowtos(this._recipis[index].recipi.id);
-//      print('②${howTos.length}');
+      List<HowTo> howTos = await dbHelper.getHowtos(this._recipis[index].recipi.id);
       //作り方をセットする
       setState(() {
         this._recipis[index].howto = howTos;
       });
-      Provider.of<Detail>(context, listen: false).setHowTos(this._recipis[index].howto);
-
-    //写真レシピの場合
+    //写真レシピ、スキャンレシピの場合
     }else{
       //写真リストを取得する
-      var photos = await dbHelper.getRecipiPhotos(this._recipis[index].recipi.id);
-      print('②${photos.length}');
+      List<Photo> photos = await dbHelper.getRecipiPhotos(this._recipis[index].recipi.id);
       setState(() {
         this._recipis[index].photos = photos;
       });
-      //写真リストをセットする
-      Provider.of<Detail>(context, listen: false).setPhotos(this._recipis[index].photos);
     }
-    //1:レシピへ遷移
-    Provider.of<Display>(context, listen: false).setCurrentIndex(1);
+    //レシピの詳細画面遷移処理の呼び出し
+    this._showDetail(recipi: this._recipis[index].recipi, ingredients: this._recipis[index].ingredients,howTos: this._recipis[index].howto,photos: this._recipis[index].photos);
+  }
+
+  //レシピの詳細画面へ遷移
+  void _showDetail({ Myrecipi recipi, List<Ingredient> ingredients, List<HowTo> howTos, List<Photo> photos }){
+    Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => RecipiEdit(Nrecipi: recipi,Ningredients: ingredients,NhowTos: howTos,Nphotos: photos,),
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+      //最新のリストを取得し展開する
+      this._getItem();
+    });
   }
 
   //ごはん日記リストへ戻るボタン押下時処理
   void _onBack(){
-    //アルバム
-    if(this._backScreen == 4) {
-      //4:アルバムへ遷移
-      Provider.of<Display>(context, listen: false).setCurrentIndex(3);
-    }
-    //一覧リストへ遷移
-    Provider.of<Display>(context, listen: false).setState(0);
-//    _init();
-  }
+    if(this._isUpdate){
+      Navigator.pop(context,'update');
+    } else {
+      Navigator.pop(context);
 
-  void _init(){
+    }
   }
 
   //ごはん日記の編集ボタン押下時処理
   void _onEdit(){
-    //日記IDをセットする
-    Provider.of<Display>(context, listen: false).setId(this._diary.id);
-    //本文
-    TextEditingController body  = TextEditingController();
-    body.text = this._diary.body;
-    Provider.of<Edit>(context, listen: false).setBody(body);
-    //日付
-    Provider.of<Edit>(context, listen: false).setDate(this._diary.date);
-    //分類
-    Provider.of<Edit>(context, listen: false).setCategory(this._diary.category);
-    //サムネイル
-    Provider.of<Edit>(context, listen: false).setThumbnail(this._diary.thumbnail);
-    //料理
-    Provider.of<Edit>(context, listen: false).setRecipis(this._diary.recipis);
-    //写真
-    Provider.of<Edit>(context, listen: false).setPhotos(this._diary.photos);
+    this._showEdit(diary: this._diary);
+  }
+
+  void _showEdit({DisplayDiary diary}){
     //編集画面へ遷移
-    Provider.of<Display>(context, listen: false).setState(2);
+    Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => DiaryEdit(diary: diary,),
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+      if(result == 'delete'){
+        Navigator.pop(context,result);
+      } else if(result == 'updateClose'){
+      } else {
+        setState(() {
+          this._isUpdate = true;
+          widget.diary = result;
+        });
+        //最新のリストを取得し展開する
+        this._getItem();
+      }
+    });
   }
 
   //分類
@@ -279,27 +246,30 @@ class _DiaryDetailState extends State<DiaryDetail>{
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.brown[100 * (1 % 9)],
-        leading: backBtn(),
-        elevation: 0.0,
-        title: Center(
-          child: Text('日記',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Roboto',
+    return RepaintBoundary(
+      key: previewContainer,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.deepOrange[100 * (1 % 9)],
+          leading: backBtn(),
+          elevation: 0.0,
+          title: Center(
+            child: Text('日記',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+//                fontWeight: FontWeight.bold,
+                fontFamily: 'Roboto',
+              ),
             ),
           ),
+          actions: <Widget>[
+            shareBtn(),
+            editBtn(),
+          ],
         ),
-        actions: <Widget>[
-          shareBtn(),
-          editBtn(),
-        ],
+        body: scrollArea()
       ),
-      body: this._recipis.length > 0  ? recipiListArea() : scrollArea()
     );
   }
 
@@ -308,6 +278,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
     return IconButton(
       icon: const Icon(Icons.share, color: Colors.white, size: 30,),
       onPressed: () {
+        common.takeWidgetScreenShot(previewContainer);
       },
     );
   }
@@ -351,14 +322,12 @@ class _DiaryDetailState extends State<DiaryDetail>{
           crossAxisAlignment: CrossAxisAlignment.center,
           children:
                <Widget>[
-//                 line(),
                  dateCategoryArea(),   //日付 分類
                  thumbnailArea(),     //選択した画像
                  photosArea(),        //写真リスト
                  bodyArea(),          //本文
-//                 recipiArea(),
-//                 recipiListArea(),
-//                 line(),
+                 recipiArea(),        //レシピ
+                 recipiListArea(),    //レシピリスト
               ]
       ),
     );
@@ -476,16 +445,16 @@ class _DiaryDetailState extends State<DiaryDetail>{
       height: MediaQuery.of(context).size.height * 0.05,
       width: MediaQuery.of(context).size.width,
       child: Container(
-        color: Colors.brown[100 * (2 % 9)],
+        color: Colors.deepOrange[100 * (2 % 9)],
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Container(
               padding: EdgeInsets.all(10),
               child: Text('${_displayDate(_diary.date)}', style: TextStyle(
-                  color: Colors.brown[700],
+                  color: Colors.white,
                   fontSize: 15,
-                  fontWeight: FontWeight.bold
+//                  fontWeight: FontWeight.bold
               ),),
             ),
             Container(
@@ -494,9 +463,9 @@ class _DiaryDetailState extends State<DiaryDetail>{
               _diary.category == 1
                 ? Container()
                 : Text('${_displayCategory(_diary.category)}', style: TextStyle(
-                  color: Colors.brown[700],
+                  color: Colors.white,
                     fontSize: 15,
-                    fontWeight: FontWeight.bold
+//                    fontWeight: FontWeight.bold
                 ),),
             ),
           ],
@@ -513,75 +482,44 @@ class _DiaryDetailState extends State<DiaryDetail>{
       : Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Divider(
-          color: Colors.grey,
-          height: 0.5,
-          thickness: 0.5,
-        ),
+//        Divider(
+//          color: Colors.grey,
+//          height: 0.5,
+//          thickness: 0.5,
+//        ),
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.05,
           width: MediaQuery.of(context).size.width,
           child: Container(
-              color: Colors.brown[100 * (2 % 9)],
+              color: Colors.deepOrange[100 * (2 % 9)],
               padding: EdgeInsets.all(15),
               child: Text('レシピ', style: TextStyle(
-              color: Colors.brown[700],
+              color: Colors.white,
               fontSize: 15,
-              fontWeight: FontWeight.bold
+//              fontWeight: FontWeight.bold
               ),),
           ),
         ),
-        Divider(
-          color: Colors.grey,
-          height: 0.5,
-          thickness: 0.5,
-        ),
+//        Divider(
+//          color: Colors.grey,
+//          height: 0.5,
+//          thickness: 0.5,
+//        ),
       ],
     );
   }
 
   //レシピリスト
   Widget recipiListArea(){
-    print('レシピあり');
     return
-      LazyLoadScrollView(
-        isLoading: _isLoadingRecipi,
-        onEndOfPage: () => _loadMoreRecipi(),
-        child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: _recipisLazy.length,
-          itemBuilder: (context,position){
-            if(_isLoadingRecipi && position == _recipisLazy.length - 1){
-              if(this._recipis.length == _recipisLazy.length){
-                return createRecipi(position);
-              } else{
-                return Center(child: CircularProgressIndicator(),);
-              }
-            } else {
-              if(position == 0){
-                return createDiary(position);
-              }else{
-                return createRecipi(position);
-              }
-            }
-          }
-        ),
-      );
-  }
-
-  Widget createDiary(int index) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children:
-      <Widget>[
-        dateCategoryArea(), //日付 分類
-        thumbnailArea(), //選択した画像
-        photosArea(), //写真リスト
-        bodyArea(), //本文
-        recipiArea(),
-        createRecipi(index),
-      ]
-    );
+      _diary.recipis.length == 0
+        ? Container()
+        : Column(
+          children: [
+            for(var i = 0; i < _recipis.length; i++)
+              createRecipi(i)
+          ],
+        );
   }
 
     //レシピリストの生成
@@ -622,8 +560,8 @@ class _DiaryDetailState extends State<DiaryDetail>{
                       height: 100,
                       width: 100,
                       child: Container(
-                        color: Colors.grey,
-                        child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
+                        color: Colors.amber[100 * (1 % 9)],
+                        child: Icon(Icons.restaurant,color: Colors.white,size: 50,),
                       ),
                     ),
                     //タイトル、材料、タグエリア
@@ -668,7 +606,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                                 children: <Widget>[
                                   //タグicon
                                   Container(
-                                    child: Icon(Icons.local_offer,size: 15,color: Colors.brown,),
+                                    child: Icon(Icons.local_offer,size: 15,color: Colors.amber[100 * (1 % 9)]),
                                   ),
                                   //タグ名　最大5件まで
                                   for(var k = 0; k<this._recipis[index].tags.length;k++)
@@ -677,12 +615,12 @@ class _DiaryDetailState extends State<DiaryDetail>{
                                       child: SizedBox(
                                         child: Container(
                                           padding: EdgeInsets.all(5),
-                                          color: Colors.brown,
+                                          color: Colors.amber[100 * (1 % 9)],
 
                                           child: Text('${this._recipis[index].tags[k].name}',
                                             style: TextStyle(
                                                 fontSize: 10,
-                                                color: Colors.white
+                                                color: Colors.grey
                                             ),
                                             maxLines: 1,),
                                         ),

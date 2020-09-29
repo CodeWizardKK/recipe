@@ -412,7 +412,7 @@ class DBHelper{
   //diary_photo　全データ取得
   Future<List<DPhoto>> getAllDiaryPhotos() async {
     var dbClient = await db;
-    List<Map> maps = await dbClient.query(DIARY_PHOTO_TABLE,columns: [ID,DIARY_ID,NO,PATH]);
+    List<Map> maps = await dbClient.rawQuery('SELECT $DIARY_PHOTO_TABLE.$ID,$DIARY_PHOTO_TABLE.$DIARY_ID,$DIARY_PHOTO_TABLE.$NO,$DIARY_PHOTO_TABLE.$PATH FROM $DIARY_PHOTO_TABLE left outer join $DIARY_TABLE on $DIARY_PHOTO_TABLE.$DIARY_ID = $DIARY_TABLE.$ID ORDER BY $DIARY_TABLE.$DATE DESC ');
     List<DPhoto> phtos = [];
     if(maps.length > 0){
       for(var i = 0; i < maps.length; i++){

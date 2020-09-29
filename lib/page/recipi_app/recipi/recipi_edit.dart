@@ -4,14 +4,16 @@ import 'dart:async';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 
 import 'package:recipe_app/model/Myrecipi.dart';
-import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/store/detail_state.dart';
+import 'package:recipe_app/page/recipi_app/recipi/edit_howto.dart';
+import 'package:recipe_app/page/recipi_app/recipi/edit_ingredient.dart';
+import 'package:recipe_app/page/recipi_app/recipi/edit_title.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
 import 'package:recipe_app/services/Common.dart';
 import 'package:recipe_app/model/edit/Titleform.dart';
@@ -21,6 +23,13 @@ import 'package:recipe_app/model/edit/Howto.dart';
 
 
 class RecipiEdit extends StatefulWidget{
+
+  Myrecipi Nrecipi = Myrecipi();
+  List<Ingredient> Ningredients = [];      //レシピIDに紐づく材料リスト
+  List<HowTo> NhowTos = [];                //レシピIDに紐づく作り方リスト
+  List<Photo> Nphotos = [];                //レシピIDに紐づく写真
+
+  RecipiEdit({Key key, @required this.Nrecipi,@required this.Ningredients,@required this.NhowTos,@required this.Nphotos,}) : super(key: key);
 
   @override
   _RecipiEditState createState() => _RecipiEditState();
@@ -33,11 +42,11 @@ class _RecipiEditState extends State<RecipiEdit>{
   int _selectedID;                //編集するID
 //  String _thumbnail;            //サムネイル DB送信用
   int _type;                      //レシピ種別 1:写真レシピ 2:MYレシピ 3:テキストレシピ
+  Myrecipi _recipi = Myrecipi();
   List<Ingredient> _ingredients;  //材料リスト
   List<HowTo> _howTos;            //作り方リスト
   List<Photo> _photos;            //詳細の内容の写真(写真を追加欄)
 //  List<File> imageFiles = new List<File>(); //詳細の内容の写真(写真を追加欄)
-  int _backScreen = 0;            //0:レシピのレシピ一覧 1:レシピのフォルダ別レシピ一覧 2:ごはん日記の日記詳細レシピ一覧 3:ホーム画面
 
   final _stateController = TextEditingController();
   final _visionTextController = TextEditingController();
@@ -45,6 +54,11 @@ class _RecipiEditState extends State<RecipiEdit>{
   bool _isError = false;
   bool _isDescriptionEdit = false;
   bool _isLoading = false;
+  bool _isEdit = false;
+
+  TitleForm _titleForm = TitleForm();
+  static GlobalKey previewContainer = GlobalKey();
+
 
   @override
   void initState() {
@@ -52,44 +66,33 @@ class _RecipiEditState extends State<RecipiEdit>{
     dbHelper = DBHelper();
     common = Common();
     setState(() {
-      //戻る画面を取得
-      this._backScreen = Provider.of<Display>(context, listen: false).getBackScreen();
+      this._howTos = [];
+      this._ingredients = [];
+      this._photos = [];
+      print('recipi:${widget.Nrecipi.id}');
+      print('hotos:${widget.NhowTos.length}');
+      print('ingredient:${widget.Ningredients.length}');
+      print('photo:${widget.Nphotos.length}');
+      this._recipi = widget.Nrecipi;
+      widget.NhowTos.forEach((howto) => this._howTos.add(howto));
+      widget.Ningredients.forEach((ingredient) => this._ingredients.add(ingredient));
+      widget.Nphotos.forEach((photo) => this._photos.add(photo));
       //idを取得
-      this._selectedID = Provider.of<Display>(context, listen: false).getId();
+      this._selectedID = _recipi.id;
       print('ID:${_selectedID}');
       //レシピ種別を取得
-      this._type = Provider.of<Display>(context, listen: false).getType();
+      this._type = _recipi.type;
       print('レシピ種別:${this._type}');
-    });
-
-    TitleForm titleform = Provider.of<Display>(context, listen: false).getTitleForm();
-    //新規投稿の場合
-    if(_selectedID == -1){
-      print('new!!!!');
-      //初期表示の場合
-      if(titleform == null){
-        //TitleFormの作成
-        TitleForm newTitleForm = TitleForm(title:'',description:'',unit:1,quantity: 1,time: 0);
-        //TitleForm
-        Provider.of<Display>(context, listen: false).setTitleForm(newTitleForm);
+      //タイトル編集欄をセット
+      this._titleForm = TitleForm(title: _recipi.title,description: _recipi.description,quantity: _recipi.quantity,unit: _recipi.unit,time: _recipi.time);
+      if(this._type == 3){
         //説明をセットする
-        setState(() {
-          //説明をセットする
-          this._visionTextController.text = newTitleForm.description;
-        });
-        return;
+        this._visionTextController.text = this._titleForm.description;
       }
-    }else{
-      //更新の場合
-      print('update!!!!');
-    }
-    if(this._type == 3){
-      setState(() {
-        //説明をセットする
-        this._visionTextController.text = titleform.description;
-      });
-    }
-
+      if(this._selectedID == -1){
+        this._isEdit = true;
+      }
+    });
   }
 
   @override
@@ -120,34 +123,19 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //一覧リストへ遷移
   void _onList(){
-    //レシピ
-    if(this._backScreen == 1) {
-      //フォルダ別一覧リストへ遷移
-      Provider.of<Display>(context, listen: false).setState(4);
-      //ごはん日記または、アルバム
-    }else if(this._backScreen == 2 || this._backScreen == 4){
-      //2:ごはん日記へ遷移
-      Provider.of<Display>(context, listen: false).setCurrentIndex(2);
-      Provider.of<Display>(context, listen: false).setState(1);
-      //ホーム
-    }else if(this._backScreen == 3){
-      //ホーム画面へ遷移
-      Provider.of<Display>(context, listen: false).setCurrentIndex(0);
-      //一覧リストへ遷移
-      Provider.of<Display>(context, listen: false).setState(0);
-    }else{
-      //一覧リストへ遷移
-      Provider.of<Display>(context, listen: false).setState(0);
-    }
-    _init();
+    Navigator.pop(context);
+//    //新規作成の場合は詳細画面も閉じる
+//    if(this._selectedID == -1){
+//      Navigator.pop(context);
+//    }
   }
 
-  //初期化処理
-  void _init(){
-    //リセット処理
-    Provider.of<Display>(context, listen: false).reset(); //編集フォーム
-    Provider.of<Detail>(context, listen: false).reset();  //詳細フォーム
-  }
+//  //初期化処理
+//  void _init(){
+//    //リセット処理
+//    Provider.of<Display>(context, listen: false).reset(); //編集フォーム
+//    Provider.of<Detail>(context, listen: false).reset();  //詳細フォーム
+//  }
 
   //戻り先の状態を取得
 //  int _getBackState(){
@@ -160,33 +148,71 @@ class _RecipiEditState extends State<RecipiEdit>{
 //    }
 //  }
 
+  //タイトル欄の取得
+  bool IsEmptyTitleForm(){
+    if(this._titleForm.title.isNotEmpty){
+      return false;
+    }
+    if(this._titleForm.description.isNotEmpty){
+      return false;
+    }
+    if(this._titleForm.unit != 1){
+      return false;
+    }
+    if(this._titleForm.quantity != 1){
+      return false;
+    }
+    if(this._titleForm.time != 0){
+      return false;
+    }
+    return true;
+  }
+
+  bool lengthCheck(){
+    if(this._ingredients.length != 0){
+      return false;
+    }
+    if(this._howTos.length != 0){
+      return false;
+    }
+    if(this._photos.length != 0){
+      return false;
+    }
+    return true;
+  }
+
   //保存する押下時処理
   void _onSubmit() async {
-    String thumbnail = Provider.of<Display>(context, listen: false).getThumbnail();
+    String thumbnail = this._recipi.thumbnail;
     //新規登録の場合
     if(_selectedID == -1){
       //サムネイル
-      var titleIsEmpty = Provider.of<Display>(context, listen: false).IsEmptyTitleForm();
+      var titleIsEmpty = IsEmptyTitleForm();
       //内容が未入力の場合
       if(thumbnail.isEmpty && titleIsEmpty) {
         //DBに登録せず、一覧リストへ戻る
-        if (_type == 2) {
-          if (this._ingredients.length == 0 && this._howTos.length == 0) {
-//            print('2:空');
+        if(this.lengthCheck()){
+          print('登録しない');
           _onList();
-            return;
-          }
-        } else {
-          if (this._photos.length == 0) {
-//            print('1:空');
-          _onList();
-            return;
-          }
+          return;
         }
+//        if (_type == 2) {
+//          if (this._ingredients.length == 0 && this._howTos.length == 0) {
+////            print('2:空');
+//          _onList();
+//            return;
+//          }
+//        } else {
+//          if (this._photos.length == 0) {
+////            print('1:空');
+//          _onList();
+//            return;
+//          }
+//        }
       }
       //内容のいずれかが入力されている場合
       //タイトル、説明、分量、単位、調理時間
-      TitleForm titleForm = Provider.of<Display>(context, listen: false).getTitleForm();
+      TitleForm titleForm = this._titleForm;
       //myrecipiテーブルへ登録
       Myrecipi myrecipi = Myrecipi
         (
@@ -238,9 +264,9 @@ class _RecipiEditState extends State<RecipiEdit>{
     //更新の場合
     }else{
       //フォルダーIDを取得
-      Myrecipi recipi = Provider.of<Detail>(context, listen: false).getRecipi();
+      Myrecipi recipi = this._recipi;
       //タイトル、説明、分量、単位、調理時間
-      TitleForm titleForm = Provider.of<Display>(context, listen: false).getTitleForm();
+      TitleForm titleForm = this._titleForm;
       //myrecipiテーブルへ更新
       Myrecipi myrecipi = Myrecipi
         (
@@ -293,50 +319,46 @@ class _RecipiEditState extends State<RecipiEdit>{
           await dbHelper.insertPhoto(this._photos);
         }
       }
-      //更新したレシピIDの最新情報の取得し、詳細フォームへ反映させる
-      //recipiをselectし、set
-      var newMyrecipi = await dbHelper.getMyRecipi(_selectedID);
-      Provider.of<Detail>(context, listen: false).setRecipi(newMyrecipi);
-      //MYレシピの場合
-      if (this._type == 2) {
-        //recipi_ingredientテーブルをselectし、set
-        var ingredients = await dbHelper.getIngredients(_selectedID);
-        Provider.of<Detail>(context, listen: false).setIngredients(ingredients);
-        //recipi_howtoテーブルをselectし、set
-        var howTos = await dbHelper.getHowtos(_selectedID);
-        Provider.of<Detail>(context, listen: false).setHowTos(howTos);
-        //写真レシピの場合
-      } else {
-        //recipi_photoテーブルをselectし、set
-        var photos = await dbHelper.getRecipiPhotos(_selectedID);
-        Provider.of<Detail>(context, listen: false).setPhotos(photos);
-      }
-      //詳細画面へ遷移
-      Provider.of<Display>(context, listen: false).setState(1);
-      //初期化
-      Provider.of<Display>(context, listen: false).reset(); //編集フォーム
+      setState(() {
+        this._isEdit = !this._isEdit;
+      });
     }
   }
 
   //写真削除処理
   void _onPhotoDelete(int index) async {
     print('####delete');
-    //写真リストの取得
-    List<Photo> photos = Provider.of<Display>(context, listen: false).getPhotos();
     //該当の写真を削除
-    photos.removeAt(index);
-    for(var i = 0; i < photos.length; i++){
-      //noを採番し直す
-      photos[i].no =  i + 1;
-    }
     setState(() {
-      //最新の写真リストを取得
-      this._photos = Provider.of<Display>(context, listen: false).getPhotos();
+      this._photos.removeAt(index);
+      for(var i = 0; i < this._photos.length; i++){
+        //noを採番し直す
+        this._photos[i].no =  i + 1;
+      }
     });
   }
 
   //画像エリアtap時に表示するモーダル
   Future<void> _showImgSelectModal({bool thumbnail,bool edit,Photo photo,int index}) async {
+    //サムネイル且つ、スキャンカメラの場合
+    if(thumbnail && _type == 3){
+      //ネットワーク接続チェック処理の呼び出し
+      var result = await common.checkNetworkConnection();
+      if(!result){
+        return
+          AwesomeDialog(
+            context: context,
+//            width: 280,
+            dialogType: DialogType.WARNING,
+            headerAnimationLoop: false,
+            animType: AnimType.TOPSLIDE,
+            title: 'インターネットに接続されていません',
+            desc: 'スキャンレシピを利用する場合は、インターネットに接続してください。',
+            btnOkOnPress: () {},
+//            btnOkColor:
+          )..show();
+      }
+    }
     return showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
@@ -421,35 +443,41 @@ class _RecipiEditState extends State<RecipiEdit>{
       //スキャンレシピの場合
       if(_type == 3 ){
         //写真のトリミング処理の呼び出し
-        await this._cropImage(imageFile: imageFile);
+        var isNull = await this._cropImage(imageFile: imageFile);
+        //トリミング処理にてXまたは<ボタン押下時
+        if(isNull){
+          //編集画面へ戻る
+          return;
+        }
         //文字変換処理の呼び出し
         await this._vision();
       }else{
         setState(() {
           //セット
-          Provider.of<Display>(context, listen: false).setThumbnail(imageFile.path);
+          this._recipi.thumbnail = imageFile.path;
         });
       }
     //写真エリアの場合
     }else{
-      //写真追加の場合
       Photo photo = Photo(path: imageFile.path);
+        //写真追加の場合
         if(!edit){
           setState(() {
-            Provider.of<Display>(context, listen: false).addPhoto(photo);
+            var no = this._photos.length + 1;
+            Photo item  = Photo(no:no,path: photo.path);
+            this._photos.add(item);
           });
-          //写真変更の場合
+        //写真変更の場合
         }else{
           setState(() {
-            Provider.of<Display>(context, listen: false).setPhoto(index,photo);
+            this._photos[index].path = photo.path;
           });
         }
-
     }
   }
 
   //写真のトリミング処理
-  Future<void> _cropImage({File imageFile}) async {
+  Future<bool> _cropImage({File imageFile}) async {
     File croppedFile = await ImageCropper.cropImage(
         sourcePath: imageFile.path,
         aspectRatioPresets: Platform.isAndroid
@@ -479,21 +507,35 @@ class _RecipiEditState extends State<RecipiEdit>{
         iosUiSettings: IOSUiSettings(
           title: 'Cropper',
         ));
+    print('croppedFile:${croppedFile}');
     if (croppedFile != null) {
-      setState(() {
         File image = croppedFile;
         //セット
-        Provider.of<Display>(context, listen: false).setThumbnail(image.path);
-      });
+        setState(() {
+          this._recipi.thumbnail = image.path;
+        });
+        //サムネイル用にファイル名を変更
+        String thumbnailPath = common.replaceImage(image.path);
+        // flutter_image_compressで指定サイズ／品質に圧縮
+        List<int> thumbnailresult = await FlutterImageCompress.compressWithFile(
+          image.absolute.path,
+          minWidth: 200,
+          minHeight: 200,
+          quality: 50,
+        );
+        // 圧縮したファイルを端末の拡張ディスクに保存
+        File saveFile = File(thumbnailPath);
+        await saveFile.writeAsBytesSync(thumbnailresult, flush: true, mode: FileMode.write);
+        print('#########saveFile:${saveFile.path}');
+        return false;
+    } else {
+        return true;
     }
   }
 
   //材料編集エリア
   Column _addIngredient(){
     List<Widget> column = new List<Widget>();
-    setState(() {
-      this._ingredients = Provider.of<Display>(context, listen: false).getIngredients();
-    });
     //材料リストを展開する
     for(var i=0; i < this._ingredients.length; i++){
       column.add(
@@ -528,9 +570,9 @@ class _RecipiEditState extends State<RecipiEdit>{
                     ],
                   ),
 //                  child: Image.memory(imageFiles[i].readAsBytesSync()),
-                  onTap: (){
+                  onTap: !_isEdit ? null :(){
                     print('材料編集');
-                    _changeEditType(editType: 2,index: i,); //材料
+                    _changeEditType(editType: 1,index: i,); //材料
                   }
               ),
             ),
@@ -544,41 +586,54 @@ class _RecipiEditState extends State<RecipiEdit>{
         ),
       );
     }
-    // + 材料を追加 ボタン
-    column.add(
-      SizedBox(
-//        height: MediaQuery.of(context).size.height * 0.06,
-//        width: MediaQuery.of(context).size.width,
-        child: Container(
-          padding: EdgeInsets.all(10),
-          color: Colors.white,
-          child: InkWell(
-              child: Row(
-//                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Container(
-//                    padding: EdgeInsets.all(10),
-                    child: Icon(Icons.add_circle_outline,color: Colors.brown[100 * (1 % 9)],)
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    child: Text('材料を追加',style: TextStyle(
-                        color: Colors.brown[100 * (1 % 9)],
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold
-                    ),),
-                  ),
-                ],
-              ),
-              onTap: (){
-                print('材料追加');
-                _changeEditType(editType: 2); //材料
-              }
+    if(_isEdit){
+      // + 材料を追加 ボタン
+      column.add(
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.06,
+  //        width: MediaQuery.of(context).size.width,
+          child: Container(
+//            padding: EdgeInsets.all(10),
+            color: Colors.white,
+            child: InkWell(
+                child: Row(
+  //                crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+  //                    padding: EdgeInsets.all(10),
+                      child: Icon(Icons.add_circle_outline,color: Colors.deepOrange[100 * (1 % 9)],)
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      child: Text('材料を追加',style: TextStyle(
+                          color: Colors.deepOrange[100 * (1 % 9)],
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold
+                      ),),
+                    ),
+                  ],
+                ),
+                onTap: (){
+                  print('材料追加');
+                  _changeEditType(editType: 1,index: -1); //材料
+                }
+            ),
           ),
         ),
-      ),
-    );
+      );
+    } else {
+      // 空
+      column.add(
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.06,
+          width: MediaQuery.of(context).size.width,
+          child: Container(
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
 //    print('###column:${column}');
     return Column(
       children: column,
@@ -587,11 +642,7 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //作り方編集エリア
   Column _addHowTo(){
-    List<Widget> column = new List<Widget>();
-    setState(() {
-      this._howTos = Provider.of<Display>(context, listen: false).getHowTos();
-    });
-    print('作り方リスト:${this._howTos.length}');
+    List<Widget> column = List<Widget>();
     //作り方リストを展開する
     for(var i=0; i < this._howTos.length; i++){
       column.add(
@@ -631,9 +682,9 @@ class _RecipiEditState extends State<RecipiEdit>{
                         : Container(),
                     ],
                   ),
-                  onTap: (){
+                  onTap: !_isEdit ? null :(){
                     print('作り方編集');
-                    _changeEditType(editType: 3,index: i,); //作り方
+                    _changeEditType(editType: 2,index: i,); //作り方
                   }
               ),
             ),
@@ -648,41 +699,55 @@ class _RecipiEditState extends State<RecipiEdit>{
         ),
       );
     }
-    // + 作り方を追加 ボタン
-    column.add(
-      SizedBox(
+    if(_isEdit){
+      // + 作り方を追加 ボタン
+      column.add(
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.06,
 //        width: MediaQuery.of(context).size.width,
 //        height: 50,
-        child: Container(
-          padding: EdgeInsets.all(10),
-          color: Colors.white,
-          child: InkWell(
-              child: Row(
+          child: Container(
+//            padding: EdgeInsets.all(10),
+            color: Colors.white,
+            child: InkWell(
+                child: Row(
 //                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Container(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
 //                    padding: EdgeInsets.all(10),
-                    child: Icon(Icons.add_circle_outline,color: Colors.brown[100 * (1 % 9)],)
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    child: Text('作り方を追加',style: TextStyle(
-                        color: Colors.brown[100 * (1 % 9)],
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold
-                    ),),
-                  ),
-                ],
-              ),
-              onTap: (){
-                print('作り方を追加');
-                _changeEditType(editType: 3); //作り方
-              }
+                        child: Icon(Icons.add_circle_outline,color: Colors.deepOrange[100 * (1 % 9)],)
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      child: Text('作り方を追加',style: TextStyle(
+                          color: Colors.deepOrange[100 * (1 % 9)],
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold
+                      ),),
+                    ),
+                  ],
+                ),
+                onTap: (){
+                  print('作り方を追加');
+                  _changeEditType(editType: 2,index: -1); //作り方
+                }
+            ),
           ),
         ),
-      ),
-    );
+      );
+    } else {
+      // 空
+      column.add(
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.06,
+          width: MediaQuery.of(context).size.width,
+          child: Container(
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
 //    print('###column:${column}');
     return Column(
       children: column,
@@ -691,10 +756,7 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //写真編集エリア
   Column _addPhoto(){
-    List<Widget> column = new List<Widget>();
-    setState(() {
-      this._photos = Provider.of<Display>(context, listen: false).getPhotos();
-    });
+    List<Widget> column = List<Widget>();
     //追加したイメージを展開する
     for(var i=0; i < _photos.length; i++){
       column.add(
@@ -704,10 +766,10 @@ class _RecipiEditState extends State<RecipiEdit>{
             child: Container(
               child: InkWell(
                   child: Image.file(File(_photos[i].path),fit: BoxFit.cover,),
-                  onTap: _isDescriptionEdit ? null : (){
+                  onTap: _isDescriptionEdit || !_isEdit ? null : (){
                     print('###tap!!!!');
                     print('no:${_photos[i].no},path:${_photos[i].path}');
-                    _showImgSelectModal(thumbnail: false,edit: true,photo: _photos[i],index: i);
+                      _showImgSelectModal(thumbnail: false,edit: true,photo: _photos[i],index: i);
                   }
               ),
             ),
@@ -723,36 +785,50 @@ class _RecipiEditState extends State<RecipiEdit>{
       );
     }
     // + 写真を追加 ボタン
-    if(!_isDescriptionEdit)
-    column.add(
-      SizedBox(
-        child: Container(
-          padding: EdgeInsets.all(10),
-          color: Colors.white,
-          child: InkWell(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Container(
-                      child: Icon(Icons.add_circle_outline,color: Colors.brown[100 * (1 % 9)],)
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    child: Text('写真を追加',style: TextStyle(
-                        color: Colors.brown[100 * (1 % 9)],
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold
-                    ),),
-                  ),
-                ],
-              ),
-              onTap: (){
-                _showImgSelectModal(thumbnail: false,edit: false);
-              }
+    if(!_isDescriptionEdit && _isEdit){
+      column.add(
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.06,
+          child: Container(
+//            padding: EdgeInsets.all(10),
+            color: Colors.white,
+            child: InkWell(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+                        child: Icon(Icons.add_circle_outline,color: Colors.deepOrange[100 * (1 % 9)],)
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      child: Text('写真を追加',style: TextStyle(
+                          color: Colors.deepOrange[100 * (1 % 9)],
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold
+                      ),),
+                    ),
+                  ],
+                ),
+                onTap: (){
+                  _showImgSelectModal(thumbnail: false,edit: false);
+                }
+            ),
           ),
         ),
-      ),
     );
+    }
+    if(!_isEdit){
+      // 空
+      column.add(
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.06,
+          width: MediaQuery.of(context).size.width,
+          child: Container(
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
 //    print('###column:${column}');
     return Column(
       children: column,
@@ -761,12 +837,104 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //各エリアの追加ボタン押下
   void _changeEditType({editType,index}){
-    Provider.of<Display>(context, listen: false).setEditType(editType);
-    if(editType > 1){
-      if(index != null){
-        Provider.of<Display>(context, listen: false).setEditIndex(index);
+    TitleForm titleForm;
+    Ingredient ingredient;
+    HowTo howTo;
+
+    //タイトル編集欄
+    if(editType == 0){
+      titleForm = this._titleForm;
+    }
+    //材料編集欄
+    if(editType == 1){
+      //追加の場合
+      if(index == -1){
+        ingredient = Ingredient(no: this._ingredients.length + 1,name: '',quantity: '');
+      //変更の場合
+      } else {
+        ingredient = this._ingredients[index];
       }
     }
+    //作り方編集欄
+    if(editType == 2){
+      //追加の場合
+      if(index == -1){
+        howTo = HowTo(no: this._howTos.length + 1, memo: '', photo: '');
+      //変更の場合
+      } else {
+        howTo = this._howTos[index];
+      }
+    }
+
+    var root = <Widget>[ EditTitle(titleForm: titleForm, type: this._recipi.type), EditIngredient(ingredient: ingredient), EditHowTo(howTo: howTo)];
+     Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => root[editType],
+  //          MaterialPageRoute(builder: (context) => EditIngredient(ingredient: ingredient),
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+      if(result == null){
+        print('何もしない');
+      } else if(result == 'delete') {
+        //削除ボタン押下時
+        setState(() {
+          if(editType == 1){
+            //該当の材料を削除
+            this._ingredients.removeAt(index);
+            //noの採番し直す
+            for(var i = 0; i < this._ingredients.length; i++){
+              this._ingredients[i].no = i + 1;
+            }
+          }
+          if(editType == 2){
+            //該当の作り方を削除
+            this._howTos.removeAt(index);
+            //noの採番し直す
+            for(var i = 0; i < this._howTos.length; i++){
+              this._howTos[i].no = i + 1;
+            }
+          }
+        });
+      } else {
+      //値がセットされている場合
+        //タイトル編集画面の場合
+        if(editType == 0){
+          setState(() {
+            this._titleForm = result;
+          });
+        } else {
+        //それ以外の編集画面の場合
+          //追加の場合
+          if(index == -1){
+            setState(() {
+              //材料編集画面の場合
+              if(editType == 1){
+                this._ingredients.add(result);
+              }
+              //作り方編集画面の場合
+              if(editType == 2){
+                this._howTos.add(result);
+              }
+            });
+          } else {
+          //更新の場合
+            setState(() {
+              //材料編集画面の場合
+              if(editType == 1){
+                this._ingredients[index].name = result.name;
+                this._ingredients[index].quantity = result.quantity;
+              }
+              //作り方編集画面の場合
+              if(editType == 2){
+                this._howTos[index].memo = result.memo;
+                this._howTos[index].photo = result.photo;
+              }
+            });
+          }
+        }
+      }
+     });
   }
 
   //削除モーダルの表示
@@ -785,7 +953,9 @@ class _RecipiEditState extends State<RecipiEdit>{
                   ),),
                 onPressed: () {
                   Navigator.pop(context);
-                  _onDelete();
+//                  _onDelete();
+                  Navigator.pop(context,'delete');
+
                 },
               ),
             ],
@@ -824,11 +994,11 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //文字変換処理
   Future<void> _vision() async {
+    print('文字変換処理');
     this._setIsLoading();
-//    this._isLoading = !this._isLoading;
 
     VisionText visionText;
-    String thumbnail = Provider.of<Display>(context, listen: false).getThumbnail();
+    String thumbnail = this._recipi.thumbnail;
 
     this._isError = false;
     //imageが選択されてる場合
@@ -841,6 +1011,7 @@ class _RecipiEditState extends State<RecipiEdit>{
       }catch(e){
         //エラー処理
         print('Error: ${e}');
+        print('visionText: ${visionText}');
         setState(() {
           this._visionTextController.text = '';
           this._isError = !this._isError;
@@ -855,7 +1026,7 @@ class _RecipiEditState extends State<RecipiEdit>{
         print('visionText.blocks:${visionText.blocks.length}');
         print('visionText.text:${text}');
 
-        var buf = new StringBuffer();
+        var buf = StringBuffer();
         for (TextBlock block in visionText.blocks) {
           final Rect boundingBox = block.boundingBox;
           final List<Offset> cornerPoints = block.cornerPoints;
@@ -905,66 +1076,109 @@ class _RecipiEditState extends State<RecipiEdit>{
     setState(() {
       //入力フォームへ反映させる
       this._visionTextController.text = text;
+      this._titleForm.description = this._visionTextController.text;
     });
-    Provider.of<Display>(context, listen: false).setDescription(text);
+  }
+
+  //レシピの編集ボタン押下時処理
+  void _onEdit(){
+    setState(() {
+      this._isEdit = !this._isEdit;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.brown[100 * (1 % 9)],
-        leading: _isDescriptionEdit ? Container() : closeBtn(),
-        elevation: 0.0,
-        title: Center(
-          child: Text( _selectedID == -1 ? 'レシピを作成' :'レシピを編集',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Roboto',
+    return RepaintBoundary(
+        key: previewContainer,
+        child: Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.deepOrange[100 * (1 % 9)],
+            leading: _isDescriptionEdit ? Container() : closeBtn(),
+            elevation: 0.0,
+            title: Center(
+                child: Text( _isEdit ? _selectedID == -1 ? 'レシピを作成' :'レシピを編集'
+                                     : 'レシピ',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+//              fontWeight: FontWeight.bold,
+                  fontFamily: 'Roboto',
+                ),
+              ),
             ),
+            actions: <Widget>[
+              shareBtn(),
+              editBtn(),
+              completeBtn(),
+            ],
+          ),
+          body: ModalProgressHUD(
+              opacity: 0.5,
+              color: Colors.grey,
+              progressIndicator: CircularProgressIndicator(),
+              child: scrollArea(),
+              inAsyncCall: _isLoading
           ),
         ),
-        actions: <Widget>[
-          completeBtn(),
-        ],
-      ),
-      body: Stack(
-        children: <Widget>[
-          scrollArea(),
-          showCircularProgress(),
-        ],
-      )
     );
+  }
+
+  //シェアボタン
+  Widget shareBtn() {
+    return
+    _isEdit
+      ? Container()
+      : IconButton(
+        icon: const Icon(Icons.share, color: Colors.white, size: 30,),
+        onPressed: () {
+          common.takeWidgetScreenShot(previewContainer);
+        },
+      );
+  }
+
+  //編集ボタン
+  Widget editBtn(){
+    return
+      _isEdit
+        ? Container()
+        : IconButton(
+          icon: const Icon(Icons.edit,color: Colors.white,size: 30,),
+          onPressed: (){
+            _onEdit();
+          },
+        );
   }
 
   //完了ボタン
   Widget completeBtn(){
-    return Container(
-      width: 90,
-      child: Padding(
-        padding: EdgeInsets.all(10),
-        child: FlatButton(
-          color: _isDescriptionEdit ? Colors.brown[100 * (1 % 9)] : Colors.white,
-//          shape: RoundedRectangleBorder(
-//            borderRadius: BorderRadius.circular(10.0),
-//          ),
-          child: Text('完了',
-            style: TextStyle(
-              color: _isDescriptionEdit ? Colors.brown[100 * (1 % 9)] : Colors.brown[100 * (1 % 9)],
-              fontSize: 15,
+    return
+     _isEdit
+      ? Container(
+        width: 90,
+        child: Padding(
+          padding: EdgeInsets.all(10),
+          child: FlatButton(
+            color: _isDescriptionEdit ? Colors.deepOrange[100 * (1 % 9)] : Colors.white,
+  //          shape: RoundedRectangleBorder(
+  //            borderRadius: BorderRadius.circular(10.0),
+  //          ),
+            child: Text('完了',
+              style: TextStyle(
+                color: _isDescriptionEdit ? Colors.deepOrange[100 * (1 % 9)] : Colors.deepOrange[100 * (1 % 9)],
+                fontSize: 15,
+              ),
             ),
+            onPressed:
+            _isDescriptionEdit
+                ? null
+                :(){
+                  _onSubmit();
+                },
           ),
-          onPressed:
-          _isDescriptionEdit
-              ? null
-              :(){
-                _onSubmit();
-              },
         ),
-      ),
-    );
+      )
+      : Container();
   }
 
   //閉じるボタン
@@ -1001,11 +1215,11 @@ class _RecipiEditState extends State<RecipiEdit>{
                 ? <Widget>[
                   thumbnailArea(), //トップ画像
                   titleArea(), //タイトル
-                  line(),
+//                  line(),
                   photoArea(), //写真
-                  line(),
+//                  line(),
                   photoAddArea(), //写真入力欄
-                  line(),
+//                  line(),
                   deleteButtonArea(),//削除ボタン
                ]
                 : <Widget>[
@@ -1013,25 +1227,25 @@ class _RecipiEditState extends State<RecipiEdit>{
                   titleArea(),     //タイトル
                   DescriptionTitleArea(),
                   ocrTextArea(),   //文字変換
-                  line(),
+//                  line(),
                   photoArea(), //写真
-                  line(),
+//                  line(),
                   photoAddArea(), //写真入力欄
-                  line(),
+//                  line(),
                   deleteButtonArea(), //削除ボタン
               ]
              : <Widget>[
               thumbnailArea(), //トップ画像
               titleArea(), //タイトル
-              line(),
+//              line(),
               ingredientArea(), //材料
-              line(),
+//              line(),
               ingredientAddArea(), //材料入力欄
-              line(),
+//              line(),
               howToArea(), //作り方
-              line(),
+//              line(),
               howToAddArea(), //作り方入力欄
-              line(),
+//              line(),
               deleteButtonArea(),//削除ボタン
              ]
           ),
@@ -1049,10 +1263,11 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //トップ画像
   Widget thumbnailArea(){
-    return Consumer<Display>(
-        builder: (context,Display,_) {
+//    return Consumer<Display>(
+//        builder: (context,Display,_) {
     return
-      Display.thumbnail.isEmpty
+      _isEdit
+      ? _recipi.thumbnail.isEmpty
         ? SizedBox(
             height: MediaQuery.of(context).size.height * 0.40,
             width: MediaQuery.of(context).size.width,
@@ -1070,18 +1285,6 @@ class _RecipiEditState extends State<RecipiEdit>{
                       ],
                     ),
                     editMsgArea(),
-//                    SizedBox(
-//                      height: 30,
-//                      width: MediaQuery.of(context).size.width,
-//                      child: Container(
-//                          color: Colors.black26,
-//                        child: Center(
-//                          child: Text('各項目をタップして編集できます',
-//                            style: TextStyle(color: Colors.white,fontSize: 15),
-//                          ),
-//                        )
-//                      ),
-//                    )
                 ]),
                 onTap: _isDescriptionEdit ? null : (){
                   _showImgSelectModal(thumbnail: true);
@@ -1097,7 +1300,7 @@ class _RecipiEditState extends State<RecipiEdit>{
                   child: Stack(
                     alignment: AlignmentDirectional.bottomEnd,
                     children: <Widget>[
-                      Center(child: Image.file(File(Display.thumbnail)),),
+                      Center(child: Image.file(File(_recipi.thumbnail)),),
 //                    child: Image.file(File(Display.thumbnail),fit: BoxFit.cover,),
                       editMsgArea(),
                     ]
@@ -1107,9 +1310,33 @@ class _RecipiEditState extends State<RecipiEdit>{
                   }
               ),
             ),
-    );
-        }
-    );
+        )
+      //詳細画面の場合
+      : _recipi.thumbnail.isEmpty
+          //サムネイル画像が未登録の場合
+          ? SizedBox(
+              height: MediaQuery.of(context).size.height * 0.40,
+              width: MediaQuery.of(context).size.width,
+              child: Container(
+                color: Colors.amber[100 * (1 % 9)],
+                child: Icon(Icons.restaurant,color: Colors.white,size: 100,),
+              ),
+            )
+          //サムネイル画像が登録済みの場合
+          : SizedBox(
+              height: MediaQuery.of(context).size.height * 0.40,
+              width: MediaQuery.of(context).size.width,
+              child: Container(
+                child: InkWell(
+                    child: Image.file(File(_recipi.thumbnail),fit: BoxFit.cover,),
+                    onTap: (){
+                      //                      _showImgSelectModal(thumbnail: true);
+                    }
+                ),
+              ),
+          );
+//        }
+//    );
   }
 
   //トップ画像に表示する文言
@@ -1131,9 +1358,12 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //レシピタイトル
   Widget titleArea(){
-    return Consumer<Display>(
-      builder: (context,Display,_) {
-        return SizedBox(
+//    return Consumer<Display>(
+//      builder: (context,Display,_) {
+        return
+          _isEdit
+          //編集画面の場合
+          ? SizedBox(
             height: MediaQuery.of(context).size.height * 0.1,
 //            height: _type == 3 ? MediaQuery.of(context).size.height * 0.05 : MediaQuery.of(context).size.height * 0.1,
             width: MediaQuery.of(context).size.width,
@@ -1145,7 +1375,7 @@ class _RecipiEditState extends State<RecipiEdit>{
                     children: <Widget>[
                       Container(
                         padding: EdgeInsets.all(10),
-                        child: Text(Display.titleForm.title.isEmpty ? 'タイトルを入力' :'${Display.titleForm.title}',
+                        child: Text(_titleForm.title.isEmpty ? 'タイトルを入力' :'${_titleForm.title}',
                           maxLines: 1,
                           style: TextStyle(
                             fontSize: 20,
@@ -1156,7 +1386,7 @@ class _RecipiEditState extends State<RecipiEdit>{
                       ? Container()
                       : Container(
                         padding: EdgeInsets.all(10),
-                        child: Text(Display.titleForm.description.isEmpty ?'レシピの説明やメモを入力' :'${Display.titleForm.description}',
+                        child: Text(_titleForm.description.isEmpty ?'レシピの説明やメモを入力' :'${_titleForm.description}',
                           maxLines: 1,
                           style: TextStyle(
                             fontSize: 15,
@@ -1167,48 +1397,83 @@ class _RecipiEditState extends State<RecipiEdit>{
                   ),
                   onTap: _isDescriptionEdit ? null : () {
                     print('タイトル');
-                    _changeEditType(editType: 1); //タイトル
+                    _changeEditType(editType: 0); //タイトル
                   }
               ),
             ),
+          )
+
+          //詳細画面の場合
+          : SizedBox(
+            height: MediaQuery.of(context).size.height * 0.1,
+            width: MediaQuery.of(context).size.width,
+            child: Container(
+              color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    child: Text('${_titleForm.title}',
+                      maxLines: 1,
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold
+                      ),),
+                  ),
+                  _type == 3
+                      ? Container()
+                      : Container(
+                    padding: EdgeInsets.all(10),
+                    child: Text('${_titleForm.description}',
+                      maxLines: 1,
+                      style: TextStyle(
+                        fontSize: 15,
+                      ),),
+                  ),
+                ],
+              ),
+            ),
           );
-      }
-    );
+//      }
+//    );
   }
 
   //材料
   Widget ingredientArea(){
-    return Consumer<Display>(
-        builder: (context,Display,_) {
+//    return Consumer<Display>(
+//        builder: (context,Display,_) {
     return
       SizedBox(
         height: MediaQuery.of(context).size.height * 0.05,
         width: MediaQuery.of(context).size.width,
         child: Container(
-          color: Colors.white30,
+          color: Colors.deepOrange[100 * (2 % 9)],
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Container(
                 padding: EdgeInsets.all(10),
                 child: Text('材料', style: TextStyle(
+                    color: Colors.white,
                     fontSize: 15,
-                    fontWeight: FontWeight.bold
+//                    fontWeight: FontWeight.bold
                 ),),
               ),
               Container(
                 padding: EdgeInsets.all(10),
-                child: Text('${Display.titleForm.quantity}${_displayUnit(Display.titleForm.unit)}', style: TextStyle(
+                child: Text('${_titleForm.quantity}${_displayUnit(_titleForm.unit)}', style: TextStyle(
+                    color: Colors.white,
                     fontSize: 15,
-                    fontWeight: FontWeight.bold
+//                    fontWeight: FontWeight.bold
                 ),),
               ),
             ],
           ),
         ),
       );
-    }
-    );
+//    }
+//    );
   }
 
   //材料追加
@@ -1220,29 +1485,31 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //作り方
   Widget howToArea(){
-    return Consumer<Display>(
-        builder: (context,Display,_) {
+//    return Consumer<Display>(
+//        builder: (context,Display,_) {
     return
       SizedBox(
         height: MediaQuery.of(context).size.height * 0.05,
         width: MediaQuery.of(context).size.width,
         child: Container(
-          color: Colors.white30,
+          color: Colors.deepOrange[100 * (2 % 9)],
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,                    children: <Widget>[
             Container(
               padding: EdgeInsets.all(10),
               child: Text('作り方',style: TextStyle(
+                  color: Colors.white,
                   fontSize: 15,
-                  fontWeight: FontWeight.bold
+//                  fontWeight: FontWeight.bold
               ),),
             ),
-            Display.titleForm.time != 0
+            _titleForm.time != 0
             ? Container(
               padding: EdgeInsets.all(10),
-              child: Text('${Display.titleForm.time}分', style: TextStyle(
+              child: Text('${_titleForm.time}分', style: TextStyle(
+                  color: Colors.white,
                   fontSize: 15,
-                  fontWeight: FontWeight.bold
+//                  fontWeight: FontWeight.bold
               ),),
             )
             : Container()
@@ -1250,8 +1517,8 @@ class _RecipiEditState extends State<RecipiEdit>{
           ),
         ),
       );
-        }
-    );
+//        }
+//    );
   }
 
   //作り方追加
@@ -1263,44 +1530,44 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //写真エリア
   Widget photoArea(){
-    return Consumer<Display>(
-        builder: (context,Display,_) {
+//    return Consumer<Display>(
+//        builder: (context,Display,_) {
       return
-//      Display.type != 1
-//        ?
           SizedBox(
           height: MediaQuery.of(context).size.height * 0.05,
           width: MediaQuery.of(context).size.width,
           child: Container(
-            color: Colors.white30,
+            color: Colors.deepOrange[100 * (2 % 9)],
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Container(
                   padding: EdgeInsets.all(10),
-                  child: Text('${Display.titleForm.quantity}${_displayUnit(Display.titleForm.unit)}',
+                  child: Text('${_titleForm.quantity}${_displayUnit(_titleForm.unit)}',
                     style: TextStyle(
+                      color: Colors.white,
                       fontSize: 15,
-                      fontWeight: FontWeight.bold
+//                      fontWeight: FontWeight.bold
                     ),
                   ),
                 ),
-                Display.titleForm.time != 0
-                    ? Container(
-                  padding: EdgeInsets.all(10),
-                  child: Text('${Display.titleForm.time}分', style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold
-                  ),),
-                )
-                    : Container()
+                _titleForm.time != 0
+                  ? Container(
+                    padding: EdgeInsets.all(10),
+                    child: Text('${_titleForm.time}分', style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+  //                      fontWeight: FontWeight.bold
+                    ),),
+                  )
+                  : Container()
               ],
             ),
           ),
         );
 //          :Container();
-    },
-    );
+//    },
+//    );
   }
 
   //写真追加
@@ -1312,43 +1579,41 @@ class _RecipiEditState extends State<RecipiEdit>{
   }
 
   Widget DescriptionTitleArea(){
-    return Consumer<Display>(
-        builder: (context,Display,_) {
+//    return Consumer<Display>(
+//        builder: (context,Display,_) {
       return
-//        Display.thumbnail.isEmpty
-//        ? Container()
-//        :
-        Column(
+       _isEdit
+        ? Column(
           children: <Widget>[
-            line(),
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.05,
               width: MediaQuery.of(context).size.width,
               child: Container(
-                color: Colors.white30,
+                color: Colors.deepOrange[100 * (2 % 9)],
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Container(
                       padding: EdgeInsets.all(10),
                       child: Text('説明/メモ', style: TextStyle(
+                          color: Colors.white,
                           fontSize: 15,
-                          fontWeight: FontWeight.bold
+//                          fontWeight: FontWeight.bold
                       ),),
                     ),
-                    Display.thumbnail.isEmpty
+                    _recipi.thumbnail.isEmpty
                     ? Container()
-                    :
-                    Container(
+                    : Container(
                       padding: EdgeInsets.all(10),
                       child: Row(
                         children: <Widget>[
                           Icon(Icons.text_fields,
-                              color: _isDescriptionEdit ? Colors.grey : Colors
-                                  .orangeAccent),
+                              color: _isDescriptionEdit
+                                  ? Colors.grey
+                                  : Colors.deepOrange[100 * (3 % 9)]),
                           Switch(
                             value: this._isDescriptionEdit,
-                            activeColor: Colors.orangeAccent,
+                            activeColor: Colors.deepOrange[100 * (3 % 9)],
                             onChanged: (value) {
                               setState(() {
                                 this._isDescriptionEdit = !this._isDescriptionEdit;
@@ -1361,7 +1626,7 @@ class _RecipiEditState extends State<RecipiEdit>{
                             },
                           ),
                           Icon(Icons.edit, color: _isDescriptionEdit
-                              ? Colors.orangeAccent
+                              ? Colors.deepOrange[100 * (3 % 9)]
                               : Colors.grey)
                         ],
                       ),
@@ -1370,94 +1635,114 @@ class _RecipiEditState extends State<RecipiEdit>{
                 ),
               ),
             ),
-            line(),
+//            line(),
           ],
+        )
+        : Column(
+           children: <Widget>[
+             SizedBox(
+               height: MediaQuery.of(context).size.height * 0.05,
+               width: MediaQuery.of(context).size.width,
+               child: Container(
+                 color: Colors.deepOrange[100 * (2 % 9)],
+                 child: Row(
+                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                   children: <Widget>[
+                     Container(
+                       padding: EdgeInsets.all(10),
+                       child: Text('説明', style: TextStyle(
+                         color: Colors.white,
+                         fontSize: 15,
+                       ),),
+                     ),
+                   ],
+                 ),
+               ),
+             ),
+           ],
         );
-    });
+//    });
   }
 
   //文字変換テキストエリア
   Widget ocrTextArea(){
-    return Consumer<Display>(
-        builder: (context,Display,_) {
+//    return Consumer<Display>(
+//        builder: (context,Display,_) {
       return
-        Display.thumbnail.isEmpty
-        ?         Container(
+        _isEdit
+          ? _recipi.thumbnail.isEmpty
+            ? Container(
+                padding: EdgeInsets.only(left: 15, right: 15),
+                width: MediaQuery.of(context).size.width,
+                child: Container(
+                  padding: EdgeInsets.only(top: 13,bottom: 13),
+                  child: Text('スキャンする画像が登録されると、文字変換されます。',
+                    style: TextStyle(fontSize: 15,color: Colors.grey)
+                  ),
+                ),
+            )
+            : Container(
+              padding: EdgeInsets.only(left: 15, right: 15),
+              width: MediaQuery.of(context).size.width,
+              child:
+              this._isDescriptionEdit
+                  ? TextField(
+                      style: TextStyle(fontSize: 15),
+                      controller: _visionTextController,
+                      autofocus: false,
+          //                minLines: 5,
+                      maxLines: 20,
+                      decoration: const InputDecoration(
+          //                  hintText: '写真を選択すると文字に変換された内容が表示されます',
+                        border: InputBorder.none,
+                      ),
+                    )
+                  : Container(
+    //                  width: MediaQuery.of(context).size.width,
+                      padding: EdgeInsets.only(top: 13),
+                      child: Text('${_visionTextController.text}',
+                        style: TextStyle(fontSize: 15),
+                      ),
+                    ),
+            )
+          : Container(
             padding: EdgeInsets.only(left: 15, right: 15),
             width: MediaQuery.of(context).size.width,
             child: Container(
-//                  width: MediaQuery.of(context).size.width,
-          padding: EdgeInsets.only(top: 13,bottom: 13),
-          child: Text('スキャンする画像が登録されると、文字変換されます。',
-            style: TextStyle(fontSize: 15,color: Colors.grey)
-          ),
-        ),
-        )
-        :
-        Container(
-          padding: EdgeInsets.only(left: 15, right: 15),
-          width: MediaQuery.of(context).size.width,
-          child:
-          this._isDescriptionEdit
-              ? TextField(
-                  style: TextStyle(fontSize: 15),
-                  controller: _visionTextController,
-                  autofocus: false,
-      //                minLines: 5,
-                  maxLines: 20,
-                  decoration: const InputDecoration(
-      //                  hintText: '写真を選択すると文字に変換された内容が表示されます',
-                    border: InputBorder.none,
-                  ),
-                )
-              : Container(
-//                  width: MediaQuery.of(context).size.width,
-                  padding: EdgeInsets.only(top: 13),
-                  child: Text('${_visionTextController.text}',
-                    style: TextStyle(fontSize: 15),
-                  ),
-                ),
-        );
-    });
+              padding: EdgeInsets.only(top: 13),
+              child: Text('${_visionTextController.text}',
+                style: TextStyle(fontSize: 15),
+              ),
+            ),
+          );
+//    });
   }
 
   //削除ボタン
   Widget deleteButtonArea() {
     return
-      _selectedID != -1 && !_isDescriptionEdit
-          ? Container(
-        margin: const EdgeInsets.all(50),
-        padding: const EdgeInsets.all(10),
-        child: SizedBox(
-          width: 200,
-          height: 50,
-          child: RaisedButton.icon(
-            icon: Icon(Icons.delete,color: Colors.white,),
-            label: Text('レシピを削除する'),
-            textColor: Colors.white,
-            color: Colors.redAccent,
-//            shape: RoundedRectangleBorder(
-//              borderRadius: BorderRadius.circular(10.0),
-//            ),
-            onPressed:(){
-              _deleteModal();
-//              _changeEditType(0); //編集TOP
-            } ,
-          ),
-        ),
-      )
+      _selectedID != -1 && !_isDescriptionEdit && _isEdit
+        ? Container(
+            margin: const EdgeInsets.all(50),
+            padding: const EdgeInsets.all(10),
+            child: SizedBox(
+              width: 200,
+              height: 50,
+              child: RaisedButton.icon(
+                icon: Icon(Icons.delete,color: Colors.white,),
+                label: Text('レシピを削除する'),
+                textColor: Colors.white,
+                color: Colors.red[100 * (3 % 9)],
+    //            shape: RoundedRectangleBorder(
+    //              borderRadius: BorderRadius.circular(10.0),
+    //            ),
+                onPressed:(){
+                  _deleteModal();
+    //              _changeEditType(0); //編集TOP
+                } ,
+              ),
+            ),
+          )
           : Container();
   }
-
-  //null参照時に落ちない用、flutterで用意されてるを実装
-  //CircularProgressIndicator() => 円形にグルグル回るタイプのやつ
-  Widget showCircularProgress() {
-    return
-      _isLoading
-      //通信中の場合
-      ? Center(child: CircularProgressIndicator())
-      : Container();
-  }
-
-
 }

@@ -2,19 +2,22 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:recipe_app/model/diary/Diary.dart';
 import 'package:recipe_app/model/diary/edit/Photo.dart';
 import 'package:recipe_app/model/diary/edit/Recipi.dart';
 import 'package:recipe_app/model/diary/DisplayDiary.dart';
-import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/store/diary/edit_state.dart';
+import 'package:recipe_app/page/recipi_app/diary/edit_photo.dart';
+import 'package:recipe_app/page/recipi_app/diary/edit_recipi.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:intl/intl.dart';
 
 
 class DiaryEdit extends StatefulWidget{
+
+  DisplayDiary diary = DisplayDiary();
+
+  DiaryEdit({Key key, @required this.diary}) : super(key: key);
 
   @override
   _DiaryEditState createState() => _DiaryEditState();
@@ -25,91 +28,84 @@ class _DiaryEditState extends State<DiaryEdit>{
   DBHelper dbHelper;
   int _selectedID;              //編集するID
   int _selectedCategory = 1;    //分類（1：指定なし、2：朝食、3：昼食、4：夕食、5：間食）
-  int _backScreen = 0;          //戻る画面を格納[0:レシピのレシピ一覧 1:レシピのフォルダ別レシピ一覧 2:ごはん日記の日記詳細レシピ一覧 3:ホーム画面]
   bool _isDelete = false;       //true:削除ボタン押下時
+  DisplayDiary _diary = DisplayDiary();
+  TextEditingController body  = TextEditingController();  //本文
 
   @override
   void initState() {
     super.initState();
     dbHelper = DBHelper();
-    //戻る画面を取得
-    this._backScreen = Provider.of<Display>(context, listen: false).getBackScreen();
+    this._init();
+  }
+
+  void _init(){
     //idを取得
-    this._selectedID = Provider.of<Display>(context, listen: false).getId();
+    setState(() {
+    this._selectedID = widget.diary.id;
+    this._diary = DisplayDiary(
+          id: widget.diary.id
+        ,body: widget.diary.body
+        ,date: widget.diary.date
+        ,category: widget.diary.category
+        ,thumbnail: widget.diary.thumbnail
+        ,photos: setPhots(widget.diary.photos)
+        ,recipis: setRecipis(widget.diary.recipis)
+    );
+    this.body.text = this._diary.body;
+    });
+  }
+
+  List<DPhoto> setPhots(List<DPhoto> p){
+    List<DPhoto> photos = [];
+    p.forEach((photo) => photos.add(photo));
+    return photos;
+  }
+
+  List<DRecipi> setRecipis(List<DRecipi> r){
+    List<DRecipi> recipis = [];
+    r.forEach((recipi) => recipis.add(recipi));
+    return recipis;
   }
 
   //一覧リストへ遷移
-  void _onList(){
-    //レシピ
-    if(this._backScreen == 1) {
-      //フォルダ別一覧リストへ遷移
-      Provider.of<Display>(context, listen: false).setState(4);
-
-    //ごはん日記
-    }else if(this._backScreen == 2){
-      if(this._isDelete){
-        //一覧リストへ遷移
-        Provider.of<Display>(context, listen: false).setState(0);
-      }else{
-        if(this._selectedID == -1){
-          //一覧リストへ遷移
-          Provider.of<Display>(context, listen: false).setState(0);
-        }else{
-          //詳細リストへ遷移
-          Provider.of<Display>(context, listen: false).setState(1);
-        }
-      }
-
-    //ホーム
-    }else if(this._backScreen == 3){
-      //ホーム画面へ遷移
-      Provider.of<Display>(context, listen: false).setCurrentIndex(0);
-
-    //アルバム
-    }else if(this._backScreen == 4){
-      if(this._isDelete){
-        //一覧リストへ遷移
-        Provider.of<Display>(context, listen: false).setState(0);
-        //4:アルバムへ遷移
-        Provider.of<Display>(context, listen: false).setCurrentIndex(3);
-      }else{
-        if(this._selectedID == -1){
-          //4:アルバムへ遷移
-          Provider.of<Display>(context, listen: false).setCurrentIndex(3);
-        }else{
-          //詳細リストへ遷移
-          Provider.of<Display>(context, listen: false).setState(1);
-        }
-      }
-    }else{
-      //一覧リストへ遷移
-      Provider.of<Display>(context, listen: false).setState(0);
+  void _onList({int type,DisplayDiary diary}){
+    //0: 閉じる(新規投稿)　※何もせず閉じる
+    if(type == 0){
+      Navigator.pop(context,'newClose');
     }
-  }
-
-  //初期化処理
-  void _init(){
-    //リセット処理
-    Provider.of<Edit>(context, listen: false).reset(); //編集フォーム
+    //1: 閉じる(更新)　　　※何もせず閉じる
+    if(type == 1){
+      Navigator.pop(context,'updateClose');
+    }
+    //2: 新規保存
+    if(type == 2){
+      Navigator.pop(context,'new');
+    }
+    //3: 更新
+    if(type == 3){
+      Navigator.pop(context,diary);
+    }
+    //4: 削除
+    if(type == 4){
+      Navigator.pop(context,'delete');
+    }
   }
 
   //保存する押下時処理
   void _onSubmit() async {
-    //storeから内容を取得
-    //内容、日付、分類、サムネイル
-    Diary item = Provider.of<Edit>(context, listen: false).getEditForm();
     //料理
-    List<DRecipi> recipis = Provider.of<Edit>(context, listen: false).getRecipis();
+    List<DRecipi> recipis = this._diary.recipis;
     //写真
-    List<DPhoto> photos = Provider.of<Edit>(context, listen: false).getPhotos();
+    List<DPhoto> photos = this._diary.photos;
     //取得した値でdiaryを生成
     Diary diary = Diary
       (
          id: this._selectedID
-        ,body: item.body
-        ,date: item.date
-        ,category: item.category
-        ,thumbnail: item.thumbnail
+        ,body: this.body.text
+        ,date: this._diary.date
+        ,category: this._diary.category
+        ,thumbnail: this._diary.thumbnail
       );
 
     //新規登録の場合
@@ -143,7 +139,7 @@ class _DiaryEditState extends State<DiaryEdit>{
         //diary_recipiテーブルへ登録
         await dbHelper.insertDiaryPhoto(photos);
       }
-
+      this._onList(type: 2);
       //更新の場合
     }else{
       //ごはん日記テーブルへ更新
@@ -193,10 +189,8 @@ class _DiaryEditState extends State<DiaryEdit>{
         recipis: newRecipis,
         photos: newPhotos,
         );
-      //更新した日記の内容をセットする
-      Provider.of<Edit>(context, listen: false).setDiary(dd);
+      this._onList(type: 3,diary: dd);
     }
-    this._onList();
   }
 
   //削除モーダルの表示
@@ -242,7 +236,7 @@ class _DiaryEditState extends State<DiaryEdit>{
     setState(() {
       this._isDelete = true;
     });
-    _onList();
+    _onList(type: 4);
   }
 
   //日付の変更処理
@@ -258,14 +252,15 @@ class _DiaryEditState extends State<DiaryEdit>{
         onConfirm: (date){
         //Date　=> String　変換
         DateFormat formatter = DateFormat('yyyy-MM-dd');
-        String dateString = formatter.format(date);
-        Provider.of<Edit>(context, listen: false).setDate(dateString);
+        setState(() {
+          this._diary.date = formatter.format(date);
+        });
 //        print('Date型 $date');
 //        print('String型 ${dateString}');
         },
         //デフォルトで表示する日付
         //String　=> Date　変換
-        currentTime: DateTime.parse(Provider.of<Edit>(context, listen: false).getDate()),
+        currentTime: DateTime.parse(_diary.date),
         locale: LocaleType.jp
     );
   }
@@ -348,29 +343,51 @@ class _DiaryEditState extends State<DiaryEdit>{
 
   //カテゴリをsetする
   void _setCategory(){
-    Provider.of<Edit>(context, listen: false).setCategory(this._selectedCategory);
+    setState(() {
+      this._diary.category = this._selectedCategory;
+    });
   }
 
   //料理、写真ボタン押下時の画面遷移
   void _changeEditType({editType}){
-    Provider.of<Display>(context, listen: false).setEditType(editType);
+    var root = [EditRecipi(recipis: this._diary.recipis,),EditPhoto(photos: this._diary.photos,)];
+    //編集画面へ遷移
+    Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => root[editType],
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+      if(result != 'close'){
+        print('###保存');
+        if(editType == 0){
+          setState(() {
+            this._diary.recipis = result;
+          });
+        } else {
+          setState(() {
+            this._diary.photos = result;
+          });
+        }
+      } else {
+        print('###クローズ');
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<Edit>(
-      builder: (context,Edit,_){
         return Scaffold(
           appBar: AppBar(
-            backgroundColor: Colors.brown[100 * (1 % 9)],
+            backgroundColor: Colors.deepOrange[100 * (1 % 9)],
             leading: closeBtn(),
             elevation: 0.0,
             title: Center(
-              child: Text( '${(DateFormat('yyyy年MM月dd日')).format(DateTime.parse(Edit.date))}',
+              child: Text( '${(DateFormat('yyyy年MM月dd日')).format(DateTime.parse(this._diary.date))}',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,
-                  fontWeight: FontWeight.bold,
+//                  fontWeight: FontWeight.bold,
                   fontFamily: 'Roboto',
                 ),
               ),
@@ -381,8 +398,6 @@ class _DiaryEditState extends State<DiaryEdit>{
           ),
           body: scrollArea(),
         );
-      }
-    );
   }
 
   //完了ボタン
@@ -398,7 +413,7 @@ class _DiaryEditState extends State<DiaryEdit>{
 //          ),
           child: Text('保存',
             style: TextStyle(
-              color: Colors.brown[100 * (1 % 9)],
+              color: Colors.deepOrange[100 * (1 % 9)],
               fontSize: 15,
             ),
           ),
@@ -415,7 +430,7 @@ class _DiaryEditState extends State<DiaryEdit>{
     return IconButton(
       icon: Icon( _selectedID == -1 ? Icons.close : Icons.arrow_back_ios,color: Colors.white,size: 30,),
       onPressed: (){
-        _onList();
+        _onList(type: _selectedID == -1 ? 0 : 1);
       },
     );
   }
@@ -449,8 +464,6 @@ class _DiaryEditState extends State<DiaryEdit>{
 
   //ボタンエリア
   Widget selectBtnArea(){
-    return Consumer<Edit>(
-        builder: (context,Edit,_){
           return SizedBox(
             child: Container(
               child:Row(
@@ -466,15 +479,15 @@ class _DiaryEditState extends State<DiaryEdit>{
                           icon: Icon(
                               Icons.calendar_today,
                               size: 25,
-                              color: Edit.date.isEmpty
+                              color: _diary.date.isEmpty
                                     ? Colors.grey
-                                    : Colors.brown[100 * (1 % 9)]
+                                    : Colors.deepOrange[100 * (1 % 9)]
                           ),
                           label: Text('日付',
                             style: TextStyle(
-                              color: Edit.date.isEmpty
+                              color: _diary.date.isEmpty
                                   ? Colors.grey
-                                  : Colors.brown[100 * (1 % 9)],
+                                  : Colors.deepOrange[100 * (1 % 9)],
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),),
@@ -504,15 +517,15 @@ class _DiaryEditState extends State<DiaryEdit>{
                           icon: Icon(
                             Icons.access_time,
                             size: 25,
-                            color: Edit.category == 1
+                            color: _diary.category == 1
                                 ? Colors.grey
-                                : Colors.brown[100 * (1 % 9)],
+                                : Colors.deepOrange[100 * (1 % 9)],
                           ),
                           label: Text('分類',
                             style: TextStyle(
-                              color: Edit.category == 1
+                              color: _diary.category == 1
                                   ? Colors.grey
-                                  : Colors.brown[100 * (1 % 9)],
+                                  : Colors.deepOrange[100 * (1 % 9)],
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),),
@@ -524,7 +537,7 @@ class _DiaryEditState extends State<DiaryEdit>{
                           ),
                           onPressed:(){
                             setState(() {
-                              this._selectedCategory = Edit.category;
+                              this._selectedCategory = _diary.category;
                             });
                             this._changeCategory();
                           }
@@ -541,15 +554,15 @@ class _DiaryEditState extends State<DiaryEdit>{
                         icon: Icon(
                           Icons.restaurant,
                           size: 25,
-                          color: Edit.recipis.length == 0
+                          color: _diary.recipis.length == 0
                               ? Colors.grey
-                              : Colors.brown[100 * (1 % 9)],
+                              : Colors.deepOrange[100 * (1 % 9)],
                         ),
                         label: Text('料理',
                           style: TextStyle(
-                            color: Edit.recipis.length == 0
+                            color: _diary.recipis.length == 0
                                 ? Colors.grey
-                                : Colors.brown[100 * (1 % 9)],
+                                : Colors.deepOrange[100 * (1 % 9)],
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),),
@@ -560,7 +573,7 @@ class _DiaryEditState extends State<DiaryEdit>{
                             )
                         ),
                         onPressed:(){
-                          _changeEditType(editType: 1);
+                          _changeEditType(editType: 0);
                         },
 
                       ),
@@ -576,15 +589,15 @@ class _DiaryEditState extends State<DiaryEdit>{
                           icon: Icon(
                             Icons.camera_alt,
                             size: 25,
-                            color: Edit.photos.length == 0
+                            color: _diary.photos.length == 0
                                 ? Colors.grey
-                                : Colors.brown[100 * (1 % 9)],
+                                : Colors.deepOrange[100 * (1 % 9)],
                           ),
                           label: Text('写真',
                             style: TextStyle(
-                              color: Edit.photos.length == 0
+                              color: _diary.photos.length == 0
                                   ? Colors.grey
-                                  : Colors.brown[100 * (1 % 9)],
+                                  : Colors.deepOrange[100 * (1 % 9)],
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),),
@@ -595,7 +608,7 @@ class _DiaryEditState extends State<DiaryEdit>{
                               )
                           ),
                           onPressed:(){
-                            _changeEditType(editType: 2);
+                            _changeEditType(editType: 1);
                           }
                       ),
                     ),
@@ -604,13 +617,10 @@ class _DiaryEditState extends State<DiaryEdit>{
               ),
             ),
           );
-        });
   }
 
   //本文,削除ボタン
   Widget bodyArea(){
-    return Consumer<Edit>(
-      builder: (context,Edit,_){
         return Stack(
           children: <Widget>[
             SizedBox(
@@ -618,7 +628,7 @@ class _DiaryEditState extends State<DiaryEdit>{
                 width: 400,
                 height: 300,
                 child: TextField(
-                  controller: Edit.body,
+                  controller: body,
                   autofocus: false,
                   minLines: 14,
                   maxLines: 14,
@@ -654,8 +664,6 @@ class _DiaryEditState extends State<DiaryEdit>{
               : Container(),
           ],
         );
-      },
-    );
   }
 
   //線

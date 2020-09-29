@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:recipe_app/page/recipi_app/factory_recipi_app.dart';
-import 'package:recipe_app/store/display_state.dart';
-import 'package:recipe_app/store/detail_state.dart';
-import 'package:recipe_app/store/diary/edit_state.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';//日本語対応
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:get_it/get_it.dart';
 
-void main() {
+import 'package:recipe_app/page/recipi_app/factory_recipi_app.dart';
+import 'package:recipe_app/store/display_state.dart';
+import 'package:recipe_app/services/http/versionCheckService.dart';
+
+GetIt locator = GetIt.instance;
+
+void setupLocator() {
+  //アクセスするオブジェクトの登録
+  locator.registerLazySingleton<versionCheckService>(() => versionCheckService());
+}
+
+void main() async {
+
+  setupLocator(); //バージョンチェック
+
   //向き指定 ===>
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,//縦固定
   ]);
   //向き指定 <===
@@ -40,11 +51,9 @@ class MyApp extends StatelessWidget {
       home: MultiProvider(
         providers:[
           ChangeNotifierProvider<Display>(create: (_) => Display()),
-          ChangeNotifierProvider<Detail>(create: (_) => Detail()),
-          ChangeNotifierProvider<Edit>(create: (_) => Edit()),
         ],
         child: FactoryRecipiApp(),
-      )
+      ),
     );
   }
 }
