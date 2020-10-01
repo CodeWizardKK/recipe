@@ -656,9 +656,26 @@ class _RecipiEditState extends State<RecipiEdit>{
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
+                      _isEdit
+                      ? Container()
+                      : SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.025,
+                        width: MediaQuery.of(context).size.height * 0.025,
+                        child: Container(
+                          color: Colors.grey,
+                          child: Center(
+                            child:
+                            Text('${this._howTos[i].no}',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),),
+                          ),
+                        ),
+                      ),
                       SizedBox(
                         child: Container(
-                          width: MediaQuery.of(context).size.width * 0.7,
+                          width: _isEdit ? MediaQuery.of(context).size.width * 0.7 : MediaQuery.of(context).size.width * 0.55,
 //                          padding: EdgeInsets.all(10),
                           child: Text('${_howTos[i].memo}',
 //                            maxLines: 10,
@@ -679,7 +696,11 @@ class _RecipiEditState extends State<RecipiEdit>{
                               ),
                             ),
                           )
-                        : Container(),
+                        : SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.1,
+                        width: MediaQuery.of(context).size.width * 0.25,
+                        child: Container(),
+                        ),
                     ],
                   ),
                   onTap: !_isEdit ? null :(){
