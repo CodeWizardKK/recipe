@@ -185,14 +185,14 @@ class _EditPhotoState extends State<EditPhoto>{
           child:Stack(
             children: <Widget>[
               Container(
-                width: 300,
-                height: 300,
+                width: MediaQuery.of(context).size.width * 0.35,
+                height: MediaQuery.of(context).size.width * 0.35,
                 child: Image.file(File(_selectedPhotos[index].path),fit: BoxFit.cover,),
               ),
               Positioned(
-                left: 100,
-                width: 40,
-                height: 40,
+                left: MediaQuery.of(context).size.width * 0.25,
+                width: MediaQuery.of(context).size.width * 0.1,
+                height: MediaQuery.of(context).size.width * 0.1,
                 child: Container(
 //                    color: Colors.redAccent,
                   child: IconButton(
@@ -206,23 +206,6 @@ class _EditPhotoState extends State<EditPhoto>{
                   ),
                 ),
               ),
-//                Positioned(
-//                  left: 100,
-//                  width: 40,
-//                  height: 40,
-//                  child: InkWell(
-//                    child: Container(
-////                      color: Colors.grey,
-//                      child: Icon(Icons.remove,color: Colors.white,),
-//                    ),
-//                    onTap: (){
-//                      print('削除2');
-//                      setState(() {
-//                        images.removeAt(index);
-//                      });
-//                    },
-//                  ),
-//                ),
             ],
           ),
         );
@@ -243,7 +226,7 @@ class _EditPhotoState extends State<EditPhoto>{
 //保存ボタン
   Widget completeBtn(){
     return Container(
-      width: 90,
+      width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
         child: FlatButton(

@@ -521,7 +521,7 @@ class _DiaryListState extends State<DiaryList>{
           children: List<int>.generate(_displayDiaryGroupDates[index].displayDiarys.length, (index) => index).map((diaryIndex) =>
               SizedBox(
                 width: MediaQuery.of(context).size.width,
-                height: 100,
+                height: MediaQuery.of(context).size.height * 0.11,
                 child: Container(
                   color: Colors.white,
                   padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
@@ -533,15 +533,15 @@ class _DiaryListState extends State<DiaryList>{
                           this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].photos.length > 0
                               ? Card(
                             child: Container(
-                              height: 80,
-                              width: 80,
+                              height: MediaQuery.of(context).size.width * 0.2,
+                              width: MediaQuery.of(context).size.width * 0.2,
                               child: Image.file(File(common.replaceImageDiary(_getThumbnail(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex]))),fit: BoxFit.cover,),
                             ),
                           )
                               : Card(
                             child: Container(
-                              height: 80,
-                              width: 80,
+                              height: MediaQuery.of(context).size.width * 0.2,
+                              width: MediaQuery.of(context).size.width * 0.2,
                               color: Colors.amber[100 * (1 % 9)],
                               child: Icon(Icons.restaurant,color: Colors.white,size: 50,),
                             ),
@@ -550,7 +550,7 @@ class _DiaryListState extends State<DiaryList>{
                           Container(
                             width: MediaQuery.of(context).size.width * 0.5,
                             child: Container(
-                              height: 50,
+                              height: MediaQuery.of(context).size.height * 0.05,
                               padding: EdgeInsets.all(5),
                               child: Text('${this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].body}',
                                 maxLines: 2,
@@ -570,7 +570,7 @@ class _DiaryListState extends State<DiaryList>{
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: <Widget>[
                                     SizedBox(
-                                      height: 25,
+                                      height: MediaQuery.of(context).size.height * 0.03,
                                       child: Container(
                                         child: Text('${DateTime.parse(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].date).day}',
                                           style: TextStyle(
@@ -581,7 +581,7 @@ class _DiaryListState extends State<DiaryList>{
                                       ),
                                     ),
                                     SizedBox(
-                                      height: 25,
+                                      height: MediaQuery.of(context).size.height * 0.025,
                                       child: Container(
                                         padding: EdgeInsets.only(top: 7,right: 5,left: 5),
                                         child: Text('${this._displayWeekday(DateTime.parse(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].date).weekday)}',
@@ -595,7 +595,7 @@ class _DiaryListState extends State<DiaryList>{
                                   ],
                                 ),
                                 SizedBox(
-                                  height: 30,
+                                  height: MediaQuery.of(context).size.height * 0.03,
                                   child: Container(
                                     padding: EdgeInsets.all(5),
                                     child:
@@ -648,7 +648,7 @@ class _DiaryListState extends State<DiaryList>{
 
   Widget bottomNavigationBar(BuildContext context){
     return Consumer<Display>(
-        key: GlobalKey(),
+//        key: GlobalKey(),
         builder: (context,Display,_){
           return BottomNavigationBar(
             currentIndex: Display.currentIndex,

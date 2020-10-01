@@ -523,8 +523,8 @@ class _RecipiSortState extends State<RecipiSort>{
                       Container(
                         padding: EdgeInsets.all(5),
                         child: SizedBox(
-                          height: 50,
-                          width: 50,
+                          height: MediaQuery.of(context).size.width * 0.1,
+                          width: MediaQuery.of(context).size.width * 0.1,
                           child: Container(
                             color: Colors.amber[100 * (1 % 9)],
                             child: Icon(Icons.folder_open,color: Colors.white,size: 30,),
@@ -653,8 +653,8 @@ class _RecipiSortState extends State<RecipiSort>{
                       Container(
                         padding: EdgeInsets.all(5),
                         child: SizedBox(
-                          height: 50,
-                          width: 50,
+                          height: MediaQuery.of(context).size.width * 0.1,
+                          width: MediaQuery.of(context).size.width * 0.1,
                           child: Container(
                             color: Colors.amber[100 * (1 % 9)],
                             child: Icon(Icons.local_offer,color: Colors.white,size: 30,),
@@ -874,7 +874,7 @@ class _RecipiSortState extends State<RecipiSort>{
             ),
             actions: <Widget>[
               Container(
-                width: 90,
+                width: MediaQuery.of(context).size.width * 0.25,
                 child: Padding(
                   padding: EdgeInsets.all(10),
                   child: FlatButton(
@@ -936,25 +936,25 @@ class _RecipiSortState extends State<RecipiSort>{
     return
       _isCheck
           ? Container(
-        width: 130,
-        child: Padding(
-          padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
-          child: FlatButton(
-            color: Colors.red[100 * (3 % 9)],
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                const Icon(Icons.delete_outline,color: Colors.white,),
-                const Text('削除する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
-              ],
+            width: MediaQuery.of(context).size.width * 0.3,
+            child: Padding(
+              padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
+              child: FlatButton(
+                color: Colors.red[100 * (3 % 9)],
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    const Icon(Icons.delete_outline,color: Colors.white,),
+                    const Text('削除する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
+                  ],
+                ),
+                onPressed:
+                  _selectedCount() == 0
+                    ? null
+                    : (){_onDelete();},
+              ),
             ),
-            onPressed:
-              _selectedCount() == 0
-                ? null
-                : (){_onDelete();},
-          ),
-        ),
-      )
+          )
           : Container();
   }
 
@@ -971,7 +971,7 @@ class _RecipiSortState extends State<RecipiSort>{
   //完了ボタン
   Widget completeBtn(){
     return Container(
-      width: 90,
+      width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
         child: FlatButton(
@@ -1015,179 +1015,153 @@ class _RecipiSortState extends State<RecipiSort>{
 
   //ページ全体
   Widget showForm(){
-//    return Consumer<Detail>(
-//        builder: (context,Detail,_) {
-      return Container(
-        alignment: Alignment.center,
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children:
-              _sortType == 1 || _sortType == 3
-              ? <Widget>[
-                //フォルダ整理
-                folderListArea(), //フォルダリストエリア
-              ]
-              : _sortType == 2 || _sortType == 4
-                ? <Widget>[
-                //タグ整理
-                  tagListArea(), //タグリストエリア
-                ]
-                : <Widget>[
-                  //全て
-                  recipiArea(), //選択レシピ表示エリア
-//                  line(),
-                  headerArea(type: 1), //フォルダに移動
-//                  line(),
-                  folderListArea(), //フォルダリストエリア
-                  headerArea(type: 2), //タグをつける
-//                  line(),
-                  tagListArea(), //タグリストエリア
-                ]
-        ),
-      );
-//    }
-//    );
+    return Container(
+      alignment: Alignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children:
+          _sortType == 1 || _sortType == 3
+          ? <Widget>[
+            //フォルダ整理
+            folderListArea(), //フォルダリストエリア
+          ]
+          : _sortType == 2 || _sortType == 4
+            ? <Widget>[
+            //タグ整理
+              tagListArea(), //タグリストエリア
+            ]
+            : <Widget>[
+              //全て
+              recipiArea(), //選択レシピ表示エリア
+              headerArea(type: 1), //フォルダに移動
+              folderListArea(), //フォルダリストエリア
+              headerArea(type: 2), //タグをつける
+              tagListArea(), //タグリストエリア
+            ]
+      ),
+    );
   }
 
   //MYレシピリスト
   Widget recipiArea(){
-//    return Consumer<Detail>(
-//      builder: (context,Detail,_) {
-      return SizedBox(
-          width: MediaQuery.of(context).size.width,
-          height: 150,
-          child: Container(
-            color: Colors.white,
-            padding: EdgeInsets.all(10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  //サムネイルエリア
-                  thumbnailArea(),
-                  //タイトル、材料、タグエリア
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.7,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        tilteArea(),//タイトル
-                        ingredientsArea(),//材料
-                        tagsArea(),//タグ
-                      ],
-                    ),
-                  ),
-                ],
+    return SizedBox(
+      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height * 0.16,
+      child: Container(
+        color: Colors.white,
+        padding: EdgeInsets.all(10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              //サムネイルエリア
+              thumbnailArea(),
+              //タイトル、材料、タグエリア
+              Container(
+                width: MediaQuery.of(context).size.width * 0.7,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    tilteArea(),//タイトル
+                    ingredientsArea(),//材料
+                    tagsArea(),//タグ
+                  ],
+                ),
               ),
+            ],
           ),
-        );
-//    });
+      ),
+    );
   }
 
   //サムネイル
   Widget thumbnailArea(){
-//    return Consumer<Detail>(
-//      builder: (context,Detail,_) {
         return
           widget.Nrecipi.thumbnail.isNotEmpty
               ? SizedBox(
-            height: 100,
-            width: 100,
+            height: MediaQuery.of(context).size.width * 0.25,
+            width: MediaQuery.of(context).size.width * 0.25,
             child: Container(
               child: Image.file(File(common.replaceImage(widget.Nrecipi.thumbnail)),fit: BoxFit.cover,),
             ),
           )
               : SizedBox(
-            height: 100,
-            width: 100,
+            height: MediaQuery.of(context).size.width * 0.25,
+            width: MediaQuery.of(context).size.width * 0.25,
             child: Container(
               color: Colors.grey,
               child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
             ),
           );
-//      }
-//    );
   }
 
   //タイトル
   Widget tilteArea(){
-//    return Consumer<Detail>(
-//        builder: (context,Detail,_) {
-          return
-            Container(
-              height: 50,
-              padding: EdgeInsets.all(5),
-              child: Text('${widget.Nrecipi.title}',
-                maxLines: 2,
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold
-                ),),
-            );
-//        }
-//    );
+    return
+      Container(
+        height: MediaQuery.of(context).size.height * 0.05,
+        padding: EdgeInsets.all(5),
+        child: Text('${widget.Nrecipi.title}',
+          maxLines: 2,
+          style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold
+          ),),
+      );
   }
 
   //材料
   Widget ingredientsArea(){
-//    return Consumer<Display>(
-//        builder: (context,Detail,_) {
-          return
-            Container(
-              height: 40,
-              padding: EdgeInsets.all(5),
-              child: Text('${widget.ingredientTX}',
-                maxLines: 2,
-                style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey
-                ),),
-            );
-//        }
-//    );
+    return
+      Container(
+        height: MediaQuery.of(context).size.height * 0.04,
+        padding: EdgeInsets.all(5),
+        child: Text('${widget.ingredientTX}',
+          maxLines: 2,
+          style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey
+          ),),
+      );
   }
 
   //タグ
   Widget tagsArea(){
-//    return Consumer<Display>(
-//        builder: (context,Display,_) {
-          return
-            widget.tags.length < 0
-                ? Container(
-                height: 30,
-                padding: EdgeInsets.only(left: 5,right: 5)
-            )
-                : Container(
-              height: 30,
-              padding: EdgeInsets.only(left: 5,right: 5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  //タグicon
-                  Container(
-                    child: Icon(Icons.local_offer,size: 15,color: Colors.amber[100 * (1 % 9)]),
-                  ),
-                  //タグ名　最大5件まで
-                  for (var k = 0; k<widget.tags.length; k++)
-                    Container(
-                      padding: EdgeInsets.all(2),
-                      child: SizedBox(
-                        child: Container(
-                          padding: EdgeInsets.all(5),
-                          color: Colors.amber[100 * (1 % 9)],
+  return
+    widget.tags.length < 0
+      ? Container(
+        height: MediaQuery.of(context).size.height * 0.03,
+        padding: EdgeInsets.only(left: 5,right: 5)
+      )
+      : Container(
+      height: MediaQuery.of(context).size.height * 0.03,
+      padding: EdgeInsets.only(left: 5,right: 5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          //タグicon
+          Container(
+            child: Icon(Icons.local_offer,size: 15,color: Colors.amber[100 * (1 % 9)]),
+          ),
+          //タグ名　最大5件まで
+          for (var k = 0; k<widget.tags.length; k++)
+            Container(
+              padding: EdgeInsets.all(2),
+              child: SizedBox(
+                child: Container(
+                  padding: EdgeInsets.all(5),
+                  color: Colors.amber[100 * (1 % 9)],
 
-                          child: Text('${widget.tags[k].name}',
-                            style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey
-                            ),),
-                        ),
-                      ),
-                    ),
-                ],
+                  child: Text('${widget.tags[k].name}',
+                    style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey
+                    ),),
+                ),
               ),
-            );
-//        }
-//    );
+            ),
+        ],
+      ),
+    );
   }
 
   //線
@@ -1201,8 +1175,6 @@ class _RecipiSortState extends State<RecipiSort>{
 
   //フォルダ
   Widget headerArea({int type}){
-//    return Consumer<Display>(
-//        builder: (context,Display,_) {
     return
       SizedBox(
         height: MediaQuery.of(context).size.height * 0.05,

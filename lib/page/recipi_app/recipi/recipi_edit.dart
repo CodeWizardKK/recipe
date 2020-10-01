@@ -540,8 +540,8 @@ class _RecipiEditState extends State<RecipiEdit>{
     for(var i=0; i < this._ingredients.length; i++){
       column.add(
           SizedBox(
-//            height: MediaQuery.of(context).size.height * 0.06,
-//            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height * 0.06,
+            width: MediaQuery.of(context).size.width,
             child: Container(
               padding: EdgeInsets.only(top: 10,bottom: 10),
               color: Colors.white,
@@ -648,7 +648,7 @@ class _RecipiEditState extends State<RecipiEdit>{
       column.add(
           SizedBox(
             width: MediaQuery.of(context).size.width,
-            height: 200,
+//            height: MediaQuery.of(context).size.height * 0.18,
             child: Container(
               color: Colors.white,
               padding: EdgeInsets.all(10),
@@ -658,10 +658,10 @@ class _RecipiEditState extends State<RecipiEdit>{
                     children: <Widget>[
                       SizedBox(
                         child: Container(
-                          width: 250,
+                          width: MediaQuery.of(context).size.width * 0.7,
 //                          padding: EdgeInsets.all(10),
                           child: Text('${_howTos[i].memo}',
-                            maxLines: 10,
+//                            maxLines: 10,
                             style: TextStyle(
                               fontSize: 15,
 //                              fontWeight: FontWeight.bold
@@ -670,8 +670,8 @@ class _RecipiEditState extends State<RecipiEdit>{
                       ),
                       _howTos[i].photo.isNotEmpty
                         ? SizedBox(
-                            height: 100,
-                            width: 100,
+                            height: MediaQuery.of(context).size.height * 0.1,
+                            width: MediaQuery.of(context).size.width * 0.25,
                             child: Container(
                               child: InkWell(
                                 child: Image.file(File(_howTos[i].photo),fit: BoxFit.cover,),
@@ -705,7 +705,6 @@ class _RecipiEditState extends State<RecipiEdit>{
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.06,
 //        width: MediaQuery.of(context).size.width,
-//        height: 50,
           child: Container(
 //            padding: EdgeInsets.all(10),
             color: Colors.white,
@@ -1155,7 +1154,7 @@ class _RecipiEditState extends State<RecipiEdit>{
     return
      _isEdit
       ? Container(
-        width: 90,
+       width: MediaQuery.of(context).size.width * 0.25,
         child: Padding(
           padding: EdgeInsets.all(10),
           child: FlatButton(
@@ -1194,9 +1193,9 @@ class _RecipiEditState extends State<RecipiEdit>{
   //レシピ編集
   Widget scrollArea(){
     return Container(
-      key: GlobalKey(),
+//      key: GlobalKey(),
       child: SingleChildScrollView(
-        key: GlobalKey(),
+//        key: GlobalKey(),
 //        padding: const EdgeInsets.only(left: 10.0, right: 10.0),
         child: showForm(),
       ),
@@ -1343,7 +1342,7 @@ class _RecipiEditState extends State<RecipiEdit>{
   Widget editMsgArea(){
     return
       SizedBox(
-        height: 30,
+        height: MediaQuery.of(context).size.height * 0.04,
 //        width: MediaQuery.of(context).size.width,
         child: Container(
             color: Colors.black26,
@@ -1726,8 +1725,8 @@ class _RecipiEditState extends State<RecipiEdit>{
             margin: const EdgeInsets.all(50),
             padding: const EdgeInsets.all(10),
             child: SizedBox(
-              width: 200,
-              height: 50,
+              width: MediaQuery.of(context).size.width * 0.45,
+              height: MediaQuery.of(context).size.height * 0.05,
               child: RaisedButton.icon(
                 icon: Icon(Icons.delete,color: Colors.white,),
                 label: Text('レシピを削除する'),

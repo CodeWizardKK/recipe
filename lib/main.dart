@@ -7,12 +7,14 @@ import 'package:get_it/get_it.dart';
 import 'package:recipe_app/page/recipi_app/factory_recipi_app.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/services/http/versionCheckService.dart';
+import 'package:recipe_app/services/http/errorService.dart';
 
 GetIt locator = GetIt.instance;
 
 void setupLocator() {
   //アクセスするオブジェクトの登録
   locator.registerLazySingleton<versionCheckService>(() => versionCheckService());
+  locator.registerLazySingleton<errorService>(() => errorService());
 }
 
 void main() async {
@@ -33,7 +35,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        key: GlobalKey(),
+//        key: GlobalKey(),
       title: 'RECIPI APP',
       theme: ThemeData(
         primarySwatch: Colors.blue,

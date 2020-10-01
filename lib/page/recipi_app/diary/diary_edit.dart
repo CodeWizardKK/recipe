@@ -313,7 +313,7 @@ class _DiaryEditState extends State<DiaryEdit>{
                 ),
               ),
               Container(
-                height: 200.0,
+                height: MediaQuery.of(context).size.height * 0.25,
                 color: Colors.white,
                 child: CupertinoPicker(
                   onSelectedItemChanged: (value) {
@@ -403,7 +403,7 @@ class _DiaryEditState extends State<DiaryEdit>{
   //完了ボタン
   Widget completeBtn(){
     return Container(
-      width: 90,
+      width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
         child: FlatButton(
@@ -466,14 +466,15 @@ class _DiaryEditState extends State<DiaryEdit>{
   Widget selectBtnArea(){
           return SizedBox(
             child: Container(
+              color: Colors.white,
               child:Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   //日付
                   SizedBox(
                     child: Container(
-                      width: 100,
-                      height: 40,
+                      width: MediaQuery.of(context).size.width * 0.25,
+                      height: MediaQuery.of(context).size.width * 0.1,
                       child: RaisedButton.icon(
                           color: Colors.white,
                           icon: Icon(
@@ -510,8 +511,8 @@ class _DiaryEditState extends State<DiaryEdit>{
                   //分類
                   SizedBox(
                     child: Container(
-                      width: 100,
-                      height: 40,
+                      width: MediaQuery.of(context).size.width * 0.25,
+                      height: MediaQuery.of(context).size.width * 0.1,
                       child: RaisedButton.icon(
                           color: Colors.white,
                           icon: Icon(
@@ -547,8 +548,8 @@ class _DiaryEditState extends State<DiaryEdit>{
                   //料理
                   SizedBox(
                     child: Container(
-                      width: 100,
-                      height: 40,
+                      width: MediaQuery.of(context).size.width * 0.25,
+                      height: MediaQuery.of(context).size.width * 0.1,
                       child: RaisedButton.icon(
                         color: Colors.white,
                         icon: Icon(
@@ -582,8 +583,8 @@ class _DiaryEditState extends State<DiaryEdit>{
                   //写真
                   SizedBox(
                     child: Container(
-                      width: 100,
-                      height: 40,
+                      width: MediaQuery.of(context).size.width * 0.25,
+                      height: MediaQuery.of(context).size.width * 0.1,
                       child: RaisedButton.icon(
                           color: Colors.white,
                           icon: Icon(
@@ -624,26 +625,29 @@ class _DiaryEditState extends State<DiaryEdit>{
         return Stack(
           children: <Widget>[
             SizedBox(
-              child: Container(
-                width: 400,
-                height: 300,
-                child: TextField(
-                  controller: body,
-                  autofocus: false,
-                  minLines: 14,
-                  maxLines: 14,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
+                child: Center(
+                  child: Container(
+                    color: Colors.white,
+                    width: MediaQuery.of(context).size.width * 0.98,
+                    height: MediaQuery.of(context).size.width * 0.6,
+                    child: TextField(
+                      controller: body,
+                      autofocus: false,
+                      minLines: 14,
+                      maxLines: 14,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                      ),
+                    ),
                   ),
-                ),
-              ),
+              )
             ),
             _selectedID != -1
               ? Positioned(
                 bottom: 10,
                 right: 10,
-                width: 100,
-                height: 20,
+                width: MediaQuery.of(context).size.width * 0.25,
+                height: MediaQuery.of(context).size.height * 0.02,
                 child: Container(
                   child: RaisedButton.icon(
                     icon: Icon(

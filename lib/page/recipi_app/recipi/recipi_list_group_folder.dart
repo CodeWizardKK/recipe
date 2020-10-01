@@ -801,7 +801,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
   //完了ボタン
   Widget completeBtn(){
     return Container(
-      width: 90,
+      width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
         child: FlatButton(
@@ -847,7 +847,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
   //ナビゲーション
   Widget bottomNavigationBar(){
     return Consumer<Display>(
-        key: GlobalKey(),
+//        key: GlobalKey(),
         builder: (context,Display,_){
           return BottomNavigationBar(
             currentIndex: Display.currentIndex,
@@ -898,7 +898,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Container(
-              width: 130,
+              width: MediaQuery.of(context).size.width * 0.3,
               child: Padding(
                 padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
                 child: FlatButton(
@@ -918,7 +918,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
               ),
             ),
             Container(
-              width: 130,
+              width: MediaQuery.of(context).size.width * 0.3,
               child: Padding(
                 padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
                 child: FlatButton(
@@ -938,7 +938,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
               ),
             ),
             Container(
-              width: 130,
+              width: MediaQuery.of(context).size.width * 0.3,
               child: Padding(
                 padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
                 child: FlatButton(
@@ -1177,7 +1177,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
     return
       SizedBox(
         width: MediaQuery.of(context).size.width,
-        height: 150,
+        height: MediaQuery.of(context).size.height * 0.16,
         child: Container(
           color: Colors.white,
           padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
@@ -1201,15 +1201,15 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                   this._displayList[index].thumbnail.isNotEmpty
                       ? Card(
                     child: Container(
-                      height: 100,
-                      width: 100,
+                      height: MediaQuery.of(context).size.width * 0.25,
+                      width: MediaQuery.of(context).size.width * 0.25,
                       child: Image.file(File(common.replaceImage(this._displayList[index].thumbnail)),fit: BoxFit.cover,),
                     ),
                   )
                       : Card(
                     child: Container(
-                      height: 100,
-                      width: 100,
+                      height: MediaQuery.of(context).size.width * 0.25,
+                      width: MediaQuery.of(context).size.width * 0.25,
                       color: Colors.amber[100 * (1 % 9)],
                       child: Icon(Icons.restaurant,color: Colors.white,size: 50,),
                     ),
@@ -1217,13 +1217,13 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                   //タイトル、材料、タグエリア
                   Container(
 //                      color: Colors.grey,
-                    width: MediaQuery.of(context).size.width * 0.56,
+                    width: MediaQuery.of(context).size.width * 0.5,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         //タイトル
                         Container(
-                          height: 50,
+                          height: MediaQuery.of(context).size.height * 0.05,
                           padding: EdgeInsets.all(5),
                           child: Text('${this._displayList[index].title}',
                             maxLines: 2,
@@ -1234,7 +1234,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                         ),
                         //材料
                         Container(
-                          height: 40,
+                          height: MediaQuery.of(context).size.height * 0.04,
                           padding: EdgeInsets.all(5),
 //                            child: Text('${ingredients.join(',')}',
                           child: Text('${ingredientsTX}',
@@ -1249,7 +1249,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                           Container(
 //                              width: MediaQuery.of(context).size.width * 0.5,
 //                              color: Colors.grey,
-                            height: 30,
+                            height: MediaQuery.of(context).size.height * 0.03,
                             padding: EdgeInsets.only(left: 5,right: 5),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.start,
@@ -1287,7 +1287,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                   if(!this._isCheck)
                     SizedBox(
                       width: MediaQuery.of(context).size.width * 0.15,
-                      height: 150,
+                      height: MediaQuery.of(context).size.height * 0.16,
                       child: Container(
 //                          color: Colors.greenAccent,
                         padding: EdgeInsets.all(5),
@@ -1327,7 +1327,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
               //テキスト検索エリア
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.8,
-                height: 40,
+                height: MediaQuery.of(context).size.height * 0.04,
                 child: Container(
                   child: TextField(
                       onChanged: _onSearch,
@@ -1349,7 +1349,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                 decoration: BoxDecoration(
 //                  color: Colors.blueGrey,
                 ),
-                width: 60,
+                width: MediaQuery.of(context).size.width * 0.15,
                 child: Column(
                   children: <Widget>[
                     MultiSelectBottomSheetField(

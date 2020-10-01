@@ -165,13 +165,13 @@ class _EditRecipiState extends State<EditRecipi>{
   Widget selectedArea(){
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.0,vertical: 24.0),
-      height: MediaQuery.of(context).size.height * 0.15,
+      height: 140,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
           itemCount: _selectedRecipis.length,
           itemBuilder: (context,index){
             return Container(
-              width: MediaQuery.of(context).size.width * 0.2,
+              width: 90,
               child: Stack(
                 children: <Widget>[
                   _selectedRecipis[index].image.isNotEmpty
@@ -192,13 +192,13 @@ class _EditRecipiState extends State<EditRecipi>{
                     ),
                   ),
                   Positioned(
-                    left: 45,
+                    left: 50,
                     width: 40,
                     height: 40,
                     child: Container(
 //                    color: Colors.redAccent,
                       child: IconButton(
-                        icon: Icon(Icons.remove_circle,),
+                        icon: Icon(Icons.remove_circle),
                         onPressed: (){
                           setState(() {
                             //イメージ削除
@@ -304,7 +304,7 @@ class _EditRecipiState extends State<EditRecipi>{
       return
         SizedBox(
           width: MediaQuery.of(context).size.width,
-          height: 150,
+          height: MediaQuery.of(context).size.height * 0.16,
           child: Container(
             color: Colors.white,
             padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
@@ -315,15 +315,15 @@ class _EditRecipiState extends State<EditRecipi>{
                     //サムネイルエリア
                     this._recipis[index].thumbnail.isNotEmpty
                         ? SizedBox(
-                      height: 100,
-                      width: 100,
+                      height: MediaQuery.of(context).size.width * 0.25,
+                      width: MediaQuery.of(context).size.width * 0.25,
                       child: Container(
                         child: Image.file(File(common.replaceImage(this._recipis[index].thumbnail)),fit: BoxFit.cover,),
                       ),
                     )
                         : SizedBox(
-                      height: 100,
-                      width: 100,
+                      height: MediaQuery.of(context).size.width * 0.25,
+                      width: MediaQuery.of(context).size.width * 0.25,
                       child: Container(
                         color: Colors.grey,
                         child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
@@ -440,7 +440,7 @@ class _EditRecipiState extends State<EditRecipi>{
 //保存ボタン
   Widget completeBtn(){
     return Container(
-      width: 90,
+      width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
         child: FlatButton(

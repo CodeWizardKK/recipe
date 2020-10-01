@@ -275,7 +275,7 @@ class _HomeListState extends State<HomeList>{
 
   Widget bottomNavigationBar(BuildContext context){
     return Consumer<Display>(
-        key: GlobalKey(),
+//        key: GlobalKey(),
         builder: (context,Display,_){
           return BottomNavigationBar(
             currentIndex: Display.currentIndex,

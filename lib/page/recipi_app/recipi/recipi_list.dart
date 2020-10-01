@@ -24,6 +24,7 @@ import 'package:recipe_app/model/edit/Howto.dart';
 import 'package:recipe_app/model/edit/Photo.dart';
 
 import 'package:recipe_app/updater.dart';
+import 'package:recipe_app/error.dart';
 
 class RecipiList extends StatefulWidget{
   RecipiList({Key key}) : super(key: key);
@@ -61,6 +62,7 @@ class _RecipiListState extends State<RecipiList>{
   bool _isLoadingSearch = false;                               //true:遅延読み込み中
   int _searchCurrentLength = 0;                                //遅延読み込み件数を格納
   final int increment = 10; //読み込み件数
+  bool _isError = false;
 
   @override
   void initState() {
@@ -164,82 +166,93 @@ class _RecipiListState extends State<RecipiList>{
   Future<void> refreshImages() async {
     List<MstFolder> folders = [];
 
-    //フォルダ別レシピ件数の取得
-    await dbHelper.getMyRecipisCount().then((item){
-      setState(() {
-        _recipisGroupBy.clear();
-        _recipisGroupBy.addAll(item);
+    try{
+      //フォルダ別レシピ件数の取得
+      await dbHelper.getMyRecipisCount().then((item){
+        setState(() {
+          _recipisGroupBy.clear();
+          _recipisGroupBy.addAll(item);
+        });
       });
-    });
 
-    //レシピの取得
-    await dbHelper.getMyRecipis().then((item){
-      setState(() {
-        _recipis.clear();
-        _recipis.addAll(item);
+      //レシピの取得
+      await dbHelper.getMyRecipis().then((item){
+        setState(() {
+          _recipis.clear();
+          _recipis.addAll(item);
+        });
       });
-    });
-    //取得したレシピをstoreに保存
-    Provider.of<Display>(context, listen: false).setRecipis(_recipis);
+      //取得したレシピをstoreに保存
+      Provider.of<Display>(context, listen: false).setRecipis(_recipis);
 
-    //材料の取得
-    await dbHelper.getAllIngredients().then((item){
-      setState(() {
-        _ingredients.clear();
-        _ingredients.addAll(item);
+      //材料の取得
+      await dbHelper.getAllIngredients().then((item){
+        setState(() {
+          _ingredients.clear();
+          _ingredients.addAll(item);
+        });
       });
-    });
 
-    //フォルダマスタの取得
-    await dbHelper.getMstFolders().then((item){
-      setState(() {
-        folders.clear();
-        folders.addAll(item);
+      //フォルダマスタの取得
+      await dbHelper.getMstFolders().then((item){
+        setState(() {
+          folders.clear();
+          folders.addAll(item);
+        });
       });
-    });
-    //取得したフォルダをstoreに保存
-    Provider.of<Display>(context, listen: false).setMstFolder(folders);
+      //取得したフォルダをstoreに保存
+      Provider.of<Display>(context, listen: false).setMstFolder(folders);
 
-    setState(() {
-      //チェックBox付きフォルダリストの生成
-      this._folders = Provider.of<Display>(context, listen: false).createFoldersCheck();
-      //チェックBox付きレシピリストの生成
-      this._displayRecipis = Provider.of<Display>(context, listen: false).createDisplayRecipiList(isFolderIdZero: true);
-    });
+      setState(() {
+        //チェックBox付きフォルダリストの生成
+        this._folders = Provider.of<Display>(context, listen: false).createFoldersCheck();
+        //チェックBox付きレシピリストの生成
+        this._displayRecipis = Provider.of<Display>(context, listen: false).createDisplayRecipiList(isFolderIdZero: true);
+      });
+    } catch (exception) {
+      print(exception);
+      this._isError = true;
+    }
   }
 
   void _getTags({int type}) async {
-    if(type == 1) {
-      //タグリストの取得
-      await dbHelper.getAllTags().then((item) {
-        setState(() {
-          _tags.clear();
-          _tags.addAll(item);
-        });
-      });
-    }else{
-      //タグマスタの取得
-      await dbHelper.getMstTags().then((item){
-        setState(() {
-          _Mtags.clear();
-          _Mtags.addAll(item);
-        });
-      });
-      setState(() {
-        _displayTags = _Mtags
-            .map((mstTag) => MultiSelectItem<MstTag>(mstTag, mstTag.name))
-            .toList();
-      });
-//      //取得したタグマスタをstoreに保存
-//      Provider.of<Display>(context, listen: false).setMstTag(_Mtags);
 
-      //タグリストの取得
-      await dbHelper.getAllTags().then((item){
-        setState(() {
-          _tags.clear();
-          _tags.addAll(item);
+    try{
+      if(type == 1) {
+        //タグリストの取得
+        await dbHelper.getAllTags().then((item) {
+          setState(() {
+            _tags.clear();
+            _tags.addAll(item);
+          });
         });
-      });
+      }else{
+        //タグマスタの取得
+        await dbHelper.getMstTags().then((item){
+          setState(() {
+            _Mtags.clear();
+            _Mtags.addAll(item);
+          });
+        });
+        setState(() {
+          _displayTags = _Mtags
+              .map((mstTag) => MultiSelectItem<MstTag>(mstTag, mstTag.name))
+              .toList();
+        });
+  //      //取得したタグマスタをstoreに保存
+  //      Provider.of<Display>(context, listen: false).setMstTag(_Mtags);
+
+        //タグリストの取得
+        await dbHelper.getAllTags().then((item){
+          setState(() {
+            _tags.clear();
+            _tags.addAll(item);
+          });
+        });
+      }
+    } catch (exception) {
+      print(exception);
+      this._isError = true;
     }
   }
 
@@ -278,6 +291,7 @@ class _RecipiListState extends State<RecipiList>{
 
   //タグで検索　OKボタン押下時処理
   void _onTagSearch() async{
+    List recipiIds = [];
     setState(() {
       this._isTagSeach = this._isTagSeachFlg();
 //      print(_isTagSeach);
@@ -292,9 +306,14 @@ class _RecipiListState extends State<RecipiList>{
       }
       //検索するタグを連結した文字列を作成
       String mstTagIdsTX = tagIds.join(',');
-      //タグ検索結果
-      var recipiIds = await dbHelper.getTagsGropByRecipiId(mstTagIdsTX,tagIds.length);
+      try{
+        //タグ検索結果
+        recipiIds = await dbHelper.getTagsGropByRecipiId(mstTagIdsTX,tagIds.length);
 //      print('タグ検索結果：${recipiIds.length}');
+      } catch (exception) {
+        print(exception);
+        this._isError = true;
+      }
 
       setState(() {
         this._searchs.clear();
@@ -496,11 +515,17 @@ class _RecipiListState extends State<RecipiList>{
         , time: item.time
         ,folder_id: item.folder_id
       );
-    if(this._displayList[index].type == 2){
-      ingredients = await dbHelper.getIngredients(this._displayList[index].id);
-      howTos = await dbHelper.getHowtos(this._displayList[index].id);
-    }else{
-      photos = await dbHelper.getRecipiPhotos(this._displayList[index].id);
+
+    try{
+      if(this._displayList[index].type == 2){
+        ingredients = await dbHelper.getIngredients(this._displayList[index].id);
+        howTos = await dbHelper.getHowtos(this._displayList[index].id);
+      }else{
+        photos = await dbHelper.getRecipiPhotos(this._displayList[index].id);
+      }
+    } catch (exception) {
+      print(exception);
+      this._isError = true;
     }
     this._showDetail(recipi: recipi, ingredients: ingredients,howTos: howTos,photos: photos);
   }
@@ -697,129 +722,137 @@ class _RecipiListState extends State<RecipiList>{
   void _onDelete({Myrecipi recipi}) async {
     List ids = [];
     bool isRecipiDelete = false;
-    //編集画面に削除ボタン押下された場合
-    if(this._isSelectedDelete){
-      isRecipiDelete = true;
-      //レシピを削除
-      await dbHelper.deleteMyRecipi(recipi.id);
-      //レシピIDに紐づくタグを削除する
-      await dbHelper.deleteTagRecipiId(recipi.id);
-      //レシピIDに紐づく材料リストを削除
-      await dbHelper.deleteRecipiIngredient(recipi.id);
-      //レシピIDに紐づく作り方リストを削除
-      await dbHelper.deleteRecipiHowto(recipi.id);
-      //レシピIDに紐づく写真リストを削除
-      await dbHelper.deleteRecipiPhoto(recipi.id);
-      //レシピIDに紐づくごはん日記のレシピリストを削除する
-      await dbHelper.deleteDiaryRecipibyRecipiID(recipi.id);
-    } else {
-      //選択したフォルダマスタを削除
-      for(var i = 0; i < this._folders.length; i++){
-        if(this._folders[i].isCheck){
-          ids.add(this._folders[i].id);
-        }
-      }
-      if(ids.length > 0){
-        print('削除するフォルダマスタID：${ids}');
-        //フォルダマスタ削除処理
-        for(var i = 0; i < ids.length; i++){
-          //フォルダマスタ削除
-          await dbHelper.deleteMstFolder(ids[i]);
-          //フォルダマスタで削除したIDに紐づくレシピを取得する
-          List<Myrecipi> recipis = await dbHelper.getMyRecipibyFolderID(ids[i]);
-          //フォルダマスタで削除したIDに紐づくレシピを削除する
-          await dbHelper.deleteMyRecipiFolderId(ids[i]);
-          for(var j = 0; j < recipis.length; j++){
-            //レシピIDに紐づくタグを削除する
-            await dbHelper.deleteTagRecipiId(recipis[j].id);
-            //レシピIDに紐づく材料リストを削除
-            await dbHelper.deleteRecipiIngredient(recipis[j].id);
-            //レシピIDに紐づく作り方リストを削除
-            await dbHelper.deleteRecipiHowto(recipis[j].id);
-            //レシピIDに紐づく写真リストを削除
-            await dbHelper.deleteRecipiPhoto(recipis[j].id);
-            //削除したレシピIDに紐づくごはん日記のレシピリストを削除する
-            await dbHelper.deleteDiaryRecipibyRecipiID(recipis[j].id);
-          }
-        }
-      }
 
-      //選択したレシピを削除
-      ids.clear();
-      for(var i = 0; i < this._displayList.length; i++){
-        if(this._displayList[i].isCheck){
-          ids.add(this._displayList[i].id);
-        }
-      }
-      if(ids.length > 0){
+    try{
+
+      //編集画面に削除ボタン押下された場合
+      if(this._isSelectedDelete){
         isRecipiDelete = true;
-        print('削除するレシピID：${ids}');
-        for(var i = 0; i < ids.length; i++){
-          //レシピを削除
-          await dbHelper.deleteMyRecipi(ids[i]);
-          //レシピIDに紐づくタグを削除する
-          await dbHelper.deleteTagRecipiId(ids[i]);
-          //レシピIDに紐づく材料リストを削除
-          await dbHelper.deleteRecipiIngredient(ids[i]);
-          //レシピIDに紐づく作り方リストを削除
-          await dbHelper.deleteRecipiHowto(ids[i]);
-          //レシピIDに紐づく写真リストを削除
-          await dbHelper.deleteRecipiPhoto(ids[i]);
-          //レシピIDに紐づくごはん日記のレシピリストを削除する
-          await dbHelper.deleteDiaryRecipibyRecipiID(ids[i]);
-        }
-      }
-      setState(() {
-        this._isCheck = !this._isCheck;
-      });
-    }
-    //検索結果表示の場合
-    if(this._isSeach || _isTagSeach){
-      List<Myrecipi> searchs = Provider.of<Display>(context, listen: false).getSearchs();
-      //検索結果のリフレッシュ
-      for(var i = 0; i <ids.length; i++){
-        for(var k = 0; k < this._displayList.length; k++){
-          if(ids[i] == this._displayList[k].id){
-            this._displayList.removeAt(k);
-            searchs.removeAt(k);
+        //レシピを削除
+        await dbHelper.deleteMyRecipi(recipi.id);
+        //レシピIDに紐づくタグを削除する
+        await dbHelper.deleteTagRecipiId(recipi.id);
+        //レシピIDに紐づく材料リストを削除
+        await dbHelper.deleteRecipiIngredient(recipi.id);
+        //レシピIDに紐づく作り方リストを削除
+        await dbHelper.deleteRecipiHowto(recipi.id);
+        //レシピIDに紐づく写真リストを削除
+        await dbHelper.deleteRecipiPhoto(recipi.id);
+        //レシピIDに紐づくごはん日記のレシピリストを削除する
+        await dbHelper.deleteDiaryRecipibyRecipiID(recipi.id);
+      } else {
+        //選択したフォルダマスタを削除
+        for(var i = 0; i < this._folders.length; i++){
+          if(this._folders[i].isCheck){
+            ids.add(this._folders[i].id);
           }
         }
-      }
-      if(_isSelectedDelete){
-        for(var k = 0; k < this._displayList.length; k++){
-          if(recipi.id == this._displayList[k].id){
-            this._displayList.removeAt(k);
-            searchs.removeAt(k);
+        if(ids.length > 0){
+          print('削除するフォルダマスタID：${ids}');
+          //フォルダマスタ削除処理
+          for(var i = 0; i < ids.length; i++){
+            //フォルダマスタ削除
+            await dbHelper.deleteMstFolder(ids[i]);
+            //フォルダマスタで削除したIDに紐づくレシピを取得する
+            List<Myrecipi> recipis = await dbHelper.getMyRecipibyFolderID(ids[i]);
+            //フォルダマスタで削除したIDに紐づくレシピを削除する
+            await dbHelper.deleteMyRecipiFolderId(ids[i]);
+            for(var j = 0; j < recipis.length; j++){
+              //レシピIDに紐づくタグを削除する
+              await dbHelper.deleteTagRecipiId(recipis[j].id);
+              //レシピIDに紐づく材料リストを削除
+              await dbHelper.deleteRecipiIngredient(recipis[j].id);
+              //レシピIDに紐づく作り方リストを削除
+              await dbHelper.deleteRecipiHowto(recipis[j].id);
+              //レシピIDに紐づく写真リストを削除
+              await dbHelper.deleteRecipiPhoto(recipis[j].id);
+              //削除したレシピIDに紐づくごはん日記のレシピリストを削除する
+              await dbHelper.deleteDiaryRecipibyRecipiID(recipis[j].id);
+            }
           }
         }
+
+        //選択したレシピを削除
+        ids.clear();
+        for(var i = 0; i < this._displayList.length; i++){
+          if(this._displayList[i].isCheck){
+            ids.add(this._displayList[i].id);
+          }
+        }
+        if(ids.length > 0){
+          isRecipiDelete = true;
+          print('削除するレシピID：${ids}');
+          for(var i = 0; i < ids.length; i++){
+            //レシピを削除
+            await dbHelper.deleteMyRecipi(ids[i]);
+            //レシピIDに紐づくタグを削除する
+            await dbHelper.deleteTagRecipiId(ids[i]);
+            //レシピIDに紐づく材料リストを削除
+            await dbHelper.deleteRecipiIngredient(ids[i]);
+            //レシピIDに紐づく作り方リストを削除
+            await dbHelper.deleteRecipiHowto(ids[i]);
+            //レシピIDに紐づく写真リストを削除
+            await dbHelper.deleteRecipiPhoto(ids[i]);
+            //レシピIDに紐づくごはん日記のレシピリストを削除する
+            await dbHelper.deleteDiaryRecipibyRecipiID(ids[i]);
+          }
+        }
+        setState(() {
+          this._isCheck = !this._isCheck;
+        });
       }
-      setState(() {
-        //検索リスト用遅延読み込みリセット
-        this._displaySearchsLazy.clear();
-        this._searchCurrentLength = 0;
+      //検索結果表示の場合
+      if(this._isSeach || _isTagSeach){
+        List<Myrecipi> searchs = Provider.of<Display>(context, listen: false).getSearchs();
+        //検索結果のリフレッシュ
+        for(var i = 0; i <ids.length; i++){
+          for(var k = 0; k < this._displayList.length; k++){
+            if(ids[i] == this._displayList[k].id){
+              this._displayList.removeAt(k);
+              searchs.removeAt(k);
+            }
+          }
+        }
+        if(_isSelectedDelete){
+          for(var k = 0; k < this._displayList.length; k++){
+            if(recipi.id == this._displayList[k].id){
+              this._displayList.removeAt(k);
+              searchs.removeAt(k);
+            }
+          }
+        }
+        setState(() {
+          //検索リスト用遅延読み込みリセット
+          this._displaySearchsLazy.clear();
+          this._searchCurrentLength = 0;
 
-      });
-      //検索リスト用遅延読み込み
-      await this._loadMoreSearch();
-    }
+        });
+        //検索リスト用遅延読み込み
+        await this._loadMoreSearch();
+      }
 
-    await this.refreshImages(); //レコードリフレッシュ
-    //レシピ削除した場合
-    if(isRecipiDelete){
-      setState(() {
-        //レシピリスト用遅延読み込みリセット
-        this._displayRecipisLazy.clear();
-        this._recipiCurrentLength = 0;
+      await this.refreshImages(); //レコードリフレッシュ
+      //レシピ削除した場合
+      if(isRecipiDelete){
+        setState(() {
+          //レシピリスト用遅延読み込みリセット
+          this._displayRecipisLazy.clear();
+          this._recipiCurrentLength = 0;
 
-      });
-      //レシピリスト用遅延読み込み
-      await this._loadMoreRecipi();
-    }
-    //削除完了したので、削除フラグをfalseに戻す
-    if(this._isSelectedDelete){
-      setState(() {
-        this._isSelectedDelete = !this._isSelectedDelete;
-      });
+        });
+        //レシピリスト用遅延読み込み
+        await this._loadMoreRecipi();
+      }
+      //削除完了したので、削除フラグをfalseに戻す
+      if(this._isSelectedDelete){
+        setState(() {
+          this._isSelectedDelete = !this._isSelectedDelete;
+        });
+      }
+
+    } catch (exception) {
+      print(exception);
+      this._isError = true;
     }
 
   }
@@ -956,7 +989,7 @@ class _RecipiListState extends State<RecipiList>{
   //完了ボタン
   Widget completeBtn(){
     return Container(
-      width: 90,
+      width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
         child: FlatButton(
@@ -1002,7 +1035,7 @@ class _RecipiListState extends State<RecipiList>{
   //ナビゲーション
   Widget bottomNavigationBar(){
     return Consumer<Display>(
-        key: GlobalKey(),
+//        key: GlobalKey(),
         builder: (context,Display,_){
           return BottomNavigationBar(
             currentIndex: Display.currentIndex,
@@ -1058,7 +1091,7 @@ class _RecipiListState extends State<RecipiList>{
           children: <Widget>[
             //フォルダボタン
             Container(
-              width: 130,
+              width: MediaQuery.of(context).size.width * 0.3,
               child: Padding(
                 padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
                 child: FlatButton(
@@ -1079,7 +1112,7 @@ class _RecipiListState extends State<RecipiList>{
             ),
             //タグ付けボタン
             Container(
-              width: 130,
+              width: MediaQuery.of(context).size.width * 0.3,
               child: Padding(
                 padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
                 child: FlatButton(
@@ -1100,7 +1133,7 @@ class _RecipiListState extends State<RecipiList>{
             ),
             //削除するボタン
             Container(
-              width: 130,
+              width: MediaQuery.of(context).size.width * 0.3,
               child: Padding(
                 padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
                 child: FlatButton(
@@ -1129,7 +1162,8 @@ class _RecipiListState extends State<RecipiList>{
     return Stack(
       children: [
         showList(),
-        updater()
+        updater(),
+        error(isError: this._isError,),
       ],
     );
   }
@@ -1244,8 +1278,8 @@ class _RecipiListState extends State<RecipiList>{
 
     return
         SizedBox(
-          width: MediaQuery.of(context).size.width,
-          height: 70,
+          width: MediaQuery.of(context).size.width * 0.23,
+          height: MediaQuery.of(context).size.height * 0.07,
           child: Container(
             color: Colors.white,
             child: InkWell(
@@ -1267,8 +1301,8 @@ class _RecipiListState extends State<RecipiList>{
                     Container(
                       padding: EdgeInsets.all(5),
                       child: SizedBox(
-                        height: 50,
-                        width: 50,
+                        height: MediaQuery.of(context).size.width * 0.1,
+                        width: MediaQuery.of(context).size.width * 0.1,
                         child: Container(
                           color: Colors.amber[100 * (1 % 9)],
                           child: Icon(Icons.folder_open,color: Colors.white,size: 30,),
@@ -1501,7 +1535,7 @@ class _RecipiListState extends State<RecipiList>{
      return
           SizedBox(
             width: MediaQuery.of(context).size.width,
-            height: 150,
+            height: MediaQuery.of(context).size.height * 0.16,
             child: Container(
               color: Colors.white,
               padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
@@ -1525,15 +1559,15 @@ class _RecipiListState extends State<RecipiList>{
                       this._displayList[index].thumbnail.isNotEmpty
                           ? Card(
                         child: Container(
-                          height: 100,
-                          width: 100,
+                          height: MediaQuery.of(context).size.width * 0.25,
+                          width: MediaQuery.of(context).size.width * 0.25,
                           child: Image.file(File(common.replaceImage(this._displayList[index].thumbnail)),fit: BoxFit.cover,),
                         ),
                       )
                           : Card(
                         child: Container(
-                          height: 100,
-                          width: 100,
+                          height: MediaQuery.of(context).size.width * 0.25,
+                          width: MediaQuery.of(context).size.width * 0.25,
                           color: Colors.amber[100 * (1 % 9)],
                           child: Icon(Icons.restaurant,color: Colors.white,size: 50,),
                         ),
@@ -1541,13 +1575,13 @@ class _RecipiListState extends State<RecipiList>{
                       //タイトル、材料、タグエリア
                       Container(
 //                      color: Colors.grey,
-                        width: MediaQuery.of(context).size.width * 0.56,
+                        width: MediaQuery.of(context).size.width * 0.5,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             //タイトル
                             Container(
-                              height: 50,
+                              height: MediaQuery.of(context).size.height * 0.05,
                               padding: EdgeInsets.all(5),
                               child: Text('${this._displayList[index].title}',
                                 maxLines: 2,
@@ -1558,7 +1592,7 @@ class _RecipiListState extends State<RecipiList>{
                             ),
                             //材料
                             Container(
-                              height: 40,
+                              height: MediaQuery.of(context).size.height * 0.04,
                               padding: EdgeInsets.all(5),
 //                            child: Text('${ingredients.join(',')}',
                               child: Text('${ingredientsTX}',
@@ -1573,7 +1607,7 @@ class _RecipiListState extends State<RecipiList>{
                               Container(
 //                              width: MediaQuery.of(context).size.width * 0.5,
 //                              color: Colors.grey,
-                                height: 30,
+                                height: MediaQuery.of(context).size.height * 0.03,
                                 padding: EdgeInsets.only(left: 5,right: 5),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
@@ -1611,7 +1645,7 @@ class _RecipiListState extends State<RecipiList>{
                       if(!this._isCheck)
                         SizedBox(
                           width: MediaQuery.of(context).size.width * 0.15,
-                          height: 150,
+                          height: MediaQuery.of(context).size.height * 0.16,
                           child: Container(
 //                          color: Colors.greenAccent,
                             padding: EdgeInsets.all(5),
@@ -1652,7 +1686,7 @@ class _RecipiListState extends State<RecipiList>{
               //テキスト検索エリア
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.8,
-                height: 40,
+                height: MediaQuery.of(context).size.height * 0.04,
                 child: Container(
                   child: TextField(
                       onChanged: _onSearch,
@@ -1675,7 +1709,7 @@ class _RecipiListState extends State<RecipiList>{
                 decoration: BoxDecoration(
 //                  color: Colors.blueGrey,
                 ),
-                width: 60,
+                width: MediaQuery.of(context).size.width * 0.15,
                 child: Column(
                   children: <Widget>[
                     MultiSelectBottomSheetField(

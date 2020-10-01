@@ -11,7 +11,7 @@ class FactoryRecipi extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     return Consumer<Display>(
-      key: GlobalKey(),
+//      key: GlobalKey(),
       builder: (context, Display, _) {
 //        if(DisplayState.edit >= rootPage.length){
 //          return ErrorPage();

@@ -102,9 +102,9 @@ class _EditTitleState extends State<EditTitle>{
   //レシピ編集
   Widget scrollArea(){
     return Container(
-      key: GlobalKey(),
+//      key: GlobalKey(),
       child: SingleChildScrollView(
-        key: GlobalKey(),
+//        key: GlobalKey(),
         child: showForm(),
       ),
     );
@@ -113,7 +113,7 @@ class _EditTitleState extends State<EditTitle>{
   //ページ全体
   Widget showForm(){
     return Container(
-      key: GlobalKey(),
+//      key: GlobalKey(),
       //入力フィールドをformでグループ化し、key:_formKey(グローバルキー)と
         child: Container(
           alignment: Alignment.center,
@@ -128,7 +128,7 @@ class _EditTitleState extends State<EditTitle>{
               quantityInputArea(),    //分量単位入力欄
               timeArea(),             //調理時間
               timeInputArea(),        //調理時間入力欄
-              line(),
+//              line(),
             ]
            : <Widget>[
               titleArea(),            //タイトル
@@ -139,7 +139,7 @@ class _EditTitleState extends State<EditTitle>{
               quantityInputArea(),    //分量単位入力欄
               timeArea(),             //調理時間
               timeInputArea(),        //調理時間入力欄
-              line(),
+//              line(),
             ],
           ),
         ),
@@ -150,10 +150,10 @@ class _EditTitleState extends State<EditTitle>{
   Widget titleArea(){
     return
       SizedBox(
-        height: 50,
-//        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height * 0.05,
+        width: MediaQuery.of(context).size.width,
         child: Container(
-          color: Colors.grey,
+          color: Colors.deepOrange[100 * (2 % 9)],
           child: Row(
             children: <Widget>[
             Container(
@@ -176,7 +176,8 @@ class _EditTitleState extends State<EditTitle>{
 //        height: MediaQuery.of(context).size.height * 0.08,
 //        width: MediaQuery.of(context).size.width,
         child: Container(
-          width: 400,
+          color: Colors.white,
+          width: MediaQuery.of(context).size.width * 0.98,
           child: TextField(
             controller: _title,
             autofocus: false,
@@ -193,9 +194,10 @@ class _EditTitleState extends State<EditTitle>{
   Widget descriptionArea(){
     return
       SizedBox(
-        height: 50,
+        height: MediaQuery.of(context).size.height * 0.05,
+        width: MediaQuery.of(context).size.width,
         child: Container(
-          color: Colors.grey,
+          color: Colors.deepOrange[100 * (2 % 9)],
           child: Row(
             children: <Widget>[
             Container(
@@ -215,9 +217,10 @@ class _EditTitleState extends State<EditTitle>{
   Widget descriptionInputArea(){
     return
       SizedBox(
-        height: 150,
+        height: MediaQuery.of(context).size.height * 0.15,
         child: Container(
-          width: 400,
+          color: Colors.white,
+          width: MediaQuery.of(context).size.width * 0.98,
           child: TextField(
             controller: _description,
             autofocus: false,
@@ -236,9 +239,10 @@ class _EditTitleState extends State<EditTitle>{
   Widget quantityArea(){
     return
       SizedBox(
-        height: 50,
+        height: MediaQuery.of(context).size.height * 0.05,
+        width: MediaQuery.of(context).size.width,
         child: Container(
-          color: Colors.grey,
+          color: Colors.deepOrange[100 * (2 % 9)],
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -260,14 +264,16 @@ class _EditTitleState extends State<EditTitle>{
     return
       SizedBox(
         child: Container(
-          width: 400,
+          width: MediaQuery.of(context).size.width * 0.98,
           child: Column(
             children: <Widget>[
-              Row(
+              Container(
+                color: Colors.white,
+                child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   SizedBox(
-                    width: 300,
+                    width: MediaQuery.of(context).size.width * 0.7,
                     child: TextField(
                       controller: _quantity,
                       autofocus: false,
@@ -279,8 +285,8 @@ class _EditTitleState extends State<EditTitle>{
                     ),
                   ),
                   SizedBox(
-                    height: 40,
-                    width: 100,
+                    height: MediaQuery.of(context).size.height * 0.035,
+                    width: MediaQuery.of(context).size.width * 0.2,
                     child: Padding(padding: EdgeInsets.only(top: 10),
                       child: Text('${_displayUnit(unit: _unit)}',
                         style: TextStyle(fontWeight: FontWeight.bold),
@@ -289,9 +295,10 @@ class _EditTitleState extends State<EditTitle>{
                   ),
                 ],
               ),
+              ),
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 10.0,vertical: 10.0),
-                height: 80,
+                height:  MediaQuery.of(context).size.height * 0.08,
                 child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: 5,
@@ -301,7 +308,8 @@ class _EditTitleState extends State<EditTitle>{
                           RoundedButton(
                             title: '${_displayUnit(unit: index + 1)}',
 //                            splashColor: Colors.redAccent,
-                            buttonColor: _unit == index + 1 ? Colors.orangeAccent :Colors.grey,
+                            buttonColor: _unit == index + 1 ? Colors.orangeAccent :Colors.amber[100 * (1 % 9)],
+                            splashColor: Colors.orangeAccent,
                             onPressed: () {
                               setState(() {
                                   _unit = index + 1;
@@ -324,10 +332,10 @@ class _EditTitleState extends State<EditTitle>{
   Widget timeArea(){
     return
       SizedBox(
-        height: 50,
+        height: MediaQuery.of(context).size.height * 0.05,
 //        width: MediaQuery.of(context).size.width,
         child: Container(
-          color: Colors.grey,
+          color: Colors.deepOrange[100 * (2 % 9)],
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -349,15 +357,14 @@ class _EditTitleState extends State<EditTitle>{
   Widget timeInputArea(){
     return
       SizedBox(
-//        height: MediaQuery.of(context).size.height * 0.08,
-//        width: MediaQuery.of(context).size.width,
         child: Container(
-          width: 400,
+          color: Colors.white,
+          width: MediaQuery.of(context).size.width * 0.98,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               SizedBox(
-                width: 300,
+                width: MediaQuery.of(context).size.width * 0.7,
                 child:
                 TextField(
                   controller: _time,
@@ -369,7 +376,7 @@ class _EditTitleState extends State<EditTitle>{
                 ),
               ),
               SizedBox(
-                width: 100,
+                width: MediaQuery.of(context).size.width * 0.2,
                 child: Text('分',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
@@ -392,7 +399,7 @@ class _EditTitleState extends State<EditTitle>{
   //保存ボタン
   Widget completeBtn(){
     return Container(
-      width: 90,
+      width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
         child: FlatButton(

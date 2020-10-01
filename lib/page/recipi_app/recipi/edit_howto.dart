@@ -162,9 +162,9 @@ class _EditHowToState extends State<EditHowTo>{
   //レシピ編集
   Widget scrollArea(){
     return Container(
-      key: GlobalKey(),
+//      key: GlobalKey(),
       child: SingleChildScrollView(
-        key: GlobalKey(),
+//        key: GlobalKey(),
 //        padding: const EdgeInsets.only(left: 10.0, right: 10.0),
         child: showForm(),
       ),
@@ -174,7 +174,7 @@ class _EditHowToState extends State<EditHowTo>{
   //ページ全体
   Widget showForm(){
     return Container(
-      key: GlobalKey(),
+//      key: GlobalKey(),
       //入力フィールドをformでグループ化し、key:_formKey(グローバルキー)と
       child: Container(
         alignment: Alignment.center,
@@ -184,7 +184,7 @@ class _EditHowToState extends State<EditHowTo>{
           children: <Widget>[
             memoArea(),            //メモ
             memoInputArea(),       //メモ、画像入力欄
-            line(),
+//            line(),
             deleteButtonArea(),
           ],
         ),
@@ -196,8 +196,8 @@ class _EditHowToState extends State<EditHowTo>{
   Widget memoArea(){
     return
       SizedBox(
-        height: 50,
-//        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height * 0.05,
+        width: MediaQuery.of(context).size.width,
         child: Container(
           color: Colors.deepOrange[100 * (2 % 9)],
           child: Row(
@@ -220,19 +220,18 @@ class _EditHowToState extends State<EditHowTo>{
   //メモ、画像入力欄
   Widget memoInputArea(){
     return
-      SizedBox(
-//        height: MediaQuery.of(context).size.height * 0.08,
-//        width: MediaQuery.of(context).size.width,
+        SizedBox(
         child: Container(
-          width: 400,
-          height: 200,
+          color: Colors.white,
+          width: MediaQuery.of(context).size.width * 0.98,
+          height: MediaQuery.of(context).size.height * 0.2,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               //作り方エリア
               SizedBox(
                 child: Container(
-                  width: 250,
+                  width: MediaQuery.of(context).size.width * 0.7,
 //                  height: 250,
                   child: TextField(
                     controller: _memo,
@@ -251,8 +250,8 @@ class _EditHowToState extends State<EditHowTo>{
               _photo.isEmpty
                 ? Card(
                     child: Container(
-                      height: 100,
-                      width: 100,
+                      height: MediaQuery.of(context).size.height * 0.1,
+                      width: MediaQuery.of(context).size.width * 0.25,
                       color: Colors.amber[100 * (1 % 9)],
                       child: InkWell(
                           child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
@@ -264,8 +263,8 @@ class _EditHowToState extends State<EditHowTo>{
                   )
                 : Card(
                     child: Container(
-                      height: 100,
-                      width: 100,
+                      height: MediaQuery.of(context).size.height * 0.1,
+                      width: MediaQuery.of(context).size.width * 0.25,
                       child: InkWell(
                         child: Image.file(File(_photo),fit: BoxFit.cover,),
                         onTap: (){
@@ -284,7 +283,7 @@ class _EditHowToState extends State<EditHowTo>{
   Widget line(){
     return
       Divider(
-        color: Colors.grey,
+        color: Colors.deepOrange[100 * (2 % 9)],
         height: 0.5,
         thickness: 0.5,
       );
@@ -298,8 +297,8 @@ class _EditHowToState extends State<EditHowTo>{
         margin: const EdgeInsets.all(50),
         padding: const EdgeInsets.all(10),
         child: SizedBox(
-          width: 200,
-          height: 50,
+          width: MediaQuery.of(context).size.width * 0.45,
+          height: MediaQuery.of(context).size.height * 0.05,
           child: RaisedButton.icon(
             icon: Icon(Icons.delete,color: Colors.white,),
             label: Text('作り方を削除する'),
@@ -317,7 +316,7 @@ class _EditHowToState extends State<EditHowTo>{
 //保存ボタン
   Widget completeBtn(){
     return Container(
-      width: 90,
+      width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
         child: FlatButton(

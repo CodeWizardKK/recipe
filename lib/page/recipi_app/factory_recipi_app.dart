@@ -15,7 +15,7 @@ class FactoryRecipiApp extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     return Consumer<Display>(
-      key: GlobalKey(),
+//      key: GlobalKey(),
       builder: (context,Display,_){
 //        if(Display.currentIndex >= _listPages.length){
 //          return ErrorPage();

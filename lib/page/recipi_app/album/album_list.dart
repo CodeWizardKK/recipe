@@ -427,8 +427,8 @@ class _AlbumListState extends State<AlbumList>{
                   : _onDetail(photo: _photoAll[index]);
             },
             child: Container(
-              width: 150,
-              height: 150,
+              width: MediaQuery.of(context).size.width * 0.35,
+              height: MediaQuery.of(context).size.width * 0.35,
               child: Image.file(File(common.replaceImageDiary(_photoAll[index].path)),fit: BoxFit.cover,),
             ),
           ),
@@ -442,8 +442,8 @@ class _AlbumListState extends State<AlbumList>{
                 });
               },
               child: Container(
-                width: 150,
-                height: 150,
+                width: MediaQuery.of(context).size.width * 0.35,
+                height: MediaQuery.of(context).size.width * 0.35,
                 color: Colors.black26,
               )
           )
@@ -474,34 +474,33 @@ class _AlbumListState extends State<AlbumList>{
     return
       _isCheck
           ? Container(
-        width: 130,
-        child: Padding(
-          padding: EdgeInsets.only(top: 5,bottom: 5,left: 6,right: 6),
-          child: FlatButton(
-            onPressed:
-            _selectedCount().isEmpty
-                ? null
-                : (){
-              _onShareSave();
-            },
-            color: Colors.deepOrange[100 * (1 % 9)],
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-//                  const Icon(Icons.folder_open,color: Colors.white,),
-                const Text('共有 / 保存する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
-              ],
+            width: MediaQuery.of(context).size.width * 0.35,
+            child: Padding(
+              padding: EdgeInsets.only(top: 5,bottom: 5,left: 6,right: 6),
+              child: FlatButton(
+                onPressed:
+                _selectedCount().isEmpty
+                    ? null
+                    : (){
+                  _onShareSave();
+                },
+                color: Colors.deepOrange[100 * (1 % 9)],
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    const Text('共有 / 保存する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
-      )
+          )
           : Container();
   }
 
   //完了ボタン
   Widget completeBtn(){
     return Container(
-      width: 90,
+      width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
         child: FlatButton(
@@ -544,7 +543,7 @@ class _AlbumListState extends State<AlbumList>{
 
   Widget bottomNavigationBar(BuildContext context){
     return Consumer<Display>(
-        key: GlobalKey(),
+//        key: GlobalKey(),
         builder: (context,Display,_){
           return BottomNavigationBar(
             currentIndex: Display.currentIndex,

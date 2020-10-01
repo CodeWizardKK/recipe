@@ -129,9 +129,9 @@ class _EditIngredientState extends State<EditIngredient>{
   //レシピ編集
   Widget scrollArea(){
     return Container(
-      key: GlobalKey(),
+//      key: GlobalKey(),
       child: SingleChildScrollView(
-        key: GlobalKey(),
+//        key: GlobalKey(),
 //        padding: const EdgeInsets.only(left: 10.0, right: 10.0),
         child: showForm(),
       ),
@@ -141,7 +141,7 @@ class _EditIngredientState extends State<EditIngredient>{
   //ページ全体
   Widget showForm(){
     return Container(
-      key: GlobalKey(),
+//      key: GlobalKey(),
       //入力フィールドをformでグループ化し、key:_formKey(グローバルキー)と
       child: Container(
         alignment: Alignment.center,
@@ -153,7 +153,6 @@ class _EditIngredientState extends State<EditIngredient>{
             nameInputArea(),       //材料名入力欄
             quantityArea(),         //分量
             quantityInputArea(),    //分量入力欄
-            line(),
             deleteButtonArea(),
           ],
         ),
@@ -165,8 +164,8 @@ class _EditIngredientState extends State<EditIngredient>{
   Widget nameArea(){
     return
       SizedBox(
-        height: 50,
-//        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height * 0.05,
+        width: MediaQuery.of(context).size.width,
         child: Container(
           color: Colors.deepOrange[100 * (2 % 9)],
           child: Row(
@@ -191,10 +190,9 @@ class _EditIngredientState extends State<EditIngredient>{
     return Column(
       children: <Widget>[
         SizedBox(
-  //        height: MediaQuery.of(context).size.height * 0.08,
-  //        width: MediaQuery.of(context).size.width,
           child: Container(
-            width: 400,
+            color: Colors.white,
+            width: MediaQuery.of(context).size.width * 0.98,
             child: TextField(
               controller: _name,
               autofocus: false,
@@ -208,7 +206,7 @@ class _EditIngredientState extends State<EditIngredient>{
         ),
         Container(
           padding: EdgeInsets.symmetric(horizontal: 10.0,vertical: 10.0),
-          height: 80,
+          height:  MediaQuery.of(context).size.height * 0.08,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: _seasonings.length,
@@ -218,6 +216,7 @@ class _EditIngredientState extends State<EditIngredient>{
                   RoundedButton(
                     title: '${_seasonings[index].name}',
                     buttonColor: Colors.amber[100 * (1 % 9)],
+                    splashColor: Colors.orangeAccent,
                     onPressed: () {
                       setState(() {
                         _name.text = _seasonings[index].name;
@@ -239,8 +238,8 @@ class _EditIngredientState extends State<EditIngredient>{
   Widget quantityArea(){
     return
       SizedBox(
-        height: 50,
-//        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height * 0.05,
+        width: MediaQuery.of(context).size.width,
         child: Container(
           color: Colors.deepOrange[100 * (2 % 9)],
           child: Row(
@@ -265,10 +264,9 @@ class _EditIngredientState extends State<EditIngredient>{
     return Column(
       children: <Widget>[
         SizedBox(
-//        height: MediaQuery.of(context).size.height * 0.08,
-//        width: MediaQuery.of(context).size.width,
           child: Container(
-            width: 400,
+            color: Colors.white,
+            width: MediaQuery.of(context).size.width * 0.98,
             child: TextField(
               controller: _quantity,
               autofocus: false,
@@ -282,7 +280,7 @@ class _EditIngredientState extends State<EditIngredient>{
         ),
         Container(
           padding: EdgeInsets.symmetric(horizontal: 10.0,vertical: 10.0),
-          height: 80,
+          height:  MediaQuery.of(context).size.height * 0.08,
           child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: _quantityunit.length,
@@ -292,6 +290,7 @@ class _EditIngredientState extends State<EditIngredient>{
                     RoundedButton(
                       title: '${_quantityunit[index].name}',
                       buttonColor: Colors.amber[100 * (1 % 9)],
+                      splashColor: Colors.orangeAccent,
                       onPressed: () {
                         setState(() {
                           if(_quantityunit[index].id < 5){
@@ -313,16 +312,6 @@ class _EditIngredientState extends State<EditIngredient>{
     );
   }
 
-  //線
-  Widget line(){
-    return
-      Divider(
-        color: Colors.grey,
-        height: 0.5,
-        thickness: 0.5,
-      );
-  }
-
   //削除ボタン
   Widget deleteButtonArea() {
     return
@@ -331,8 +320,8 @@ class _EditIngredientState extends State<EditIngredient>{
        margin: const EdgeInsets.all(50),
         padding: const EdgeInsets.all(10),
         child: SizedBox(
-          width: 200,
-          height: 50,
+          width: MediaQuery.of(context).size.width * 0.45,
+          height: MediaQuery.of(context).size.height * 0.05,
           child: RaisedButton.icon(
             icon: Icon(Icons.delete,color: Colors.white,),
             label: Text('材料を削除する'),
@@ -351,7 +340,7 @@ class _EditIngredientState extends State<EditIngredient>{
 //保存ボタン
   Widget completeBtn(){
     return Container(
-      width: 90,
+      width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
         child: FlatButton(
