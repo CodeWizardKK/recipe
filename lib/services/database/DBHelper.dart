@@ -396,7 +396,7 @@ class DBHelper{
   Future<List<Diary>> getDiaryGroupByMonth(String group) async {
 //    print('①');
     var dbClient = await db;
-    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$BODY,$DATE,$CATEGORY,$THUMBNAIL,strftime(?,$DATE) as month FROM $DIARY_TABLE where month = ?',['%Y-%m',group]);
+    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$BODY,$DATE,$CATEGORY,$THUMBNAIL,strftime(?,$DATE) as month FROM $DIARY_TABLE where month = ? ORDER BY $DATE DESC ',['%Y-%m',group]);
     List<Diary> diarys = [];
     if(maps.length > 0){
       for(var i = 0; i < maps.length; i++){
