@@ -1,10 +1,12 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:recipe_app/page/recipi_app/diary/diary_edit.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
+import 'package:recipe_app/page/recipi_app/diary/diary_edit.dart';
 import 'package:recipe_app/page/recipi_app/recipi/recipi_edit.dart';
 import 'package:recipe_app/model/edit/Ingredient.dart';
 import 'package:recipe_app/model/Tag.dart';
@@ -35,6 +37,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
   DisplayDiary _diary = DisplayDiary();    //選択したごはん日記
   List<Recipi> _recipis = List<Recipi>();  //選択したごはん日記に紐づくレシピリストを格納
   int _photoIndex = 0;                     //サムネイルで表示する写真のindexを格納
+  int _current = 0;
 
   final int increment = 10;                   //読み込み件数
   static GlobalKey previewContainer = GlobalKey();
@@ -63,6 +66,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
        for(var i = 0; i < this._diary.photos.length; i++){
          if(this._diary.photos[i].no == photo.no && this._diary.photos[i].path == photo.path ){
            this._photoIndex = i;
+           this._current = i;
          }
        }
       }
@@ -243,12 +247,17 @@ class _DiaryDetailState extends State<DiaryDetail>{
     return newDate;
   }
 
+  final _scaffoldKey = new GlobalKey<ScaffoldState>();
+  final _globalKey = new GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
+    return
+      RepaintBoundary(
       key: previewContainer,
-      child: Scaffold(
+      child:
+      Scaffold(
+//        key: _scaffoldKey,
         appBar: AppBar(
           backgroundColor: Colors.deepOrange[100 * (1 % 9)],
           leading: backBtn(),
@@ -269,6 +278,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
           ],
         ),
         body: scrollArea()
+//        body: imageArea()
       ),
     );
   }
@@ -305,10 +315,10 @@ class _DiaryDetailState extends State<DiaryDetail>{
 
   //レシピ詳細
   Widget scrollArea(){
-    print('レシピなし');
+
     return Container(
       child: SingleChildScrollView(
-        key: GlobalKey(),
+//        key: _globalKey,
         child: showForm(),
       ),
     );
@@ -323,8 +333,9 @@ class _DiaryDetailState extends State<DiaryDetail>{
           children:
                <Widget>[
                  dateCategoryArea(),   //日付 分類
-                 thumbnailArea(),     //選択した画像
-                 photosArea(),        //写真リスト
+                 imageArea(),
+//                 thumbnailArea(),     //選択した画像
+//                 photosArea(),        //写真リスト
                  bodyArea(),          //本文
                  recipiArea(),        //レシピ
                  recipiListArea(),    //レシピリスト
@@ -383,8 +394,8 @@ class _DiaryDetailState extends State<DiaryDetail>{
                             child:
                             index == _photoIndex
                                 ? Container(
-                              width: 100,
-                              height: 100,
+                              width: MediaQuery.of(context).size.width * 0.25,
+                              height: MediaQuery.of(context).size.width * 0.25,
                               child: Image.file(File(_diary.photos[index].path),fit: BoxFit.cover,),
                               decoration: (
                                   BoxDecoration(
@@ -397,8 +408,8 @@ class _DiaryDetailState extends State<DiaryDetail>{
                               ),
                             )
                                 : Container(
-                              width: 100,
-                              height: 100,
+                              width: MediaQuery.of(context).size.width * 0.25,
+                              height: MediaQuery.of(context).size.width * 0.25,
                               child: Image.file(File(_diary.photos[index].path),fit: BoxFit.cover,),
                             )
                         ),
@@ -409,6 +420,95 @@ class _DiaryDetailState extends State<DiaryDetail>{
             }
         ),
       );
+  }
+
+  Widget imageArea(){
+    return
+      _diary.photos.length == 0
+          ? Container()
+          : Container(
+          child:
+      Column(
+        children: [
+          CarouselSlider(
+            items: _diary.photos.map((item) => Container(
+              child: Container(
+                margin: EdgeInsets.all(5.0),
+                child: ClipRRect(
+                    borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                    child: Stack(
+                      children: <Widget>[
+//                          Image.network(item, fit: BoxFit.cover, width: 1000.0),
+                        Image.file(File(item.path),fit: BoxFit.cover, width: 1000.0),
+                        Positioned(
+                          bottom: 0.0,
+                          left: 0.0,
+                          right: 0.0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Color.fromARGB(200, 0, 0, 0),
+                                  Color.fromARGB(0, 0, 0, 0)
+                                ],
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                              ),
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+//                              child: Text(
+//                                'No. ${_diary.photos.indexOf(item)} image',
+//                                style: TextStyle(
+//                                  color: Colors.white,
+//                                  fontSize: 20.0,
+//                                  fontWeight: FontWeight.bold,
+//                                ),
+//                              ),
+                          ),
+                        ),
+                      ],
+                    )
+                ),
+              ),
+            )).toList(),
+            options: CarouselOptions(
+                initialPage: _photoIndex,
+                scrollDirection: Axis.horizontal,
+//                autoPlay: true,
+//                enlargeCenterPage: true,
+                aspectRatio: 2.0,
+
+                onPageChanged: (index, reason) {
+                  print(inspect(this));
+//                    print('indexO:${index}');
+
+                  setState(() {
+                    this._current = index;
+                  });
+                }
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: _diary.photos.map((photo) {
+              int no = _diary.photos.indexOf(photo);
+              print('index②:${no}');
+              return Container(
+                width: MediaQuery.of(context).size.width * 0.015,
+                height: MediaQuery.of(context).size.width * 0.015,
+                margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 2.0),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: this._current == no
+                      ? Color.fromRGBO(0, 0, 0, 0.9)
+                      : Color.fromRGBO(0, 0, 0, 0.4),
+                ),
+              );
+            }).toList(),
+          ),
+        ]
+    ),
+    );
   }
 
   //本文
@@ -539,7 +639,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
       return
         SizedBox(
           width: MediaQuery.of(context).size.width,
-          height: 150,
+          height: MediaQuery.of(context).size.height * 0.16,
           child: Container(
             color: Colors.white,
             padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
@@ -550,15 +650,15 @@ class _DiaryDetailState extends State<DiaryDetail>{
                     //サムネイルエリア
                     this._recipis[index].recipi.thumbnail.isNotEmpty
                         ? SizedBox(
-                      height: 100,
-                      width: 100,
+                      height: MediaQuery.of(context).size.width * 0.25,
+                      width: MediaQuery.of(context).size.width * 0.25,
                       child: Container(
                         child: Image.file(File(this._recipis[index].recipi.thumbnail),fit: BoxFit.cover,),
                       ),
                     )
                         : SizedBox(
-                      height: 100,
-                      width: 100,
+                      height: MediaQuery.of(context).size.width * 0.25,
+                      width: MediaQuery.of(context).size.width * 0.25,
                       child: Container(
                         color: Colors.amber[100 * (1 % 9)],
                         child: Icon(Icons.restaurant,color: Colors.white,size: 50,),
@@ -573,7 +673,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                         children: <Widget>[
                           //タイトル
                           Container(
-                            height: 50,
+                            height: MediaQuery.of(context).size.height * 0.05,
                             padding: EdgeInsets.all(5),
                             child: Text('${this._recipis[index].recipi.title}',
                               maxLines: 2,
@@ -584,7 +684,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                           ),
                           //材料
                           Container(
-                            height: 40,
+                            height: MediaQuery.of(context).size.height * 0.04,
                             padding: EdgeInsets.all(5),
 //                            child: Text('${ingredients.join(',')}',
                             child: Text('${ingredientsTX}',
@@ -599,7 +699,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                             Container(
 //                              width: MediaQuery.of(context).size.width * 0.5,
 //                              color: Colors.grey,
-                              height: 30,
+                              height: MediaQuery.of(context).size.height * 0.03,
                               padding: EdgeInsets.only(left: 5,right: 5),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
@@ -644,3 +744,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
       );
   }
 }
+
+
+
+
