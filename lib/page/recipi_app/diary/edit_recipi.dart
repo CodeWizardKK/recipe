@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 
 import 'package:recipe_app/services/database/DBHelper.dart';
 import 'package:recipe_app/services/Common.dart';
@@ -338,7 +339,7 @@ class _EditRecipiState extends State<EditRecipi>{
                         children: <Widget>[
                           //タイトル
                           Container(
-                            height: 50,
+                            height: MediaQuery.of(context).size.height * 0.045,
                             padding: EdgeInsets.all(5),
                             child: Text('${this._recipis[index].title}',
                               maxLines: 2,
@@ -349,7 +350,7 @@ class _EditRecipiState extends State<EditRecipi>{
                           ),
                           //材料
                           Container(
-                            height: 40,
+                            height: MediaQuery.of(context).size.height * 0.04,
                             padding: EdgeInsets.all(5),
 //                            child: Text('${ingredients.join(',')}',
                             child: Text('${ingredientsTX}',
@@ -364,33 +365,25 @@ class _EditRecipiState extends State<EditRecipi>{
                             Container(
 //                              width: MediaQuery.of(context).size.width * 0.5,
 //                              color: Colors.grey,
-                              height: 30,
+                              height: MediaQuery.of(context).size.height * 0.05,
                               padding: EdgeInsets.only(left: 5,right: 5),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: <Widget>[
                                   //タグicon
                                   Container(
-                                    child: Icon(Icons.local_offer,size: 15,color: Colors.amber[100 * (1 % 9)],),
+                                    child: Icon(Icons.local_offer,size: 20,color: Colors.yellow[100 * (1 % 9)]),
                                   ),
-                                  //タグ名　最大5件まで
-                                  for(var k = 0; k<tags.length;k++)
-                                    Container(
-                                      padding: EdgeInsets.all(2),
-                                      child: SizedBox(
-                                        child: Container(
-                                          padding: EdgeInsets.all(5),
-                                          color: Colors.amber[100 * (1 % 9)],
-
-                                          child: Text('${tags[k].name}',
-                                            style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.grey
-                                            ),
-                                            maxLines: 1,),
-                                        ),
-                                      ),
+                                  Container(
+                                    width: MediaQuery.of(context).size.width * 0.60,
+                                    child: MultiSelectChipDisplay(
+                                      chipColor: Colors.yellow,
+                                      onTap: null,
+                                      items: tags
+                                          .map((e) => MultiSelectItem<Tag>(e, e.name))
+                                          .toList(),
                                     ),
+                                  ),
                                 ],
                               ),
                             ),

@@ -23,13 +23,13 @@ import 'package:recipe_app/model/edit/Photo.dart';
 
 import 'package:recipe_app/updater.dart';
 
-class RecipiListGroupFolder extends StatefulWidget{
+class GroupByFolderList extends StatefulWidget{
 
   @override
-  _RecipiListGroupFolderState createState() => _RecipiListGroupFolderState();
+  _GroupByFolderListState createState() => _GroupByFolderListState();
 }
 
-class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
+class _GroupByFolderListState extends State<GroupByFolderList>{
 
   DBHelper dbHelper;
   Common common;
@@ -869,6 +869,11 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                 title: const Text('レシピ'),
               ),
               BottomNavigationBarItem(
+                icon: Icon(Icons.folder_open),
+                title: const Text('フォルダ別'),
+//          backgroundColor: Colors.blue,
+              ),
+              BottomNavigationBarItem(
                 icon: Icon(Icons.date_range),
                 title: const Text('ごはん日記'),
               ),
@@ -1022,7 +1027,7 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                   children: <Widget>[
                     Container(
                       padding: EdgeInsets.all(10),
-                      child: Text('MYレシピ', style: TextStyle(
+                      child: Text('レシピ', style: TextStyle(
                           color: Colors.white,
                           fontSize: 15,
 //                          fontWeight: FontWeight.bold
@@ -1217,13 +1222,13 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                   //タイトル、材料、タグエリア
                   Container(
 //                      color: Colors.grey,
-                    width: MediaQuery.of(context).size.width * 0.5,
+                    width: MediaQuery.of(context).size.width * 0.58,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         //タイトル
                         Container(
-                          height: MediaQuery.of(context).size.height * 0.05,
+                          height: MediaQuery.of(context).size.height * 0.045,
                           padding: EdgeInsets.all(5),
                           child: Text('${this._displayList[index].title}',
                             maxLines: 2,
@@ -1247,35 +1252,28 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                         //タグ
                         if(tags.length > 0)
                           Container(
-//                              width: MediaQuery.of(context).size.width * 0.5,
-//                              color: Colors.grey,
-                            height: MediaQuery.of(context).size.height * 0.03,
+                            height: MediaQuery.of(context).size.height * 0.05,
                             padding: EdgeInsets.only(left: 5,right: 5),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: <Widget>[
                                 //タグicon
                                 Container(
-                                  child: Icon(Icons.local_offer,size: 15,color: Colors.amber[100 * (1 % 9)]),
+                                  padding: EdgeInsets.only(top: 10),
+                                  width: MediaQuery.of(context).size.width * 0.03,
+                                  child: Icon(Icons.local_offer,size: 20,color: Colors.yellow[100 * (1 % 9)]),
                                 ),
-                                //タグ名　最大5件まで
-                                for(var k = 0; k<tags.length;k++)
-                                  Container(
-                                    padding: EdgeInsets.all(2),
-                                    child: SizedBox(
-                                      child: Container(
-                                        padding: EdgeInsets.all(5),
-                                        color: Colors.amber[100 * (1 % 9)],
-
-                                        child: Text('${tags[k].name}',
-                                          style: TextStyle(
-                                              fontSize: 10,
-                                              color: Colors.grey
-                                          ),
-                                          maxLines: 1,),
-                                      ),
-                                    ),
+                                Container(
+//                                      color: Colors.brown,
+                                  width: MediaQuery.of(context).size.width * 0.52,
+                                  child: MultiSelectChipDisplay(
+                                    chipColor: Colors.yellow,
+                                    onTap: null,
+                                    items: tags
+                                        .map((e) => MultiSelectItem<Tag>(e, e.name))
+                                        .toList(),
                                   ),
+                                ),
                               ],
                             ),
                           ),
@@ -1286,13 +1284,13 @@ class _RecipiListGroupFolderState extends State<RecipiListGroupFolder>{
                   //フォルダエリア
                   if(!this._isCheck)
                     SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.15,
+                      width: MediaQuery.of(context).size.width * 0.12,
                       height: MediaQuery.of(context).size.height * 0.16,
                       child: Container(
 //                          color: Colors.greenAccent,
                         padding: EdgeInsets.all(5),
                         child: InkWell(
-                          child: Icon(Icons.folder,color: Colors.orangeAccent,size: 30,),
+                          child: Icon(Icons.folder,color: Colors.orange[100 * (3 % 9)],size: 30,),
                           onTap: (){
                             _onFolderTap(index: index,ingredients: ingredientsTX,tags: tags,type: 0);
                           },

@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 
 import 'package:recipe_app/page/recipi_app/diary/diary_edit.dart';
 import 'package:recipe_app/page/recipi_app/recipi/recipi_edit.dart';
@@ -673,7 +674,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                         children: <Widget>[
                           //タイトル
                           Container(
-                            height: MediaQuery.of(context).size.height * 0.05,
+                            height: MediaQuery.of(context).size.height * 0.045,
                             padding: EdgeInsets.all(5),
                             child: Text('${this._recipis[index].recipi.title}',
                               maxLines: 2,
@@ -699,33 +700,46 @@ class _DiaryDetailState extends State<DiaryDetail>{
                             Container(
 //                              width: MediaQuery.of(context).size.width * 0.5,
 //                              color: Colors.grey,
-                              height: MediaQuery.of(context).size.height * 0.03,
+                              height: MediaQuery.of(context).size.height * 0.05,
                               padding: EdgeInsets.only(left: 5,right: 5),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: <Widget>[
                                   //タグicon
                                   Container(
-                                    child: Icon(Icons.local_offer,size: 15,color: Colors.amber[100 * (1 % 9)]),
+                                    padding: EdgeInsets.only(top: 10),
+                                    width: MediaQuery.of(context).size.width * 0.03,
+                                    child: Icon(Icons.local_offer,size: 20,color: Colors.yellow[100 * (1 % 9)]),
                                   ),
-                                  //タグ名　最大5件まで
-                                  for(var k = 0; k<this._recipis[index].tags.length;k++)
-                                    Container(
-                                      padding: EdgeInsets.all(2),
-                                      child: SizedBox(
-                                        child: Container(
-                                          padding: EdgeInsets.all(5),
-                                          color: Colors.amber[100 * (1 % 9)],
-
-                                          child: Text('${this._recipis[index].tags[k].name}',
-                                            style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.grey
-                                            ),
-                                            maxLines: 1,),
-                                        ),
-                                      ),
+                                  Container(
+//                                    color: Colors.brown,
+                                    width: MediaQuery.of(context).size.width * 0.64,
+                                    child: MultiSelectChipDisplay(
+                                      chipColor: Colors.yellow,
+                                      onTap: null,
+                                      items: this._recipis[index].tags
+                                          .map((e) => MultiSelectItem<Tag>(e, e.name))
+                                          .toList(),
                                     ),
+                                  ),
+//                                  //タグ名　最大5件まで
+//                                  for(var k = 0; k<this._recipis[index].tags.length;k++)
+//                                    Container(
+//                                      padding: EdgeInsets.all(2),
+//                                      child: SizedBox(
+//                                        child: Container(
+//                                          padding: EdgeInsets.all(5),
+//                                          color: Colors.amber[100 * (1 % 9)],
+//
+//                                          child: Text('${this._recipis[index].tags[k].name}',
+//                                            style: TextStyle(
+//                                                fontSize: 10,
+//                                                color: Colors.grey
+//                                            ),
+//                                            maxLines: 1,),
+//                                        ),
+//                                      ),
+//                                    ),
                                 ],
                               ),
                             ),

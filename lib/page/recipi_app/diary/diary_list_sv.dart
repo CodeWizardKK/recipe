@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
 import 'package:recipe_app/page/recipi_app/diary/diary_detail.dart';
 import 'package:recipe_app/page/recipi_app/diary/diary_edit.dart';
-import 'package:recipe_app/page/recipi_app/navigation/about.dart';
 import 'package:recipe_app/page/recipi_app/recipi/recipi_sort.dart';
 import 'package:sticky_headers/sticky_headers.dart';
 import 'package:recipe_app/store/display_state.dart';
@@ -34,14 +33,11 @@ class _DiaryListState extends State<DiaryList>{
   DBHelper dbHelper;
   Common common;
   List<DisplayDiaryGroupDate> _displayDiaryGroupDates = List<DisplayDiaryGroupDate>();
-//  List<DisplayDiaryGroupDate> _DDG = List<DisplayDiaryGroupDate>();
 
   List<DisplayDiaryGroupDate> _lazy = List<DisplayDiaryGroupDate>(); //遅延読み込み用リスト
   bool _isLoading = false;                               //true:遅延読み込み中
   int _currentLength = 0;                                //遅延読み込み件数を格納
-//  int _dcurrentLength = 0;                                //遅延読み込み件数を格納
-  final int increment = 5;                               //読み込み件数
-//  final int dincrement = 5;                               //読み込み件数
+  final int increment = 6; //読み込み件数
 
   @override
   void initState() {
@@ -89,54 +85,6 @@ class _DiaryListState extends State<DiaryList>{
       });
     }
   }
-//  //レシピリスト用遅延読み込み
-//  Future _loadMore() async {
-//    print('+++++_loadMore+++++++');
-//    if(mounted){
-//      setState(() {
-//        _isLoading = true;
-//        print('++++${_isLoading}++++');
-//      });
-//    }
-//
-//    await Future.delayed(const Duration(seconds: 1));
-//
-//
-//    DisplayDiaryGroupDate d  = DisplayDiaryGroupDate(id: -1,month: '',displayDiarys: []);
-//    for (var i = _currentLength; i < _currentLength + increment; i++) {
-//      if( i < this._DDG.length) {
-//        d.month = this._DDG[i].month;
-//        d.id = this._DDG[i].id;
-//        for (var k = 0; k < dincrement; k++) {
-//          d.displayDiarys.add(this._DDG[i].displayDiarys[k]);
-//          print('①K++++ ${k} +++++');
-//        }
-//        print('①i++++ ${i} +++++');
-////        if (i < this._DDG.length) {
-//          if (mounted) {
-//            setState(() {
-//              _lazy.add(d);
-//            });
-//            print('②++++${_lazy.length}+++++');
-//          }
-////        } else {
-////          print('+++break+++');
-////          break;
-////        }
-//      } else {
-//        print('+++break+++');
-//        break;
-//      }
-//
-//    }
-//    if(mounted){
-//      setState(() {
-//        _isLoading = false;
-//        _currentLength = _lazy.length;
-//        _dcurrentLength = d.displayDiarys.length;
-//      });
-//    }
-//  }
 
   //表示しているレコードのリセットし、最新のレコードを取得し、表示
   Future<void> refreshImages() async {
@@ -146,7 +94,6 @@ class _DiaryListState extends State<DiaryList>{
     List<DRecipi> recipis = [];
     List<DisplayDiary> displayDiarys = [];
     this._displayDiaryGroupDates = [];
-//    this._DDG = [];
 
     //月別リストの取得
     var groups = await dbHelper.getDiaryMonth();
@@ -200,13 +147,6 @@ class _DiaryListState extends State<DiaryList>{
       displayDiarys.clear();
       this._displayDiaryGroupDates.add(displayDiaryGroupDate);
       this._displayDiaryGroupDates.sort((a,b) => b.id.compareTo(a.id));
-//      for(var i = 0; i < 1; i++){
-//        print(this._displayDiaryGroupDates[i].month);
-//        this._DDG.clear();
-//        this._DDG.add(this._displayDiaryGroupDates[i]);
-//      }
-//      this._DDG.forEach((element) => print('②②②②②month:${element.month},displayDiarys:${element.displayDiarys.length}'));
-//      print('${this._DDG.length}');
     }
 //    for(var i = 0; i < this._displayDiaryGroupDates.length; i++){
 //      print('######################################################');
@@ -426,24 +366,6 @@ class _DiaryListState extends State<DiaryList>{
     }
   }
 
-  //レシピの整理画面へ遷移
-  void _showAbout(){
-    Navigator.push(context,
-        MaterialPageRoute(
-          builder: (context) => About(),
-          fullscreenDialog: true,
-        )
-    ).then((result) {
-      print('閉じる');
-    });
-  }
-
-  //URLのシェア
-  void _onShareSave() async {
-    //シェア機能の呼び出し
-    await common.takeURLScreenShot();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -474,102 +396,57 @@ class _DiaryListState extends State<DiaryList>{
 
   //ドロワーナビゲーション
   Widget drawerNavigation(){
-    return Consumer<Display>(
-        builder: (context,Display,_) {
-          return Drawer(
-            child: ListView(
-              children: <Widget>[
-                Container(
-                  color: Colors.deepOrange[100 * (1 % 9)],
-                  child: ListTile(
-                    title: Center(
-                      child: Text('設定',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold
-                        ),
-                      ),
-                    ),
+    return Drawer(
+      child: ListView(
+        children: <Widget>[
+          Container(
+            color: Colors.deepOrange[100 * (1 % 9)],
+            child: ListTile(
+              title: Center(
+                child: Text('設定',
+                  style: TextStyle(
+                      color:Colors.white,
+                      fontWeight: FontWeight.bold
+                  ),
+                ),
+              ),
 //              subtitle: Text(''),
-                  ),
-                ),
-                Container(
-                  color: Colors.white,
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.folder_open, color: Colors.deepOrange[100 * (1 % 9)],),
-                    title: Text('フォルダの管理',
-                      style: TextStyle(
-//                fontWeight: FontWeight.bold
-                      ),
-                    ),
-                    onTap: () {
-                      _onFolderTap(type: 3);
-                    },
-                  ),
-                ),
-                Container(
-                  color: Colors.white,
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.local_offer, color: Colors.deepOrange[100 * (1 % 9)],),
-                    title: Text('タグの管理',
-                      style: TextStyle(
-//                  fontWeight: FontWeight.bold
-                      ),
-                    ),
-                    onTap: () {
-                      _onFolderTap(type: 4);
-                    },
-                  ),
-                ),
-                Container(
-                  color: Colors.white,
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.local_offer, color: Colors.deepOrange[100 * (1 % 9)],),
-                    title: Text('アプリを友達に紹介',
-                      style: TextStyle(
-//                  fontWeight: FontWeight.bold
-                      ),
-                    ),
-                    onTap: () {
-                      _onShareSave();
-                    },
-                  ),
-                ),
-                Container(
-                  color: Colors.white,
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.local_offer, color: Colors.deepOrange[100 * (1 % 9)],),
-                    title: Text('アプリについて',
-                      style: TextStyle(
-//                  fontWeight: FontWeight.bold
-                      ),
-                    ),
-                    onTap: () {
-                      _showAbout();
-                    },
-                  ),
-                ),
-                Container(
-//            color: Colors.deepOrange[100 * (1 % 9)],
-                  child: ListTile(
-                    title: Center(
-                      child: Text('version${Display.appCurrentVersion}',
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
             ),
-          );
-        }
+          ),
+          ListTile(
+            leading: Icon(Icons.folder_open,color: Colors.deepOrange[100 * (1 % 9)],),
+            title: Text('フォルダの管理',
+              style: TextStyle(
+//                fontWeight: FontWeight.bold
+              ),
+            ),
+            onTap: () {
+              _onFolderTap(type: 3);
+            },
+          ),
+          Divider(
+            color: Colors.grey,
+            height: 0.5,
+            thickness: 0.5,
+          ),
+          ListTile(
+            leading: Icon(Icons.local_offer,color: Colors.deepOrange[100 * (1 % 9)],),
+            title: Text('タグの管理',
+              style: TextStyle(
+//                  fontWeight: FontWeight.bold
+              ),
+            ),
+            onTap: () {
+              _onFolderTap(type: 4);
+            },
+          ),
+          Divider(
+            color: Colors.grey,
+            height: 0.5,
+            thickness: 0.5,
+          ),
+        ],
+      ),
     );
   }
 
@@ -603,12 +480,16 @@ class _DiaryListState extends State<DiaryList>{
             itemCount: _lazy.length,
             itemBuilder: (context, position) {
               if(_isLoading && position == _lazy.length - 1){
+                print('④');
                 if(this._displayDiaryGroupDates.length == _lazy.length){
+                  print('①');
                   return createDiary(position);
                 } else{
+                  print('②');
                   return Center(child: CircularProgressIndicator(),);
                 }
               } else {
+                print('③');
                 return createDiary(position);
               }
           }),

@@ -45,4 +45,11 @@ class versionCheckService {
     }
     return false;
   }
+  //現在のバージョン情報を取得
+  Future<double> getCurrentVersion() async {
+    // 現在のバージョン情報を取得
+    final PackageInfo info = await PackageInfo.fromPlatform();
+    double currentVersion = double.parse(info.buildNumber);
+    return currentVersion;
+  }
 }

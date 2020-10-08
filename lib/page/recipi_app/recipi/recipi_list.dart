@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
+import 'package:recipe_app/page/recipi_app/navigation/about.dart';
 
 import 'package:recipe_app/page/recipi_app/recipi/recipi_edit.dart';
 import 'package:recipe_app/page/recipi_app/recipi/recipi_sort.dart';
@@ -881,6 +882,23 @@ class _RecipiListState extends State<RecipiList>{
     return count;
   }
 
+  //レシピの整理画面へ遷移
+  void _showAbout(){
+    Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => About(),
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+      print('閉じる');
+    });
+  }
+
+  //URLのシェア
+  void _onShareSave() async {
+    //シェア機能の呼び出し
+    await common.takeURLScreenShot();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -916,73 +934,102 @@ class _RecipiListState extends State<RecipiList>{
 
   //ドロワーナビゲーション
   Widget drawerNavigation(){
-    return Drawer(
-      child: ListView(
-        children: <Widget>[
-//          DrawerHeader(
-//            child: Column(
-////              mainAxisSize: MainAxisSize.min,
-//              mainAxisAlignment: MainAxisAlignment.end,
-//              children: <Widget>[
-//
-//                Text('設定',
-//                  style: TextStyle(fontSize: 20,color: Colors.white),)
-//              ],
-//            ),
-//            decoration: BoxDecoration(
-//              color: Colors.deepOrange[100 * (1 % 9)],
-//            ),
-//          ),
-          Container(
-            color: Colors.deepOrange[100 * (1 % 9)],
-            child: ListTile(
-              title: Center(
-                child: Text('設定',
-                  style: TextStyle(
-                      color:Colors.white,
-//                      fontWeight: FontWeight.bold
+    return Consumer<Display>(
+        builder: (context,Display,_) {
+          return Drawer(
+            child: ListView(
+              children: <Widget>[
+                Container(
+                  color: Colors.deepOrange[100 * (1 % 9)],
+                  child: ListTile(
+                    title: Center(
+                      child: Text('設定',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold
+                        ),
+                      ),
+                    ),
+//              subtitle: Text(''),
                   ),
                 ),
-              ),
-//              subtitle: Text(''),
-            ),
-          ),
-          ListTile(
-            leading: Icon(Icons.folder_open,color: Colors.deepOrange[100 * (1 % 9)],),
-            title: Text('フォルダの管理',
-              style: TextStyle(
+                Container(
+                  color: Colors.white,
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.folder_open, color: Colors.deepOrange[100 * (1 % 9)],),
+                    title: Text('フォルダの管理',
+                      style: TextStyle(
 //                fontWeight: FontWeight.bold
-              ),
-            ),
-            onTap: () {
-//              Navigator.pop(context);
-              _onFolderTap(type: 3);
-            },
-          ),
-          Divider(
-            color: Colors.grey,
-            height: 0.5,
-            thickness: 0.5,
-          ),
-          ListTile(
-            leading: Icon(Icons.local_offer,color: Colors.deepOrange[100 * (1 % 9)],),
-            title: Text('タグの管理',
-              style: TextStyle(
+                      ),
+                    ),
+                    onTap: () {
+                      _onFolderTap(type: 3);
+                    },
+                  ),
+                ),
+                Container(
+                  color: Colors.white,
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.local_offer, color: Colors.deepOrange[100 * (1 % 9)],),
+                    title: Text('タグの管理',
+                      style: TextStyle(
 //                  fontWeight: FontWeight.bold
-              ),
+                      ),
+                    ),
+                    onTap: () {
+                      _onFolderTap(type: 4);
+                    },
+                  ),
+                ),
+                Container(
+                  color: Colors.white,
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.local_offer, color: Colors.deepOrange[100 * (1 % 9)],),
+                    title: Text('アプリを友達に紹介',
+                      style: TextStyle(
+//                  fontWeight: FontWeight.bold
+                      ),
+                    ),
+                    onTap: () {
+                      _onShareSave();
+                    },
+                  ),
+                ),
+                Container(
+                  color: Colors.white,
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.local_offer, color: Colors.deepOrange[100 * (1 % 9)],),
+                    title: Text('アプリについて',
+                      style: TextStyle(
+//                  fontWeight: FontWeight.bold
+                      ),
+                    ),
+                    onTap: () {
+                      _showAbout();
+                    },
+                  ),
+                ),
+                Container(
+//            color: Colors.deepOrange[100 * (1 % 9)],
+                  child: ListTile(
+                    title: Center(
+                      child: Text('version${Display.appCurrentVersion}',
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            onTap: () {
-//              Navigator.pop(context);
-              _onFolderTap(type: 4);
-            },
-          ),
-          Divider(
-            color: Colors.grey,
-            height: 0.5,
-            thickness: 0.5,
-          ),
-        ],
-      ),
+          );
+        }
     );
   }
 
@@ -1056,6 +1103,11 @@ class _RecipiListState extends State<RecipiList>{
               BottomNavigationBarItem(
                 icon: Icon(Icons.import_contacts),
                 title: const Text('レシピ'),
+//          backgroundColor: Colors.blue,
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.folder_open),
+                title: const Text('フォルダ別'),
 //          backgroundColor: Colors.blue,
               ),
               BottomNavigationBarItem(
@@ -1177,21 +1229,13 @@ class _RecipiListState extends State<RecipiList>{
         _isSeach || _isTagSeach
         ? <Widget>[
           searchArea(), //検索欄
-//          line(),
           searchResultArea(), //検索結果
-//          line(),
           Expanded(child:searchResultListArea()), //検索結果リスト
           buttonArea()
         ]
         : <Widget>[
           searchArea(), //検索欄
-//          line(),
-          folderArea(),
-//          line(),
-          folderListArea(),//フォルダ別
-//          line(),
           myrecipiArea(), //MYレシピ
-//          line(),
           Expanded(child:myrecipiListArea()), //MYレシピリスト
           buttonArea()
         ],
@@ -1379,7 +1423,7 @@ class _RecipiListState extends State<RecipiList>{
                   children: <Widget>[
                     Container(
                       padding: EdgeInsets.all(10),
-                      child: Text('MYレシピ',
+                      child: Text('全レシピ',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 15,
@@ -1575,13 +1619,14 @@ class _RecipiListState extends State<RecipiList>{
                       //タイトル、材料、タグエリア
                       Container(
 //                      color: Colors.grey,
-                        width: MediaQuery.of(context).size.width * 0.5,
+                        width: MediaQuery.of(context).size.width * 0.58,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             //タイトル
                             Container(
-                              height: MediaQuery.of(context).size.height * 0.05,
+//                              color: Colors.yellow,
+                              height: MediaQuery.of(context).size.height * 0.045,
                               padding: EdgeInsets.all(5),
                               child: Text('${this._displayList[index].title}',
                                 maxLines: 2,
@@ -1592,6 +1637,7 @@ class _RecipiListState extends State<RecipiList>{
                             ),
                             //材料
                             Container(
+//                              color: Colors.blue,
                               height: MediaQuery.of(context).size.height * 0.04,
                               padding: EdgeInsets.all(5),
 //                            child: Text('${ingredients.join(',')}',
@@ -1605,35 +1651,29 @@ class _RecipiListState extends State<RecipiList>{
                             //タグ
                             if(tags.length > 0)
                               Container(
-//                              width: MediaQuery.of(context).size.width * 0.5,
-//                              color: Colors.grey,
-                                height: MediaQuery.of(context).size.height * 0.03,
+                                height: MediaQuery.of(context).size.height * 0.05,
                                 padding: EdgeInsets.only(left: 5,right: 5),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: <Widget>[
                                     //タグicon
                                     Container(
-                                      child: Icon(Icons.local_offer,size: 15,color: Colors.amber[100 * (1 % 9)]),
+                                      padding: EdgeInsets.only(top: 10),
+                                      width: MediaQuery.of(context).size.width * 0.03,
+//                                      color: Colors.brown,
+                                      child: Icon(Icons.local_offer,size: 20,color: Colors.yellow[100 * (1 % 9)]),
                                     ),
-                                    //タグ名　最大5件まで
-                                    for(var k = 0; k<tags.length;k++)
-                                      Container(
-                                        padding: EdgeInsets.all(2),
-                                        child: SizedBox(
-                                          child: Container(
-                                            padding: EdgeInsets.all(5),
-                                            color: Colors.amber[100 * (1 % 9)],
-
-                                            child: Text('${tags[k].name}',
-                                              style: TextStyle(
-                                                  fontSize: 10,
-                                                  color: Colors.grey
-                                              ),
-                                              maxLines: 1,),
-                                          ),
-                                        ),
+                                    Container(
+//                                      color: Colors.brown,
+                                      width: MediaQuery.of(context).size.width * 0.52,
+                                      child: MultiSelectChipDisplay(
+                                        chipColor: Colors.yellow,
+                                        onTap: null,
+                                        items: tags
+                                            .map((e) => MultiSelectItem<Tag>(e, e.name))
+                                            .toList(),
                                       ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -1644,7 +1684,7 @@ class _RecipiListState extends State<RecipiList>{
                       //フォルダエリア
                       if(!this._isCheck)
                         SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.15,
+                          width: MediaQuery.of(context).size.width * 0.12,
                           height: MediaQuery.of(context).size.height * 0.16,
                           child: Container(
 //                          color: Colors.greenAccent,

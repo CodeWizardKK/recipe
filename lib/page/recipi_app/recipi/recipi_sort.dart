@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 
 import 'package:recipe_app/model/Tag.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
@@ -1049,7 +1050,7 @@ class _RecipiSortState extends State<RecipiSort>{
       height: MediaQuery.of(context).size.height * 0.16,
       child: Container(
         color: Colors.white,
-        padding: EdgeInsets.all(10),
+        padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -1057,6 +1058,7 @@ class _RecipiSortState extends State<RecipiSort>{
               thumbnailArea(),
               //タイトル、材料、タグエリア
               Container(
+//                color: Colors.grey,
                 width: MediaQuery.of(context).size.width * 0.7,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1127,38 +1129,32 @@ class _RecipiSortState extends State<RecipiSort>{
   //タグ
   Widget tagsArea(){
   return
-    widget.tags.length < 0
-      ? Container(
-        height: MediaQuery.of(context).size.height * 0.03,
-        padding: EdgeInsets.only(left: 5,right: 5)
-      )
+    widget.tags.length == 0
+      ? Container()
       : Container(
-      height: MediaQuery.of(context).size.height * 0.03,
+//      color:Colors.grey,
+      height: MediaQuery.of(context).size.height * 0.05,
       padding: EdgeInsets.only(left: 5,right: 5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           //タグicon
           Container(
-            child: Icon(Icons.local_offer,size: 15,color: Colors.amber[100 * (1 % 9)]),
+            padding: EdgeInsets.only(top: 10),
+            width: MediaQuery.of(context).size.width * 0.03,
+            child: Icon(Icons.local_offer,size: 20,color: Colors.yellow[100 * (1 % 9)]),
           ),
-          //タグ名　最大5件まで
-          for (var k = 0; k<widget.tags.length; k++)
-            Container(
-              padding: EdgeInsets.all(2),
-              child: SizedBox(
-                child: Container(
-                  padding: EdgeInsets.all(5),
-                  color: Colors.amber[100 * (1 % 9)],
-
-                  child: Text('${widget.tags[k].name}',
-                    style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey
-                    ),),
-                ),
-              ),
+          Container(
+//            color: Colors.brown,
+            width: MediaQuery.of(context).size.width * 0.64,
+            child: MultiSelectChipDisplay(
+              chipColor: Colors.yellow,
+              onTap: null,
+              items: widget.tags
+                  .map((e) => MultiSelectItem<Tag>(e, e.name))
+                  .toList(),
             ),
+          ),
         ],
       ),
     );

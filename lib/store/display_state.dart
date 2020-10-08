@@ -9,7 +9,7 @@ import 'package:recipe_app/model/VersionCheck.dart';
 //表示ステータスの状態クラス
 class Display with ChangeNotifier{
   int state = 0;          // 0 :一覧 4:フォルダ別レシピ一覧 9:エラー
-  int currentIndex = 0;   //0:ホーム 1:レシピ 2:ご飯日記 3:アルバム
+  int currentIndex = 0;   //0:ホーム 1:レシピ 2:ご飯日記 3:アルバム 4:フォルダ別レシピ
   List<Myrecipi> recipis = List<Myrecipi>();        //レシピ全件
   List<Myrecipi> searchs = List<Myrecipi>();        //レシピ検索結果
   List<Myrecipi> searchsTX = List<Myrecipi>();      //レシピ検索結果
@@ -19,6 +19,7 @@ class Display with ChangeNotifier{
   VersionCheck versionCheck = VersionCheck();       //バージョン情報チェック
   bool isInitBoot = true;                           //アプリ初期起動時かどうかのチェック
   int versionCheckTime = 0;                         //バージョンチェックした時間を保持
+  double appCurrentVersion = 0;                     //アプリのカレントバージョンを保持
 
   int getVersionCheckTime(){
     return this.versionCheckTime;
@@ -28,6 +29,12 @@ class Display with ChangeNotifier{
   void setVersionCheckTime(int versionCheckTime){
     this.versionCheckTime  = versionCheckTime;
     print('①セットチェック時間${this.versionCheckTime}');
+    notifyListeners();
+  }
+
+  //appバージョン情報
+  void setAppCurrentVersion(double appCurrentVersion){
+    this.appCurrentVersion  = appCurrentVersion;
     notifyListeners();
   }
 
@@ -110,7 +117,7 @@ class Display with ChangeNotifier{
     CheckRecipi recipi;
     if(isFolderIdZero){
       for(var i=0; i<this.recipis.length; i++){
-        if(this.recipis[i].folder_id == 0){
+//        if(this.recipis[i].folder_id == 0){
           recipi = CheckRecipi(
               id: this.recipis[i].id,
               type: this.recipis[i].type,
@@ -124,7 +131,7 @@ class Display with ChangeNotifier{
               isCheck: false
           );
           recipis.add(recipi);
-        }
+//        }
       }
     }else{
       for(var i=0; i<this.recipis.length; i++){

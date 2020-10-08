@@ -64,6 +64,13 @@ class Common {
     await Share.shareFiles(photos);
   }
 
+  //スクリーンショット(URL)のシェア機能
+  Future<void> takeURLScreenShot() async {
+    String text = 'おすすめレシピアプリ！https://aaaaaa.aaaff/aa/aaaaa';
+    //シェア
+    await Share.share(text);
+  }
+
   //ネットワーク接続の有無をチェック
   Future<bool> checkNetworkConnection() async {
     try {

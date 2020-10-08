@@ -171,6 +171,25 @@ class DBHelper{
     return myrecipis;
   }
 
+  //recipi
+  Future<List<MyrecipiGroupFolder>> getMyRecipisFolderName() async {
+    var dbClient = await db;
+    List<Map> maps = await dbClient.rawQuery('SELECT $RECIPI_TABLE.$ID,$RECIPI_TABLE.$FOLDER_ID,$MST_FOLDER_TABLE.$NAME FROM $RECIPI_TABLE left outer join $MST_FOLDER_TABLE on $RECIPI_TABLE.$FOLDER_ID  = $MST_FOLDER_TABLE.$ID');
+//    List<Map> maps = await dbClient.rawQuery('SELECT $FOLDER_ID,COUNT($FOLDER_ID) FROM $RECIPI_TABLE GROUP BY $FOLDER_ID');
+    List<MyrecipiGroupFolder> myrecipis = [];
+    if(maps.length > 0){
+      for(var i = 0; i < maps.length; i++){
+        //json形式 => Map型に展開する
+        myrecipis.add(MyrecipiGroupFolder.fromMap(maps[i]));
+      }
+    }
+    print("[myrecipi]Select: ${myrecipis.length}");
+    for(var i = 0; i < myrecipis.length; i++){
+      print('folder_id:${myrecipis[i].folder_id},name:${myrecipis[i].name},count:${myrecipis[i].count}');
+    }
+    return myrecipis;
+  }
+
   //mst_folder
   Future<List<MstFolder>> getMstFolders() async {
     var dbClient = await db;

@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
 import 'package:recipe_app/page/recipi_app/diary/diary_detail.dart';
 import 'package:recipe_app/page/recipi_app/diary/diary_edit.dart';
+import 'package:recipe_app/page/recipi_app/navigation/about.dart';
 import 'package:recipe_app/page/recipi_app/recipi/recipi_sort.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
@@ -241,7 +242,7 @@ class _AlbumListState extends State<AlbumList>{
     }
   }
 
-  void _onShareSave() async {
+  void _onImgShareSave() async {
     List<String> photos = [];
     for(var i = 0; i < this._selected.length; i++){
       if(this._selected[i]){
@@ -281,6 +282,24 @@ class _AlbumListState extends State<AlbumList>{
     });
   }
 
+  //レシピの整理画面へ遷移
+  void _showAbout(){
+    Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => About(),
+          fullscreenDialog: true,
+        )
+    ).then((result) {
+      print('閉じる');
+    });
+  }
+
+  //URLのシェア
+  void _onShareSave() async {
+    //シェア機能の呼び出し
+    await common.takeURLScreenShot();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -315,57 +334,102 @@ class _AlbumListState extends State<AlbumList>{
 
   //ドロワーナビゲーション
   Widget drawerNavigation(){
-    return Drawer(
-      child: ListView(
-        children: <Widget>[
-          Container(
-            color: Colors.deepOrange[100 * (1 % 9)],
-            child: ListTile(
-              title: Center(
-                child: Text('設定',
-                  style: TextStyle(
-                      color:Colors.white,
-                      fontWeight: FontWeight.bold
+    return Consumer<Display>(
+        builder: (context,Display,_) {
+          return Drawer(
+            child: ListView(
+              children: <Widget>[
+                Container(
+                  color: Colors.deepOrange[100 * (1 % 9)],
+                  child: ListTile(
+                    title: Center(
+                      child: Text('設定',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold
+                        ),
+                      ),
+                    ),
+//              subtitle: Text(''),
                   ),
                 ),
-              ),
-//              subtitle: Text(''),
-            ),
-          ),
-          ListTile(
-            leading: Icon(Icons.folder_open,color: Colors.deepOrange[100 * (1 % 9)],),
-            title: Text('フォルダの管理',
-              style: TextStyle(
+                Container(
+                  color: Colors.white,
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.folder_open, color: Colors.deepOrange[100 * (1 % 9)],),
+                    title: Text('フォルダの管理',
+                      style: TextStyle(
 //                fontWeight: FontWeight.bold
-              ),
-            ),
-            onTap: () {
-              _onFolderTap(type: 3);
-            },
-          ),
-          Divider(
-            color: Colors.grey,
-            height: 0.5,
-            thickness: 0.5,
-          ),
-          ListTile(
-            leading: Icon(Icons.local_offer,color: Colors.deepOrange[100 * (1 % 9)],),
-            title: Text('タグの管理',
-              style: TextStyle(
+                      ),
+                    ),
+                    onTap: () {
+                      _onFolderTap(type: 3);
+                    },
+                  ),
+                ),
+                Container(
+                  color: Colors.white,
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.local_offer, color: Colors.deepOrange[100 * (1 % 9)],),
+                    title: Text('タグの管理',
+                      style: TextStyle(
 //                  fontWeight: FontWeight.bold
-              ),
+                      ),
+                    ),
+                    onTap: () {
+                      _onFolderTap(type: 4);
+                    },
+                  ),
+                ),
+                Container(
+                  color: Colors.white,
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.local_offer, color: Colors.deepOrange[100 * (1 % 9)],),
+                    title: Text('アプリを友達に紹介',
+                      style: TextStyle(
+//                  fontWeight: FontWeight.bold
+                      ),
+                    ),
+                    onTap: () {
+                      _onShareSave();
+                    },
+                  ),
+                ),
+                Container(
+                  color: Colors.white,
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.local_offer, color: Colors.deepOrange[100 * (1 % 9)],),
+                    title: Text('アプリについて',
+                      style: TextStyle(
+//                  fontWeight: FontWeight.bold
+                      ),
+                    ),
+                    onTap: () {
+                      _showAbout();
+                    },
+                  ),
+                ),
+                Container(
+//            color: Colors.deepOrange[100 * (1 % 9)],
+                  child: ListTile(
+                    title: Center(
+                      child: Text('version${Display.appCurrentVersion}',
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            onTap: () {
-              _onFolderTap(type: 4);
-            },
-          ),
-          Divider(
-            color: Colors.grey,
-            height: 0.5,
-            thickness: 0.5,
-          ),
-        ],
-      ),
+          );
+        }
     );
   }
 
@@ -482,7 +546,7 @@ class _AlbumListState extends State<AlbumList>{
                 _selectedCount().isEmpty
                     ? null
                     : (){
-                  _onShareSave();
+                  _onImgShareSave();
                 },
                 color: Colors.deepOrange[100 * (1 % 9)],
                 child: Row(
@@ -564,6 +628,11 @@ class _AlbumListState extends State<AlbumList>{
               BottomNavigationBarItem(
                 icon: Icon(Icons.import_contacts),
                 title: const Text('レシピ'),
+//          backgroundColor: Colors.blue,
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.folder_open),
+                title: const Text('フォルダ別'),
 //          backgroundColor: Colors.blue,
               ),
               BottomNavigationBarItem(

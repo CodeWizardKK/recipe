@@ -14,7 +14,7 @@ import 'package:recipe_app/model/Format.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
 
-/// 強制アップデートダイアログを出す為のダミーに近いStatefulWidget
+/// 強制アップデートダイアログを出す為のStatefulWidget
 class updater extends StatefulWidget {
   updater({Key key}) : super(key: key);
 
@@ -31,6 +31,8 @@ class _updaterState extends State<updater> {
   void initState() {
     //mainで登録したオブジェクへアクセス
     final checker = locator<versionCheckService>();
+    checker.getCurrentVersion().then((currentVersion) =>
+        Provider.of<Display>(context, listen: false).setAppCurrentVersion(currentVersion));
     //appバージョンチェック関数の呼び出し
     checker.versionCheck().then((needUpdate) => _showUpdateDialog(needUpdate));
     //appバージョン以外のバージョンチェックの呼び出し
@@ -147,9 +149,6 @@ class _updaterState extends State<updater> {
 
   @override
   Widget build(BuildContext context) {
-    //バージョンチェックの呼び出し
-//    this.check();
-//    print('②');
     return SizedBox(
       width: 1,
     );
