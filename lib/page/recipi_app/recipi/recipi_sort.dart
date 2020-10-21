@@ -502,17 +502,18 @@ class _RecipiSortState extends State<RecipiSort>{
     for(var i=0; i < this._folders.length; i++){
       column.add(
           SizedBox(
-            height: MediaQuery.of(context).size.height * 0.06,
+//            height: MediaQuery.of(context).size.height * 0.06,
             width: MediaQuery.of(context).size.width,
             child: Container(
               color: Colors.white,
               child: InkWell(
+                child: FittedBox(fit:BoxFit.fitWidth,
                   child: Row(
-//                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       _isCheck
                       ? Container(
-                          width: MediaQuery.of(context).size.width * 0.1,
+//                          width: MediaQuery.of(context).size.width * 0.1,
                           child: Checkbox(
                             value: _folders[i].isCheck,
                             onChanged: (bool value){
@@ -523,17 +524,19 @@ class _RecipiSortState extends State<RecipiSort>{
                       : Container(),
                       Container(
                         padding: EdgeInsets.all(5),
-                        child: SizedBox(
-                          height: MediaQuery.of(context).size.width * 0.1,
-                          width: MediaQuery.of(context).size.width * 0.1,
-                          child: Container(
-                            color: Colors.amber[100 * (1 % 9)],
-                            child: Icon(Icons.folder_open,color: Colors.white,size: 30,),
+//                        child: FittedBox(fit:BoxFit.fitWidth,
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.width * 0.1,
+                            width: MediaQuery.of(context).size.width * 0.1,
+                            child: Container(
+                              color: Colors.amber[100 * (1 % 9)],
+                              child: Icon(Icons.folder_open,color: Colors.white,size: 30,),
+                            ),
                           ),
-                        ),
+//                        ),
                       ),
                       Container(
-                        width: MediaQuery.of(context).size.width * 0.65,
+                        width: MediaQuery.of(context).size.width * 0.7,
                         padding: EdgeInsets.all(5),
                         child: Text('${_folders[i].name}',
                           maxLines: 1,
@@ -561,6 +564,7 @@ class _RecipiSortState extends State<RecipiSort>{
                           )
                       ),
                     ],
+                  ),
                   ),
                   onTap: (){
                     setState(() {
@@ -603,11 +607,13 @@ class _RecipiSortState extends State<RecipiSort>{
                   ),
                   Container(
                     padding: EdgeInsets.all(10),
-                    child: Text('新しいフォルダ',style: TextStyle(
-                        color: Colors.deepOrange[100 * (1 % 9)],
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold
-                    ),),
+                    child: FittedBox(fit:BoxFit.fitWidth,
+                      child: Text('新しいフォルダ',style: TextStyle(
+                          color: Colors.deepOrange[100 * (1 % 9)],
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold
+                      ),),
+                    ),
                   ),
                 ],
               ),
@@ -631,19 +637,19 @@ class _RecipiSortState extends State<RecipiSort>{
     for(var i=0; i < this._tags.length; i++){
       column.add(
           SizedBox(
-            height: MediaQuery.of(context).size.height * 0.06,
+//            height: MediaQuery.of(context).size.height * 0.06,
             width: MediaQuery.of(context).size.width,
             child: Container(
               color: Colors.white,
               child: InkWell(
+                child: FittedBox(fit:BoxFit.fitWidth,
                   child: Row(
 //                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       _isCheck
                       ? Container(
                           width: MediaQuery.of(context).size.width * 0.1,
-                          child:
-                          Checkbox(
+                          child: Checkbox(
                             value: _tags[i].isCheck,
                             onChanged: (bool value){
                               _onSelected(index: i,type: 2);
@@ -653,6 +659,7 @@ class _RecipiSortState extends State<RecipiSort>{
                       : Container(),
                       Container(
                         padding: EdgeInsets.all(5),
+//                        child: FittedBox(fit:BoxFit.fitWidth,
                         child: SizedBox(
                           height: MediaQuery.of(context).size.width * 0.1,
                           width: MediaQuery.of(context).size.width * 0.1,
@@ -661,9 +668,10 @@ class _RecipiSortState extends State<RecipiSort>{
                             child: Icon(Icons.local_offer,color: Colors.white,size: 30,),
                           ),
                         ),
+//                        ),
                       ),
                       Container(
-                        width: MediaQuery.of(context).size.width * 0.65,
+                        width: MediaQuery.of(context).size.width * 0.7,
                         padding: EdgeInsets.all(5),
                         child: Text('${_tags[i].name}',
                           maxLines: 1,
@@ -691,6 +699,7 @@ class _RecipiSortState extends State<RecipiSort>{
                           )
                       ),
                     ],
+                  ),
                   ),
                   onTap: (){
                     setState(() {
@@ -731,11 +740,13 @@ class _RecipiSortState extends State<RecipiSort>{
                   ),
                   Container(
                     padding: EdgeInsets.all(10),
-                    child: Text('新しいタグ',style: TextStyle(
-                        color: Colors.deepOrange[100 * (1 % 9)],
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold
-                    ),),
+                    child: FittedBox(fit:BoxFit.fitWidth,
+                      child: Text('新しいタグ',style: TextStyle(
+                          color: Colors.deepOrange[100 * (1 % 9)],
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold
+                      ),),
+                    ),
                   ),
                 ],
               ),
@@ -769,11 +780,13 @@ class _RecipiSortState extends State<RecipiSort>{
               children: <Widget>[
                 Padding(
                   padding: EdgeInsets.only(right: 20),
-                  child: IconButton(
-                      icon: Icon(Icons.close,color: Colors.deepOrange[100 * (1 % 9)],size: 30,),
-                    onPressed: (){
-                      Navigator.pop(context);
-                    },
+                  child: FittedBox(fit:BoxFit.fitWidth,
+                    child: IconButton(
+                        icon: Icon(Icons.close,color: Colors.deepOrange[100 * (1 % 9)],size: 30,),
+                      onPressed: (){
+                        Navigator.pop(context);
+                      },
+                    ),
                   ),
                 ),
                 Text( type == 1 ? '新しいフォルダ' : '新しいタグ',
@@ -805,19 +818,21 @@ class _RecipiSortState extends State<RecipiSort>{
                 width: 90,
                 child: Padding(
                   padding: EdgeInsets.all(10),
-                  child: FlatButton(
-                    color: Colors.deepOrange[100 * (1 % 9)],
-                    child: Text('保存',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
+                  child: FittedBox(fit:BoxFit.fitWidth,
+                    child: FlatButton(
+                      color: Colors.deepOrange[100 * (1 % 9)],
+                      child: Text('保存',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                        ),
                       ),
+                      onPressed: (){
+                        Navigator.pop(context);
+                        _onModalSubmit(type: type,selectedId: -1);
+                      },
                     ),
-                    onPressed: (){
-                      Navigator.pop(context);
-                      _onModalSubmit(type: type,selectedId: -1);
-                    },
-                  ),
+                ),
                 ),
               ),
           ],
@@ -842,11 +857,13 @@ class _RecipiSortState extends State<RecipiSort>{
               children: <Widget>[
                 Padding(
                   padding: EdgeInsets.only(right: 20),
-                  child: IconButton(
-                    icon: Icon(Icons.close,color: Colors.deepOrange[100 * (1 % 9)],size: 30,),
-                    onPressed: (){
-                      Navigator.pop(context);
-                    },
+                  child: FittedBox(fit:BoxFit.fitWidth,
+                    child: IconButton(
+                      icon: Icon(Icons.close,color: Colors.deepOrange[100 * (1 % 9)],size: 30,),
+                      onPressed: (){
+                        Navigator.pop(context);
+                      },
+                    ),
                   ),
                 ),
                 Text( type == 1 ? 'フォルダ名の変更' : 'タグ名の変更',
@@ -878,18 +895,20 @@ class _RecipiSortState extends State<RecipiSort>{
                 width: MediaQuery.of(context).size.width * 0.25,
                 child: Padding(
                   padding: EdgeInsets.all(10),
-                  child: FlatButton(
-                    color: Colors.deepOrange[100 * (1 % 9)],
-                    child: Text('保存',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
+                  child: FittedBox(fit:BoxFit.fitWidth,
+                    child: FlatButton(
+                      color: Colors.deepOrange[100 * (1 % 9)],
+                      child: Text('保存',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                        ),
                       ),
+                      onPressed: (){
+                        Navigator.pop(context);
+                        _onModalSubmit(type: type,selectedId: selected.id);
+                      },
                     ),
-                    onPressed: (){
-                      Navigator.pop(context);
-                      _onModalSubmit(type: type,selectedId: selected.id);
-                    },
                   ),
                 ),
               ),
@@ -940,19 +959,21 @@ class _RecipiSortState extends State<RecipiSort>{
             width: MediaQuery.of(context).size.width * 0.3,
             child: Padding(
               padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
-              child: FlatButton(
-                color: Colors.red[100 * (3 % 9)],
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    const Icon(Icons.delete_outline,color: Colors.white,),
-                    const Text('削除する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
-                  ],
+              child: FittedBox(fit:BoxFit.fitWidth,
+                child: FlatButton(
+                  color: Colors.red[100 * (3 % 9)],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      const Icon(Icons.delete_outline,color: Colors.white,),
+                      const Text('削除する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
+                    ],
+                  ),
+                  onPressed:
+                    _selectedCount() == 0
+                      ? null
+                      : (){_onDelete();},
                 ),
-                onPressed:
-                  _selectedCount() == 0
-                    ? null
-                    : (){_onDelete();},
               ),
             ),
           )
@@ -961,11 +982,13 @@ class _RecipiSortState extends State<RecipiSort>{
 
   //チェックボタン
   Widget checkBtn(){
-    return IconButton(
-      icon: const Icon(Icons.check_circle_outline,color: Colors.white,size:30),
-      onPressed: (){
-        _onCheck();
-      },
+    return FittedBox(fit:BoxFit.fitWidth,
+      child: IconButton(
+        icon: const Icon(Icons.check_circle_outline,color: Colors.white),
+        onPressed: (){
+          _onCheck();
+        },
+      ),
     );
   }
 
@@ -975,21 +998,23 @@ class _RecipiSortState extends State<RecipiSort>{
       width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
-        child: FlatButton(
-          color: Colors.white,
-          child: Text(_isCheck ? '完了' : '保存',
-            style: TextStyle(
-              color: Colors.deepOrange[100 * (1 % 9)],
-              fontSize: 15,
+        child: FittedBox(fit:BoxFit.fitWidth,
+          child: FlatButton(
+            color: Colors.white,
+            child: Text(_isCheck ? '完了' : '保存',
+              style: TextStyle(
+                color: Colors.deepOrange[100 * (1 % 9)],
+                fontSize: 15,
+              ),
             ),
+            onPressed: (){
+              _isCheck
+              ? setState(() {
+                  this._isCheck = !this._isCheck;
+                })
+              : _onSubmit();
+            },
           ),
-          onPressed: (){
-            _isCheck
-            ? setState(() {
-                this._isCheck = !this._isCheck;
-              })
-            : _onSubmit();
-          },
         ),
       ),
     );
@@ -997,11 +1022,14 @@ class _RecipiSortState extends State<RecipiSort>{
 
   //閉じるボタン
   Widget closeBtn(){
-    return IconButton(
-      icon: Icon( Icons.close,color: Colors.white,size: 30,),
-      onPressed: (){
-        _onList(isFolderUpdate: false);
-      },
+    return
+      FittedBox(fit:BoxFit.fitWidth,
+        child: IconButton(
+          icon: Icon( Icons.close,color: Colors.white),
+          onPressed: (){
+            _onList(isFolderUpdate: false);
+          },
+        ),
     );
   }
 
@@ -1047,29 +1075,32 @@ class _RecipiSortState extends State<RecipiSort>{
   Widget recipiArea(){
     return SizedBox(
       width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height * 0.16,
+//      height: MediaQuery.of(context).size.height * 0.16,
       child: Container(
         color: Colors.white,
         padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              //サムネイルエリア
-              thumbnailArea(),
-              //タイトル、材料、タグエリア
-              Container(
-//                color: Colors.grey,
-                width: MediaQuery.of(context).size.width * 0.7,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    tilteArea(),//タイトル
-                    ingredientsArea(),//材料
-                    tagsArea(),//タグ
-                  ],
+//        padding: EdgeInsets.all(5),
+          child: FittedBox(fit:BoxFit.fitWidth,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                //サムネイルエリア
+                thumbnailArea(),
+                //タイトル、材料、タグエリア
+                Container(
+  //                color: Colors.grey,
+                  width: MediaQuery.of(context).size.width * 0.7,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      tilteArea(),//タイトル
+                      ingredientsArea(),//材料
+                      tagsArea(),//タグ
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
       ),
     );
@@ -1100,7 +1131,7 @@ class _RecipiSortState extends State<RecipiSort>{
   Widget tilteArea(){
     return
       Container(
-        height: MediaQuery.of(context).size.height * 0.05,
+//        height: MediaQuery.of(context).size.height * 0.05,
         padding: EdgeInsets.all(5),
         child: Text('${widget.Nrecipi.title}',
           maxLines: 2,
@@ -1115,7 +1146,7 @@ class _RecipiSortState extends State<RecipiSort>{
   Widget ingredientsArea(){
     return
       Container(
-        height: MediaQuery.of(context).size.height * 0.04,
+//        height: MediaQuery.of(context).size.height * 0.04,
         padding: EdgeInsets.all(5),
         child: Text('${widget.ingredientTX}',
           maxLines: 2,
@@ -1133,7 +1164,7 @@ class _RecipiSortState extends State<RecipiSort>{
       ? Container()
       : Container(
 //      color:Colors.grey,
-      height: MediaQuery.of(context).size.height * 0.05,
+      height: MediaQuery.of(context).size.height * 0.08,
       padding: EdgeInsets.only(left: 5,right: 5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -1181,12 +1212,14 @@ class _RecipiSortState extends State<RecipiSort>{
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Container(
-                padding: EdgeInsets.all(10),
-                child: Text(type == 1 ? 'フォルダに移動' :'タグを付ける', style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold
-                ),),
+                padding: EdgeInsets.only(left: 10,right: 10),
+                child: FittedBox(fit:BoxFit.fitWidth,
+                  child: Text(type == 1 ? 'フォルダに移動' :'タグを付ける', style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold
+                  ),),
+                ),
               ),
             ],
           ),

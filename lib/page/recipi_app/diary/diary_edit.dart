@@ -406,6 +406,7 @@ class _DiaryEditState extends State<DiaryEdit>{
       width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
+        child: FittedBox(fit:BoxFit.fitWidth,
         child: FlatButton(
           color: Colors.white,
 //          shape: RoundedRectangleBorder(
@@ -422,16 +423,19 @@ class _DiaryEditState extends State<DiaryEdit>{
           },
         ),
       ),
+      ),
     );
   }
 
   //閉じるボタン
   Widget closeBtn(){
-    return IconButton(
-      icon: Icon( _selectedID == -1 ? Icons.close : Icons.arrow_back_ios,color: Colors.white,size: 30,),
-      onPressed: (){
-        _onList(type: _selectedID == -1 ? 0 : 1);
-      },
+    return FittedBox(fit:BoxFit.fitWidth,
+      child:IconButton(
+        icon: Icon( _selectedID == -1 ? Icons.close : Icons.arrow_back_ios,color: Colors.white),
+        onPressed: (){
+          _onList(type: _selectedID == -1 ? 0 : 1);
+        },
+      ),
     );
   }
 
@@ -453,9 +457,9 @@ class _DiaryEditState extends State<DiaryEdit>{
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             bodyArea(),//本文 削除ボタン
-            line(),
+//            line(),
             selectBtnArea(),//日付 分類 料理 写真
-            line(),
+//            line(),
           ],
         ),
       ),
@@ -474,37 +478,47 @@ class _DiaryEditState extends State<DiaryEdit>{
                   SizedBox(
                     child: Container(
                       width: MediaQuery.of(context).size.width * 0.25,
-                      height: MediaQuery.of(context).size.width * 0.1,
-                      child: RaisedButton.icon(
-                          color: Colors.white,
-                          icon: Icon(
-                              Icons.calendar_today,
-                              size: 25,
-                              color: _diary.date.isEmpty
+//                      height: MediaQuery.of(context).size.width * 0.1,
+                      child: FittedBox(fit:BoxFit.fitWidth,
+                        child: RaisedButton.icon(
+                            color: Colors.white,
+                            icon: Icon(
+                                Icons.calendar_today,
+  //                              size: 25,
+                                color: _diary.date.isEmpty
+                                      ? Colors.grey
+                                      : Colors.deepOrange[100 * (1 % 9)]
+                            ),
+                            label: Text('日付',
+                              style: TextStyle(
+                                color: _diary.date.isEmpty
                                     ? Colors.grey
-                                    : Colors.deepOrange[100 * (1 % 9)]
-                          ),
-                          label: Text('日付',
-                            style: TextStyle(
-                              color: _diary.date.isEmpty
-                                  ? Colors.grey
-                                  : Colors.deepOrange[100 * (1 % 9)],
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),),
-                          shape: Border(
-                            right: BorderSide(
-                                color: Colors.grey,
-                                width: 0.5
+                                    : Colors.deepOrange[100 * (1 % 9)],
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),),
+                            shape: Border(
+                              top: BorderSide(
+                                  color: Colors.grey,
+                                  width: 0.5
+                              ),
+                              bottom: BorderSide(
+                                  color: Colors.grey,
+                                  width: 0.5
+                              ),
+                              right: BorderSide(
+                                  color: Colors.grey,
+                                  width: 0.25
+                              ),
+                              left: BorderSide(
+                                  color: Colors.grey,
+                                  width: 0.5
+                              ),
                             ),
-                            left: BorderSide(
-                                color: Colors.grey,
-                                width: 0.5
-                            ),
-                          ),
-                          onPressed:(){
-                            this._changeDate();
-                          }
+                            onPressed:(){
+                              this._changeDate();
+                            }
+                        ),
                       ),
                     ),
                   ),
@@ -512,36 +526,50 @@ class _DiaryEditState extends State<DiaryEdit>{
                   SizedBox(
                     child: Container(
                       width: MediaQuery.of(context).size.width * 0.25,
-                      height: MediaQuery.of(context).size.width * 0.1,
-                      child: RaisedButton.icon(
-                          color: Colors.white,
-                          icon: Icon(
-                            Icons.access_time,
-                            size: 25,
-                            color: _diary.category == 1
-                                ? Colors.grey
-                                : Colors.deepOrange[100 * (1 % 9)],
-                          ),
-                          label: Text('分類',
-                            style: TextStyle(
+//                      height: MediaQuery.of(context).size.width * 0.1,
+                      child: FittedBox(fit:BoxFit.fitWidth,
+                        child: RaisedButton.icon(
+                            color: Colors.white,
+                            icon: Icon(
+                              Icons.access_time,
+  //                            size: 25,
                               color: _diary.category == 1
                                   ? Colors.grey
                                   : Colors.deepOrange[100 * (1 % 9)],
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),),
-                          shape: Border(
+                            ),
+                            label: Text('分類',
+                              style: TextStyle(
+                                color: _diary.category == 1
+                                    ? Colors.grey
+                                    : Colors.deepOrange[100 * (1 % 9)],
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),),
+                            shape: Border(
+                              top: BorderSide(
+                                  color: Colors.grey,
+                                  width: 0.5
+                              ),
+                              bottom: BorderSide(
+                                  color: Colors.grey,
+                                  width: 0.5
+                              ),
                               right: BorderSide(
                                   color: Colors.grey,
                                   width: 0.5
-                              )
-                          ),
-                          onPressed:(){
-                            setState(() {
-                              this._selectedCategory = _diary.category;
-                            });
-                            this._changeCategory();
-                          }
+                              ),
+  //                            left: BorderSide(
+  //                                color: Colors.grey,
+  //                                width: 0.5
+  //                            ),
+                            ),
+                            onPressed:(){
+                              setState(() {
+                                this._selectedCategory = _diary.category;
+                              });
+                              this._changeCategory();
+                            }
+                        ),
                       ),
                     ),
                   ),
@@ -549,34 +577,48 @@ class _DiaryEditState extends State<DiaryEdit>{
                   SizedBox(
                     child: Container(
                       width: MediaQuery.of(context).size.width * 0.25,
-                      height: MediaQuery.of(context).size.width * 0.1,
-                      child: RaisedButton.icon(
-                        color: Colors.white,
-                        icon: Icon(
-                          Icons.restaurant,
-                          size: 25,
-                          color: _diary.recipis.length == 0
-                              ? Colors.grey
-                              : Colors.deepOrange[100 * (1 % 9)],
-                        ),
-                        label: Text('料理',
-                          style: TextStyle(
+//                      height: MediaQuery.of(context).size.width * 0.1,
+                      child: FittedBox(fit:BoxFit.fitWidth,
+                        child: RaisedButton.icon(
+                          color: Colors.white,
+                          icon: Icon(
+                            Icons.restaurant,
+//                            size: 25,
                             color: _diary.recipis.length == 0
                                 ? Colors.grey
                                 : Colors.deepOrange[100 * (1 % 9)],
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),),
-                        shape: Border(
-                            right: BorderSide(
+                          ),
+                          label: Text('料理',
+                            style: TextStyle(
+                              color: _diary.recipis.length == 0
+                                  ? Colors.grey
+                                  : Colors.deepOrange[100 * (1 % 9)],
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),),
+                          shape: Border(
+                            top: BorderSide(
                                 color: Colors.grey,
                                 width: 0.5
-                            )
-                        ),
-                        onPressed:(){
-                          _changeEditType(editType: 0);
-                        },
+                            ),
+                            bottom: BorderSide(
+                                color: Colors.grey,
+                                width: 0.5
+                            ),
+  //                          right: BorderSide(
+  //                              color: Colors.grey,
+  //                              width: 0.5
+  //                          ),
+  //                          left: BorderSide(
+  //                              color: Colors.grey,
+  //                              width: 0.5
+  //                          ),
+                          ),
+                          onPressed:(){
+                            _changeEditType(editType: 0);
+                          },
 
+                        ),
                       ),
                     ),
                   ),
@@ -584,33 +626,47 @@ class _DiaryEditState extends State<DiaryEdit>{
                   SizedBox(
                     child: Container(
                       width: MediaQuery.of(context).size.width * 0.25,
-                      height: MediaQuery.of(context).size.width * 0.1,
-                      child: RaisedButton.icon(
-                          color: Colors.white,
-                          icon: Icon(
-                            Icons.camera_alt,
-                            size: 25,
-                            color: _diary.photos.length == 0
-                                ? Colors.grey
-                                : Colors.deepOrange[100 * (1 % 9)],
-                          ),
-                          label: Text('写真',
-                            style: TextStyle(
+//                      height: MediaQuery.of(context).size.width * 0.1,
+                      child: FittedBox(fit:BoxFit.fitWidth,
+                        child: RaisedButton.icon(
+                            color: Colors.white,
+                            icon: Icon(
+                              Icons.camera_alt,
+//                              size: 25,
                               color: _diary.photos.length == 0
                                   ? Colors.grey
                                   : Colors.deepOrange[100 * (1 % 9)],
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),),
-                          shape: Border(
+                            ),
+                            label: Text('写真',
+                              style: TextStyle(
+                                color: _diary.photos.length == 0
+                                    ? Colors.grey
+                                    : Colors.deepOrange[100 * (1 % 9)],
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),),
+                            shape: Border(
+                              top: BorderSide(
+                                  color: Colors.grey,
+                                  width: 0.5
+                              ),
+                              bottom: BorderSide(
+                                  color: Colors.grey,
+                                  width: 0.5
+                              ),
                               right: BorderSide(
                                   color: Colors.grey,
                                   width: 0.5
-                              )
-                          ),
-                          onPressed:(){
-                            _changeEditType(editType: 1);
-                          }
+                              ),
+                              left: BorderSide(
+                                  color: Colors.grey,
+                                  width: 0.5
+                              ),
+                            ),
+                            onPressed:(){
+                              _changeEditType(editType: 1);
+                            }
+                        ),
                       ),
                     ),
                   ),
@@ -647,22 +703,24 @@ class _DiaryEditState extends State<DiaryEdit>{
                 bottom: 10,
                 right: 10,
                 width: MediaQuery.of(context).size.width * 0.25,
-                height: MediaQuery.of(context).size.height * 0.02,
+//                height: MediaQuery.of(context).size.height * 0.02,
                 child: Container(
+                  child: FittedBox(fit:BoxFit.fitWidth,
                   child: RaisedButton.icon(
                     icon: Icon(
                       Icons.delete_outline,
                       color: Colors.black54,
-                      size: 13,
+//                      size: 13,
                     ),
                     label: Text('日記を削除',
-                      style: TextStyle(fontSize: 10),
+//                      style: TextStyle(fontSize: 10),
                     ),
                     textColor: Colors.black54,
                     onPressed:(){
                       _deleteModal();
                     } ,
                   ),
+                ),
                 ),
               )
               : Container(),

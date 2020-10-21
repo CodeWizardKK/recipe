@@ -68,11 +68,13 @@ class _AboutState extends State<About>{
         padding: EdgeInsets.all(10),
         child: FlatButton(
           color: Colors.white,
+          child: FittedBox(fit:BoxFit.fitWidth,
           child: Text('閉じる',
             style: TextStyle(
               color: Colors.deepOrange[100 * (1 % 9)],
               fontSize: 15,
             ),
+          ),
           ),
           onPressed: (){
             _onClose();

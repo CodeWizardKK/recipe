@@ -463,7 +463,7 @@ class _DiaryListState extends State<DiaryList>{
         ),
         actions: <Widget>[
           checkBtn(),
-          addBtn(context),
+          addBtn(),
         ],
       ),
       body:diaryList(),
@@ -628,12 +628,14 @@ class _DiaryListState extends State<DiaryList>{
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Container(
-                  padding: EdgeInsets.all(10),
-                  child: Text('${month}', style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-//                      fontWeight: FontWeight.bold
-                  ),),
+                  padding: EdgeInsets.only(left: 10,right: 10),
+                  child: FittedBox(fit:BoxFit.fitWidth,
+                    child: Text('${month}', style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+  //                      fontWeight: FontWeight.bold
+                    ),),
+                  ),
                 ),
               ],
             ),
@@ -643,11 +645,12 @@ class _DiaryListState extends State<DiaryList>{
           children: List<int>.generate(_displayDiaryGroupDates[index].displayDiarys.length, (index) => index).map((diaryIndex) =>
               SizedBox(
                 width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height * 0.11,
+//                height: MediaQuery.of(context).size.height * 0.11,
                 child: Container(
                   color: Colors.white,
-                  padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
+                  padding: EdgeInsets.all(5),
                   child: InkWell(
+                    child: FittedBox(fit:BoxFit.fitWidth,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
@@ -672,7 +675,7 @@ class _DiaryListState extends State<DiaryList>{
                           Container(
                             width: MediaQuery.of(context).size.width * 0.5,
                             child: Container(
-                              height: MediaQuery.of(context).size.height * 0.05,
+//                              height: MediaQuery.of(context).size.height * 0.05,
                               padding: EdgeInsets.all(5),
                               child: Text('${this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].body}',
                                 maxLines: 2,
@@ -692,7 +695,7 @@ class _DiaryListState extends State<DiaryList>{
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: <Widget>[
                                     SizedBox(
-                                      height: MediaQuery.of(context).size.height * 0.03,
+//                                      height: MediaQuery.of(context).size.height * 0.03,
                                       child: Container(
                                         child: Text('${DateTime.parse(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].date).day}',
                                           style: TextStyle(
@@ -703,7 +706,7 @@ class _DiaryListState extends State<DiaryList>{
                                       ),
                                     ),
                                     SizedBox(
-                                      height: MediaQuery.of(context).size.height * 0.025,
+//                                      height: MediaQuery.of(context).size.height * 0.025,
                                       child: Container(
                                         padding: EdgeInsets.only(top: 7,right: 5,left: 5),
                                         child: Text('${this._displayWeekday(DateTime.parse(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].date).weekday)}',
@@ -717,7 +720,7 @@ class _DiaryListState extends State<DiaryList>{
                                   ],
                                 ),
                                 SizedBox(
-                                  height: MediaQuery.of(context).size.height * 0.03,
+//                                  height: MediaQuery.of(context).size.height * 0.03,
                                   child: Container(
                                     padding: EdgeInsets.all(5),
                                     child:
@@ -737,6 +740,7 @@ class _DiaryListState extends State<DiaryList>{
                           ),
                         ],
                       ),
+                      ),
                       onTap: (){
                         _onDetail(dd: this._displayDiaryGroupDates[index].displayDiarys[diaryIndex]);
                       }
@@ -749,25 +753,32 @@ class _DiaryListState extends State<DiaryList>{
   }
 
 
+  //チェックボタン
   Widget checkBtn(){
-    return IconButton(
-      color: Colors.white,
-      icon: const Icon(Icons.check_circle_outline,size:30,),
-      onPressed: null,
-      disabledColor: Colors.deepOrange[100 * (1 % 9)],
+    return FittedBox(fit:BoxFit.fitWidth,
+      child: IconButton(
+        color: Colors.white,
+        icon: const Icon(Icons.check_circle_outline),
+        onPressed: null,
+        disabledColor: Colors.deepOrange[100 * (1 % 9)],
+      ),
     );
   }
 
-  Widget addBtn(BuildContext context){
-    return IconButton(
-      color: Colors.white,
-      icon: const Icon(Icons.add_circle_outline,size:30,),
-      onPressed: (){
-        _onEdit(-1);
-      },
+  //追加ボタン
+  Widget addBtn(){
+    return FittedBox(fit:BoxFit.fitWidth,
+      child: IconButton(
+        color: Colors.white,
+        icon: const Icon(Icons.add_circle_outline),
+        onPressed: (){
+          _onEdit(-1);
+        },
+      ),
     );
   }
 
+  //ナビゲーション
   Widget bottomNavigationBar(BuildContext context){
     return Consumer<Display>(
 //        key: GlobalKey(),

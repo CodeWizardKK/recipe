@@ -157,11 +157,13 @@ class _EditTitleState extends State<EditTitle>{
           child: Row(
             children: <Widget>[
             Container(
-              padding: EdgeInsets.all(10),
-              child: Text('タイトル',style: TextStyle(
-                color: Colors.white,
+              padding: EdgeInsets.only(left: 10,right: 10),
+              child: FittedBox(fit:BoxFit.fitWidth,
+                child: Text('タイトル',style: TextStyle(
+                  color: Colors.white,
                   fontSize: 15,
-              ),),
+                ),),
+              ),
             ),
           ],
           ),
@@ -201,11 +203,13 @@ class _EditTitleState extends State<EditTitle>{
           child: Row(
             children: <Widget>[
             Container(
-              padding: EdgeInsets.all(10),
-              child: Text('説明/メモ',style: TextStyle(
-                color: Colors.white,
-                  fontSize: 15,
-              ),),
+              padding: EdgeInsets.only(left: 10,right: 10),
+              child: FittedBox(fit:BoxFit.fitWidth,
+                child: Text('説明/メモ',style: TextStyle(
+                  color: Colors.white,
+                    fontSize: 15,
+                ),),
+              ),
             ),
           ],
           ),
@@ -247,11 +251,13 @@ class _EditTitleState extends State<EditTitle>{
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Container(
-                padding: EdgeInsets.all(10),
-                child: Text('分量',style: TextStyle(
-                  color: Colors.white,
-                    fontSize: 15,
-                ),),
+                padding: EdgeInsets.only(left: 10,right: 10),
+                child: FittedBox(fit:BoxFit.fitWidth,
+                  child: Text('分量',style: TextStyle(
+                    color: Colors.white,
+                      fontSize: 15,
+                  ),),
+                ),
               ),
             ],
           ),
@@ -287,17 +293,17 @@ class _EditTitleState extends State<EditTitle>{
                   SizedBox(
                     height: MediaQuery.of(context).size.height * 0.035,
                     width: MediaQuery.of(context).size.width * 0.2,
-                    child: Padding(padding: EdgeInsets.only(top: 10),
+//                    child: Padding(padding: EdgeInsets.only(top: 10),
                       child: Text('${_displayUnit(unit: _unit)}',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                    ),
+//                    ),
                   ),
                 ],
               ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0,vertical: 10.0),
+                padding: EdgeInsets.symmetric(horizontal: 10.0,vertical: 5.0),
                 height:  MediaQuery.of(context).size.height * 0.08,
                 child: ListView.builder(
                     scrollDirection: Axis.horizontal,
@@ -305,17 +311,18 @@ class _EditTitleState extends State<EditTitle>{
                     itemBuilder: (context,index) {
                       return Row(
                         children: <Widget>[
-                          RoundedButton(
-                            title: '${_displayUnit(unit: index + 1)}',
-//                            splashColor: Colors.redAccent,
-                            buttonColor: _unit == index + 1 ? Colors.orangeAccent :Colors.amber[100 * (1 % 9)],
-                            splashColor: Colors.orangeAccent,
-                            onPressed: () {
-                              setState(() {
-                                  _unit = index + 1;
-                              });
-                            },
+                        FittedBox(fit:BoxFit.fitWidth,
+                          child:RoundedButton(
+                              title: '${_displayUnit(unit: index + 1)}',
+                              buttonColor: _unit == index + 1 ? Colors.orangeAccent :Colors.amber[100 * (1 % 9)],
+                              splashColor: Colors.orangeAccent,
+                              onPressed: () {
+                                setState(() {
+                                    _unit = index + 1;
+                                });
+                              },
                           ),
+                        ),
                           SizedBox(width: 2.0,)
                         ],
                       );
@@ -340,12 +347,14 @@ class _EditTitleState extends State<EditTitle>{
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Container(
-                padding: EdgeInsets.all(10),
-                child: Text('調理時間',style: TextStyle(
-                  color: Colors.white,
-                    fontSize: 15,
-//                    fontWeight: FontWeight.bold
-                ),),
+                padding: EdgeInsets.only(left: 10,right: 10),
+                child: FittedBox(fit:BoxFit.fitWidth,
+                  child: Text('調理時間',style: TextStyle(
+                    color: Colors.white,
+                      fontSize: 15,
+  //                    fontWeight: FontWeight.bold
+                  ),),
+                ),
               ),
             ],
           ),
@@ -402,21 +411,23 @@ class _EditTitleState extends State<EditTitle>{
       width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
-        child: FlatButton(
-          color: Colors.white,
-//          shape: RoundedRectangleBorder(
-//            borderRadius: BorderRadius.circular(10.0),
-//          ),
-          child: Text('保存',
-            style: TextStyle(
-              color: Colors.deepOrange[100 * (1 % 9)],
-              fontSize: 15,
+        child: FittedBox(fit:BoxFit.fitWidth,
+          child: FlatButton(
+            color: Colors.white,
+  //          shape: RoundedRectangleBorder(
+  //            borderRadius: BorderRadius.circular(10.0),
+  //          ),
+            child: Text('保存',
+              style: TextStyle(
+                color: Colors.deepOrange[100 * (1 % 9)],
+                fontSize: 15,
+              ),
             ),
+            onPressed: (){
+              //入力したdataをstoreへ保存
+              _onSubmit();
+            },
           ),
-          onPressed: (){
-            //入力したdataをstoreへ保存
-            _onSubmit();
-          },
         ),
       ),
     );
@@ -424,11 +435,13 @@ class _EditTitleState extends State<EditTitle>{
 
   //ｘボタン
   Widget closeBtn(){
-    return IconButton(
-      icon: const Icon(Icons.close,color: Colors.white,size: 30,),
-      onPressed: (){
-        Navigator.pop(context);
-      },
+    return FittedBox(fit:BoxFit.fitWidth,
+      child: IconButton(
+        icon: const Icon(Icons.close,color: Colors.white),
+        onPressed: (){
+          Navigator.pop(context);
+        },
+      ),
     );
   }
 }

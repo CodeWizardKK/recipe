@@ -540,32 +540,40 @@ class _RecipiEditState extends State<RecipiEdit>{
     for(var i=0; i < this._ingredients.length; i++){
       column.add(
           SizedBox(
-            height: MediaQuery.of(context).size.height * 0.06,
+//            height: MediaQuery.of(context).size.height * 0.07,
             width: MediaQuery.of(context).size.width,
             child: Container(
-              padding: EdgeInsets.only(top: 10,bottom: 10),
-              color: Colors.white,
+              padding: EdgeInsets.all(10),
+//              color: Colors.grey,
               child: InkWell(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Container(
-                        padding: EdgeInsets.all(10),
-                        child: Text('${_ingredients[i].name}',
-                          maxLines: 1,
-                          style: TextStyle(
-                              fontSize: 15,
+                      SizedBox(
+//                        height: MediaQuery.of(context).size.height * 0.07,
+                        width: MediaQuery.of(context).size.width * 0.6,
+                        child:
+                        Container(
+//                          color: Colors.redAccent,
+                            child: Text('${_ingredients[i].name}',
+                              maxLines: 5,
+                              style: TextStyle(
+                                fontSize: 15,
 //                              fontWeight: FontWeight.bold
-                          ),),
+                              ),),
+                        ),
                       ),
-                      Container(
-                        padding: EdgeInsets.all(10),
-                        child: Text('${this._ingredients[i].quantity}',
-                          maxLines: 1,
-                          style: TextStyle(
-                            fontSize: 15,
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.3,
+                        child:
+                        Container(
+                            child: Text('${this._ingredients[i].quantity}',
+                              maxLines: 5,
+                              style: TextStyle(
+                                fontSize: 15,
 //                        fontWeight: FontWeight.bold
-                          ),),
+                              ),),
+                        ),
                       ),
                     ],
                   ),
@@ -606,11 +614,13 @@ class _RecipiEditState extends State<RecipiEdit>{
                     ),
                     Container(
                       padding: EdgeInsets.all(10),
-                      child: Text('材料を追加',style: TextStyle(
-                          color: Colors.deepOrange[100 * (1 % 9)],
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold
-                      ),),
+                      child: FittedBox(fit:BoxFit.fitWidth,
+                        child: Text('材料を追加',style: TextStyle(
+                            color: Colors.deepOrange[100 * (1 % 9)],
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold
+                        ),),
+                      ),
                     ),
                   ],
                 ),
@@ -664,12 +674,13 @@ class _RecipiEditState extends State<RecipiEdit>{
                         child: Container(
                           color: Colors.grey,
                           child: Center(
-                            child:
-                            Text('${this._howTos[i].no}',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),),
+                            child: FittedBox(fit:BoxFit.fitWidth,
+                              child: Text('${this._howTos[i].no}',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),),
+                            ),
                           ),
                         ),
                       ),
@@ -687,9 +698,10 @@ class _RecipiEditState extends State<RecipiEdit>{
                       ),
                       _howTos[i].photo.isNotEmpty
                         ? SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.1,
-                            width: MediaQuery.of(context).size.width * 0.25,
+                        height: MediaQuery.of(context).size.width * 0.23,
+                        width: MediaQuery.of(context).size.width * 0.23,
                             child: Container(
+//                              color: Colors.redAccent,
                               child: InkWell(
                                 child: Image.file(File(_howTos[i].photo),fit: BoxFit.cover,),
     //                              onTap: (){}
@@ -697,9 +709,10 @@ class _RecipiEditState extends State<RecipiEdit>{
                             ),
                           )
                         : SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.1,
-                        width: MediaQuery.of(context).size.width * 0.25,
-                        child: Container(),
+                        height: MediaQuery.of(context).size.width * 0.23,
+                        width: MediaQuery.of(context).size.width * 0.23,
+                        child: Container(
+                        ),
                         ),
                     ],
                   ),
@@ -740,11 +753,13 @@ class _RecipiEditState extends State<RecipiEdit>{
                     ),
                     Container(
                       padding: EdgeInsets.all(10),
-                      child: Text('作り方を追加',style: TextStyle(
-                          color: Colors.deepOrange[100 * (1 % 9)],
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold
-                      ),),
+                      child: FittedBox(fit:BoxFit.fitWidth,
+                        child: Text('作り方を追加',style: TextStyle(
+                            color: Colors.deepOrange[100 * (1 % 9)],
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold
+                        ),),
+                      ),
                     ),
                   ],
                 ),
@@ -821,11 +836,13 @@ class _RecipiEditState extends State<RecipiEdit>{
                     ),
                     Container(
                       padding: EdgeInsets.all(10),
-                      child: Text('写真を追加',style: TextStyle(
-                          color: Colors.deepOrange[100 * (1 % 9)],
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold
-                      ),),
+                      child: FittedBox(fit:BoxFit.fitWidth,
+                        child: Text('写真を追加',style: TextStyle(
+                            color: Colors.deepOrange[100 * (1 % 9)],
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold
+                        ),),
+                      ),
                     ),
                   ],
                 ),
@@ -1149,12 +1166,14 @@ class _RecipiEditState extends State<RecipiEdit>{
     return
     _isEdit
       ? Container()
-      : IconButton(
-        icon: const Icon(Icons.share, color: Colors.white, size: 30,),
-        onPressed: () {
-          common.takeWidgetScreenShot(previewContainer);
-        },
-      );
+      : FittedBox(fit:BoxFit.fitWidth,
+          child:IconButton(
+            icon: const Icon(Icons.share, color: Colors.white),
+            onPressed: () {
+              common.takeWidgetScreenShot(previewContainer);
+            },
+          ),
+        );
   }
 
   //編集ボタン
@@ -1162,12 +1181,14 @@ class _RecipiEditState extends State<RecipiEdit>{
     return
       _isEdit
         ? Container()
-        : IconButton(
-          icon: const Icon(Icons.edit,color: Colors.white,size: 30,),
-          onPressed: (){
-            _onEdit();
-          },
-        );
+          : FittedBox(fit:BoxFit.fitWidth,
+            child:IconButton(
+              icon: const Icon(Icons.edit,color: Colors.white),
+              onPressed: (){
+                _onEdit();
+              },
+            ),
+          );
   }
 
   //完了ボタン
@@ -1178,23 +1199,25 @@ class _RecipiEditState extends State<RecipiEdit>{
        width: MediaQuery.of(context).size.width * 0.25,
         child: Padding(
           padding: EdgeInsets.all(10),
-          child: FlatButton(
-            color: _isDescriptionEdit ? Colors.deepOrange[100 * (1 % 9)] : Colors.white,
-  //          shape: RoundedRectangleBorder(
-  //            borderRadius: BorderRadius.circular(10.0),
-  //          ),
-            child: Text('完了',
-              style: TextStyle(
-                color: _isDescriptionEdit ? Colors.deepOrange[100 * (1 % 9)] : Colors.deepOrange[100 * (1 % 9)],
-                fontSize: 15,
+          child: FittedBox(fit:BoxFit.fitWidth,
+            child: FlatButton(
+              color: _isDescriptionEdit ? Colors.deepOrange[100 * (1 % 9)] : Colors.white,
+//          shape: RoundedRectangleBorder(
+//            borderRadius: BorderRadius.circular(10.0),
+//          ),
+              child: Text('完了',
+                style: TextStyle(
+                  color: _isDescriptionEdit ? Colors.deepOrange[100 * (1 % 9)] : Colors.deepOrange[100 * (1 % 9)],
+                  fontSize: 15,
+                ),
               ),
+              onPressed:
+              _isDescriptionEdit
+                  ? null
+                  :(){
+                    _onSubmit();
+                  },
             ),
-            onPressed:
-            _isDescriptionEdit
-                ? null
-                :(){
-                  _onSubmit();
-                },
           ),
         ),
       )
@@ -1203,11 +1226,13 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //閉じるボタン
   Widget closeBtn(){
-    return IconButton(
-      icon: Icon( _selectedID == -1 ? Icons.close : Icons.arrow_back_ios,color: Colors.white,size: 30,),
-      onPressed: (){
-        _onList();
-      },
+    return FittedBox(fit:BoxFit.fitWidth,
+        child: IconButton(
+          icon: Icon( _selectedID == -1 ? Icons.close : Icons.arrow_back_ios,color: Colors.white),
+          onPressed: (){
+            _onList();
+          },
+        ),
     );
   }
 
@@ -1384,7 +1409,7 @@ class _RecipiEditState extends State<RecipiEdit>{
           _isEdit
           //編集画面の場合
           ? SizedBox(
-            height: MediaQuery.of(context).size.height * 0.1,
+//            height: MediaQuery.of(context).size.height * 0.12,
 //            height: _type == 3 ? MediaQuery.of(context).size.height * 0.05 : MediaQuery.of(context).size.height * 0.1,
             width: MediaQuery.of(context).size.width,
             child: Container(
@@ -1394,24 +1419,28 @@ class _RecipiEditState extends State<RecipiEdit>{
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Container(
-                        padding: EdgeInsets.all(10),
-                        child: Text(_titleForm.title.isEmpty ? 'タイトルを入力' :'${_titleForm.title}',
-                          maxLines: 1,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold
-                        ),),
+                        padding: EdgeInsets.only(left: 10,top: 5,right: 10,bottom: 5),
+//                        child: FittedBox(fit:BoxFit.fitWidth,
+                          child: Text(_titleForm.title.isEmpty ? 'タイトルを入力' :'${_titleForm.title}',
+                            maxLines: 1,
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold
+                            ),),
+//                        ),
                       ),
                       _type == 3
                       ? Container()
                       : Container(
-                        padding: EdgeInsets.all(10),
-                        child: Text(_titleForm.description.isEmpty ?'レシピの説明やメモを入力' :'${_titleForm.description}',
-                          maxLines: 1,
-                          style: TextStyle(
-                            fontSize: 15,
-  //                        fontWeight: FontWeight.bold
-                        ),),
+                        padding: EdgeInsets.only(left: 10,top: 5,right: 10,bottom: 5),
+//                        child: FittedBox(fit:BoxFit.fitWidth,
+                          child: Text(_titleForm.description.isEmpty ?'レシピの説明やメモを入力' :'${_titleForm.description}',
+                            maxLines: 1,
+                            style: TextStyle(
+                              fontSize: 15,
+                            ),
+                          ),
+//                        ),
                       ),
                     ],
                   ),
@@ -1425,7 +1454,7 @@ class _RecipiEditState extends State<RecipiEdit>{
 
           //詳細画面の場合
           : SizedBox(
-            height: MediaQuery.of(context).size.height * 0.1,
+//            height: MediaQuery.of(context).size.height * 0.1,
             width: MediaQuery.of(context).size.width,
             child: Container(
               color: Colors.white,
@@ -1433,7 +1462,7 @@ class _RecipiEditState extends State<RecipiEdit>{
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Container(
-                    padding: EdgeInsets.all(10),
+                    padding: EdgeInsets.only(left: 10,top: 5,right: 10,bottom: 5),
                     child: Text('${_titleForm.title}',
                       maxLines: 1,
                       style: TextStyle(
@@ -1444,7 +1473,7 @@ class _RecipiEditState extends State<RecipiEdit>{
                   _type == 3
                       ? Container()
                       : Container(
-                    padding: EdgeInsets.all(10),
+                    padding: EdgeInsets.only(left: 10,top: 5,right: 10,bottom: 5),
                     child: Text('${_titleForm.description}',
                       maxLines: 1,
                       style: TextStyle(
@@ -1473,20 +1502,30 @@ class _RecipiEditState extends State<RecipiEdit>{
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Container(
-                padding: EdgeInsets.all(10),
-                child: Text('材料', style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-//                    fontWeight: FontWeight.bold
-                ),),
+                padding: EdgeInsets.only(left: 10,right: 10),
+                child: FittedBox(fit:BoxFit.fitWidth,
+                    child:
+                    Text('材料',style: TextStyle(
+                      color: Colors.white,
+//                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),)
+                ),
+//                child: Text('材料', style: TextStyle(
+//                    color: Colors.white,
+//                    fontSize: 15,
+////                    fontWeight: FontWeight.bold
+//                ),),
               ),
               Container(
-                padding: EdgeInsets.all(10),
-                child: Text('${_titleForm.quantity}${_displayUnit(_titleForm.unit)}', style: TextStyle(
+                padding: EdgeInsets.only(left: 10,right: 10),
+                child: FittedBox(fit:BoxFit.fitWidth,
+                  child: Text('${_titleForm.quantity}${_displayUnit(_titleForm.unit)}', style: TextStyle(
                     color: Colors.white,
                     fontSize: 15,
 //                    fontWeight: FontWeight.bold
-                ),),
+                  ),),
+                ),
               ),
             ],
           ),
@@ -1516,21 +1555,25 @@ class _RecipiEditState extends State<RecipiEdit>{
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,                    children: <Widget>[
             Container(
-              padding: EdgeInsets.all(10),
-              child: Text('作り方',style: TextStyle(
+              padding: EdgeInsets.only(left: 10,right: 10),
+              child: FittedBox(fit:BoxFit.fitWidth,
+                child: Text('作り方',style: TextStyle(
                   color: Colors.white,
                   fontSize: 15,
 //                  fontWeight: FontWeight.bold
-              ),),
+                ),),
+              ),
             ),
             _titleForm.time != 0
             ? Container(
-              padding: EdgeInsets.all(10),
-              child: Text('${_titleForm.time}分', style: TextStyle(
+              padding: EdgeInsets.only(left: 10,right: 10),
+              child: FittedBox(fit:BoxFit.fitWidth,
+                child: Text('${_titleForm.time}分', style: TextStyle(
                   color: Colors.white,
                   fontSize: 15,
 //                  fontWeight: FontWeight.bold
-              ),),
+                ),),
+              ),
             )
             : Container()
           ],
@@ -1562,24 +1605,28 @@ class _RecipiEditState extends State<RecipiEdit>{
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Container(
-                  padding: EdgeInsets.all(10),
-                  child: Text('${_titleForm.quantity}${_displayUnit(_titleForm.unit)}',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-//                      fontWeight: FontWeight.bold
+                  padding: EdgeInsets.only(left: 10,right: 10),
+                  child: FittedBox(fit:BoxFit.fitWidth,
+                    child: Text('${_titleForm.quantity}${_displayUnit(_titleForm.unit)}',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+  //                      fontWeight: FontWeight.bold
+                      ),
                     ),
                   ),
                 ),
                 _titleForm.time != 0
                   ? Container(
-                    padding: EdgeInsets.all(10),
-                    child: Text('${_titleForm.time}分', style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-  //                      fontWeight: FontWeight.bold
-                    ),),
-                  )
+                    padding: EdgeInsets.only(left: 10,right: 10),
+                    child: FittedBox(fit:BoxFit.fitWidth,
+                      child: Text('${_titleForm.time}分', style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+    //                      fontWeight: FontWeight.bold
+                      ),),
+                    ),
+                    )
                   : Container()
               ],
             ),
@@ -1614,12 +1661,14 @@ class _RecipiEditState extends State<RecipiEdit>{
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Container(
-                      padding: EdgeInsets.all(10),
-                      child: Text('説明/メモ', style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-//                          fontWeight: FontWeight.bold
-                      ),),
+                      padding: EdgeInsets.only(left: 10,right: 10),
+                      child: FittedBox(fit:BoxFit.fitWidth,
+                        child: Text('説明/メモ', style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+  //                          fontWeight: FontWeight.bold
+                        ),),
+                      ),
                     ),
                     _recipi.thumbnail.isEmpty
                     ? Container()
@@ -1669,11 +1718,13 @@ class _RecipiEditState extends State<RecipiEdit>{
                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                    children: <Widget>[
                      Container(
-                       padding: EdgeInsets.all(10),
+                      padding: EdgeInsets.only(left: 10,right: 10),
+                      child: FittedBox(fit:BoxFit.fitWidth,
                        child: Text('説明', style: TextStyle(
                          color: Colors.white,
                          fontSize: 15,
                        ),),
+                     ),
                      ),
                    ],
                  ),
@@ -1748,18 +1799,20 @@ class _RecipiEditState extends State<RecipiEdit>{
             child: SizedBox(
               width: MediaQuery.of(context).size.width * 0.45,
               height: MediaQuery.of(context).size.height * 0.05,
-              child: RaisedButton.icon(
-                icon: Icon(Icons.delete,color: Colors.white,),
-                label: Text('レシピを削除する'),
-                textColor: Colors.white,
-                color: Colors.red[100 * (3 % 9)],
-    //            shape: RoundedRectangleBorder(
-    //              borderRadius: BorderRadius.circular(10.0),
-    //            ),
-                onPressed:(){
-                  _deleteModal();
-    //              _changeEditType(0); //編集TOP
-                } ,
+              child: FittedBox(fit:BoxFit.fitWidth,
+                child: RaisedButton.icon(
+                  icon: Icon(Icons.delete,color: Colors.white,),
+                  label: Text('レシピを削除する'),
+                  textColor: Colors.white,
+                  color: Colors.red[100 * (3 % 9)],
+      //            shape: RoundedRectangleBorder(
+      //              borderRadius: BorderRadius.circular(10.0),
+      //            ),
+                  onPressed:(){
+                    _deleteModal();
+      //              _changeEditType(0); //編集TOP
+                  } ,
+                ),
               ),
             ),
           )

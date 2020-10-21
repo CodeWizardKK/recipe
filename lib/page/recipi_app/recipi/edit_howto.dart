@@ -204,12 +204,14 @@ class _EditHowToState extends State<EditHowTo>{
 //            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Container(
-                padding: EdgeInsets.all(10),
-                child: Text('作り方',style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-//                  fontWeight: FontWeight.bold
-                ),),
+                padding: EdgeInsets.only(left: 10,right: 10),
+                child: FittedBox(fit:BoxFit.fitWidth,
+                  child: Text('作り方',style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+  //                  fontWeight: FontWeight.bold
+                  ),),
+                ),
               ),
             ],
           ),
@@ -250,8 +252,8 @@ class _EditHowToState extends State<EditHowTo>{
               _photo.isEmpty
                 ? Card(
                     child: Container(
-                      height: MediaQuery.of(context).size.height * 0.1,
-                      width: MediaQuery.of(context).size.width * 0.25,
+                      height: MediaQuery.of(context).size.width * 0.23,
+                      width: MediaQuery.of(context).size.width * 0.23,
                       color: Colors.amber[100 * (1 % 9)],
                       child: InkWell(
                           child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
@@ -263,8 +265,8 @@ class _EditHowToState extends State<EditHowTo>{
                   )
                 : Card(
                     child: Container(
-                      height: MediaQuery.of(context).size.height * 0.1,
-                      width: MediaQuery.of(context).size.width * 0.25,
+                      height: MediaQuery.of(context).size.width * 0.23,
+                      width: MediaQuery.of(context).size.width * 0.23,
                       child: InkWell(
                         child: Image.file(File(_photo),fit: BoxFit.cover,),
                         onTap: (){
@@ -299,14 +301,16 @@ class _EditHowToState extends State<EditHowTo>{
         child: SizedBox(
           width: MediaQuery.of(context).size.width * 0.45,
           height: MediaQuery.of(context).size.height * 0.05,
-          child: RaisedButton.icon(
-            icon: Icon(Icons.delete,color: Colors.white,),
-            label: Text('作り方を削除する'),
-            textColor: Colors.white,
-            color: Colors.red[100 * (3 % 9)],
-            onPressed:(){
-              Navigator.pop(context,'delete');
-            },
+          child: FittedBox(fit:BoxFit.fitWidth,
+            child: RaisedButton.icon(
+              icon: Icon(Icons.delete,color: Colors.white,),
+              label: Text('作り方を削除する'),
+              textColor: Colors.white,
+              color: Colors.red[100 * (3 % 9)],
+              onPressed:(){
+                Navigator.pop(context,'delete');
+              },
+            ),
           ),
         ),
       )
@@ -319,21 +323,23 @@ class _EditHowToState extends State<EditHowTo>{
       width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
-        child: FlatButton(
-          color: Colors.white,
-//          shape: RoundedRectangleBorder(
-//            borderRadius: BorderRadius.circular(10.0),
-//          ),
-          child: Text('保存',
-            style: TextStyle(
-              color: Colors.deepOrange[100 * (1 % 9)],
-              fontSize: 15,
+        child: FittedBox(fit:BoxFit.fitWidth,
+          child: FlatButton(
+            color: Colors.white,
+  //          shape: RoundedRectangleBorder(
+  //            borderRadius: BorderRadius.circular(10.0),
+  //          ),
+            child: Text('保存',
+              style: TextStyle(
+                color: Colors.deepOrange[100 * (1 % 9)],
+                fontSize: 15,
+              ),
             ),
+            onPressed: (){
+              //入力したdataをstoreへ保存
+              _onSubmit();
+            },
           ),
-          onPressed: (){
-            //入力したdataをstoreへ保存
-            _onSubmit();
-          },
         ),
       ),
     );
@@ -341,11 +347,13 @@ class _EditHowToState extends State<EditHowTo>{
 
   //ｘボタン
   Widget closeBtn(){
-    return IconButton(
-      icon: const Icon(Icons.close,color: Colors.white,size: 30,),
-      onPressed: (){
-        Navigator.pop(context);
-      },
+    return FittedBox(fit:BoxFit.fitWidth,
+      child: IconButton(
+        icon: const Icon(Icons.close,color: Colors.white),
+        onPressed: (){
+          Navigator.pop(context);
+        },
+      ),
     );
   }
 }

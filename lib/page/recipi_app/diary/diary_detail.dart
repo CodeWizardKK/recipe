@@ -286,37 +286,42 @@ class _DiaryDetailState extends State<DiaryDetail>{
 
   //シェアボタン
   Widget shareBtn() {
-    return IconButton(
-      icon: const Icon(Icons.share, color: Colors.white, size: 30,),
-      onPressed: () {
-        common.takeWidgetScreenShot(previewContainer);
-      },
+    return FittedBox(fit:BoxFit.fitWidth,
+      child:IconButton(
+        icon: const Icon(Icons.share, color: Colors.white),
+        onPressed: () {
+          common.takeWidgetScreenShot(previewContainer);
+        },
+      ),
     );
   }
 
   //編集ボタン
   Widget editBtn(){
-    return IconButton(
-      icon: const Icon(Icons.edit,color: Colors.white,size: 30,),
-      onPressed: (){
-        _onEdit();
-      },
+    return FittedBox(fit:BoxFit.fitWidth,
+      child:IconButton(
+        icon: const Icon(Icons.edit,color: Colors.white),
+        onPressed: (){
+          _onEdit();
+        },
+      ),
     );
   }
 
   //戻るボタン
   Widget backBtn(){
-    return IconButton(
-        icon: const Icon(Icons.arrow_back_ios,color: Colors.white,size: 30,),
-        onPressed: (){
-          _onBack();
-        },
+    return FittedBox(fit:BoxFit.fitWidth,
+      child:IconButton(
+          icon: const Icon(Icons.arrow_back_ios,color: Colors.white),
+          onPressed: (){
+            _onBack();
+          },
+      ),
     );
   }
 
   //レシピ詳細
   Widget scrollArea(){
-
     return Container(
       child: SingleChildScrollView(
 //        key: _globalKey,
@@ -551,23 +556,27 @@ class _DiaryDetailState extends State<DiaryDetail>{
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Container(
-              padding: EdgeInsets.all(10),
-              child: Text('${_displayDate(_diary.date)}', style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-//                  fontWeight: FontWeight.bold
-              ),),
+              padding: EdgeInsets.only(left: 10,right: 10),
+              child: FittedBox(fit:BoxFit.fitWidth,
+                child: Text('${_displayDate(_diary.date)}', style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+  //                  fontWeight: FontWeight.bold
+                ),),
+              ),
             ),
             Container(
-              padding: EdgeInsets.all(10),
+              padding: EdgeInsets.only(left: 10,right: 10),
               child:
               _diary.category == 1
                 ? Container()
-                : Text('${_displayCategory(_diary.category)}', style: TextStyle(
-                  color: Colors.white,
-                    fontSize: 15,
+                : FittedBox(fit:BoxFit.fitWidth,
+                    child: Text('${_displayCategory(_diary.category)}', style: TextStyle(
+                      color: Colors.white,
+                        fontSize: 15,
 //                    fontWeight: FontWeight.bold
-                ),),
+                    ),),
+                  ),
             ),
           ],
         ),
@@ -580,34 +589,55 @@ class _DiaryDetailState extends State<DiaryDetail>{
     return
     _diary.recipis.length == 0
       ? Container()
-      : Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
+//      : Column(
+//      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//      children: <Widget>[
+//        SizedBox(
+//          height: MediaQuery.of(context).size.height * 0.05,
+//          width: MediaQuery.of(context).size.width,
+//          child: Container(
+//            color: Colors.deepOrange[100 * (2 % 9)],
+//            padding: EdgeInsets.only(left: 10,right: 10),
+//            child: FittedBox(fit:BoxFit.fitWidth,
+//              child: Text('レシピ', style: TextStyle(
+//              color: Colors.white,
+//              fontSize: 15,
+////              fontWeight: FontWeight.bold
+//              ),),
+//            ),
+//          ),
+//        ),
 //        Divider(
 //          color: Colors.grey,
 //          height: 0.5,
 //          thickness: 0.5,
 //        ),
-        SizedBox(
-          height: MediaQuery.of(context).size.height * 0.05,
-          width: MediaQuery.of(context).size.width,
-          child: Container(
-              color: Colors.deepOrange[100 * (2 % 9)],
-              padding: EdgeInsets.all(15),
-              child: Text('レシピ', style: TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-//              fontWeight: FontWeight.bold
-              ),),
+//      ],
+//    );
+      : SizedBox(
+        height: MediaQuery.of(context).size.height * 0.05,
+        width: MediaQuery.of(context).size.width,
+        child: Container(
+          color: Colors.deepOrange[100 * (2 % 9)],
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.only(left: 10,right: 10),
+                child: FittedBox(fit:BoxFit.fitWidth,
+                  child: Text('レシピ',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-//        Divider(
-//          color: Colors.grey,
-//          height: 0.5,
-//          thickness: 0.5,
-//        ),
-      ],
-    );
+      );
+
   }
 
   //レシピリスト
@@ -640,11 +670,13 @@ class _DiaryDetailState extends State<DiaryDetail>{
       return
         SizedBox(
           width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height * 0.16,
+//          height: MediaQuery.of(context).size.height * 0.16,
           child: Container(
             color: Colors.white,
-            padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
+//            padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
+            padding: EdgeInsets.all(5),
             child: InkWell(
+              child: FittedBox(fit:BoxFit.fitWidth,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
@@ -674,7 +706,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                         children: <Widget>[
                           //タイトル
                           Container(
-                            height: MediaQuery.of(context).size.height * 0.045,
+//                            height: MediaQuery.of(context).size.height * 0.045,
                             padding: EdgeInsets.all(5),
                             child: Text('${this._recipis[index].recipi.title}',
                               maxLines: 2,
@@ -685,7 +717,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                           ),
                           //材料
                           Container(
-                            height: MediaQuery.of(context).size.height * 0.04,
+//                            height: MediaQuery.of(context).size.height * 0.04,
                             padding: EdgeInsets.all(5),
 //                            child: Text('${ingredients.join(',')}',
                             child: Text('${ingredientsTX}',
@@ -700,7 +732,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                             Container(
 //                              width: MediaQuery.of(context).size.width * 0.5,
 //                              color: Colors.grey,
-                              height: MediaQuery.of(context).size.height * 0.05,
+                              height: MediaQuery.of(context).size.height * 0.08,
                               padding: EdgeInsets.only(left: 5,right: 5),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
@@ -709,7 +741,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                                   Container(
                                     padding: EdgeInsets.only(top: 10),
                                     width: MediaQuery.of(context).size.width * 0.03,
-                                    child: Icon(Icons.local_offer,size: 20,color: Colors.yellow[100 * (1 % 9)]),
+                                    child: Icon(Icons.local_offer,color: Colors.yellow[100 * (1 % 9)]),
                                   ),
                                   Container(
 //                                    color: Colors.brown,
@@ -722,24 +754,6 @@ class _DiaryDetailState extends State<DiaryDetail>{
                                           .toList(),
                                     ),
                                   ),
-//                                  //タグ名　最大5件まで
-//                                  for(var k = 0; k<this._recipis[index].tags.length;k++)
-//                                    Container(
-//                                      padding: EdgeInsets.all(2),
-//                                      child: SizedBox(
-//                                        child: Container(
-//                                          padding: EdgeInsets.all(5),
-//                                          color: Colors.amber[100 * (1 % 9)],
-//
-//                                          child: Text('${this._recipis[index].tags[k].name}',
-//                                            style: TextStyle(
-//                                                fontSize: 10,
-//                                                color: Colors.grey
-//                                            ),
-//                                            maxLines: 1,),
-//                                        ),
-//                                      ),
-//                                    ),
                                 ],
                               ),
                             ),
@@ -748,6 +762,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                       ),
                     ),
                   ],
+                ),
                 ),
                 onTap: (){
                   print('recipiID:${this._recipis[index].recipi.id},thumbnail:${this._recipis[index].recipi.thumbnail}');

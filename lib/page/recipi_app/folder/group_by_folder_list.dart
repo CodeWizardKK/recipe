@@ -790,11 +790,13 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
 
   //戻るボタン
   Widget backBtn(){
-    return IconButton(
-      icon: const Icon(Icons.arrow_back_ios,color: Colors.white,size: 30,),
-      onPressed: (){
-        _onBack();
-      },
+    return FittedBox(fit:BoxFit.fitWidth,
+      child: IconButton(
+        icon: const Icon(Icons.arrow_back_ios,color: Colors.white),
+        onPressed: (){
+          _onBack();
+        },
+      ),
     );
   }
 
@@ -804,19 +806,21 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
       width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
-        child: FlatButton(
-          color: Colors.white,
-          child: Text('完了',
-            style: TextStyle(
-              color: Colors.deepOrange[100 * (1 % 9)],
-              fontSize: 15,
+        child: FittedBox(fit:BoxFit.fitWidth,
+          child: FlatButton(
+            color: Colors.white,
+            child: Text('完了',
+              style: TextStyle(
+                color: Colors.deepOrange[100 * (1 % 9)],
+                fontSize: 15,
+              ),
             ),
+            onPressed: (){
+              setState(() {
+                this._isCheck = !this._isCheck;
+              });
+            },
           ),
-          onPressed: (){
-            setState(() {
-              this._isCheck = !this._isCheck;
-            });
-          },
         ),
       ),
     );
@@ -824,23 +828,27 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
 
   //チェックボタン
   Widget checkBtn(){
-    return IconButton(
-      color: Colors.white,
-      icon: const Icon(Icons.check_circle_outline,size:30,),
-      onPressed: (){
-        _onCheck();
-      },
+    return FittedBox(fit:BoxFit.fitWidth,
+      child: IconButton(
+        color: Colors.white,
+        icon: const Icon(Icons.check_circle_outline),
+        onPressed: (){
+          _onCheck();
+        },
+      ),
     );
   }
 
   //追加ボタン
   Widget addBtn(){
-    return IconButton(
-      color: Colors.white,
-      icon: const Icon(Icons.add_circle_outline,size:30,),
-      onPressed: (){
-        _onAdd();
-      },
+    return FittedBox(fit:BoxFit.fitWidth,
+      child: IconButton(
+        color: Colors.white,
+        icon: const Icon(Icons.add_circle_outline),
+        onPressed: (){
+          _onAdd();
+        },
+      ),
     );
   }
 
@@ -896,70 +904,79 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
     !_isCheck
       ? Container()
       : SizedBox(
-      height: MediaQuery.of(context).size.height * 0.05,
+//      height: MediaQuery.of(context).size.height * 0.05,
       width: MediaQuery.of(context).size.width,
       child: SafeArea(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
+            //フォルダボタン
             Container(
               width: MediaQuery.of(context).size.width * 0.3,
               child: Padding(
                 padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
-                child: FlatButton(
-                  color: Colors.deepOrange[100 * (1 % 9)],
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      const Icon(Icons.folder_open,color: Colors.white,),
-                      const Text('フォルダ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
-                    ],
+                child: FittedBox(fit:BoxFit.fitWidth,
+                  child: FlatButton(
+                    color: Colors.deepOrange[100 * (1 % 9)],
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        const Icon(Icons.folder_open,color: Colors.white,),
+                        const Text('フォルダ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
+                      ],
+                    ),
+                    onPressed: _onDisabled() ? null :(){
+                      _onFolderTap(type: 1);
+                      print('フォルダ');
+                    },
                   ),
-                  onPressed: _onDisabled() ? null :(){
-                    _onFolderTap(type: 1);
-                    print('フォルダ');
-                  },
                 ),
               ),
             ),
+            //タグ付けボタン
             Container(
               width: MediaQuery.of(context).size.width * 0.3,
               child: Padding(
                 padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
-                child: FlatButton(
-                  color: Colors.deepOrange[100 * (1 % 9)],
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      const Icon(Icons.local_offer,color: Colors.white,),
-                      const Text('タグ付け', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
-                    ],
+                child: FittedBox(fit:BoxFit.fitWidth,
+                  child: FlatButton(
+                    color: Colors.deepOrange[100 * (1 % 9)],
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        const Icon(Icons.local_offer,color: Colors.white,),
+                        const Text('タグ付け', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
+                      ],
+                    ),
+                    onPressed: _onDisabled() ? null :(){
+                      _onFolderTap(type: 2);
+                      print('タグ付け');
+                    },
                   ),
-                  onPressed: _onDisabled() ? null :(){
-                    _onFolderTap(type: 2);
-                    print('タグ付け');
-                  },
                 ),
               ),
             ),
+            //削除するボタン
             Container(
               width: MediaQuery.of(context).size.width * 0.3,
               child: Padding(
                 padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
-                child: FlatButton(
-                  color: Colors.red[100 * (3 % 9)],
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      const Icon(Icons.delete_outline,color: Colors.white,),
-                      const Text('削除する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
-                    ],
+                child: FittedBox(fit:BoxFit.fitWidth,
+                  child: FlatButton(
+                    color: Colors.red[100 * (3 % 9)],
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        const Icon(Icons.delete_outline,color: Colors.white,),
+                        const Text('削除する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
+                      ],
+                    ),
+                    onPressed: _onDisabled() ? null :(){
+                      _onDelete();
+                      print('削除する');
+                    },
                   ),
-                  onPressed: _onDisabled() ? null :(){
-                    _onDelete();
-                    print('削除する');
-                  },
-                ),
+              ),
               ),
             ),
           ],
@@ -1026,20 +1043,24 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Container(
-                      padding: EdgeInsets.all(10),
-                      child: Text('レシピ', style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-//                          fontWeight: FontWeight.bold
-                      ),),
+                      padding: EdgeInsets.only(left: 10,right: 10),
+                      child: FittedBox(fit:BoxFit.fitWidth,
+                        child: Text('レシピ', style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+  //                          fontWeight: FontWeight.bold
+                        ),),
+                      ),
                     ),
                     Container(
-                      padding: EdgeInsets.all(10),
-                      child: Text('${_displayRecipis.length}品', style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-//                          fontWeight: FontWeight.bold
-                      ),),
+                      padding: EdgeInsets.only(left: 10,right: 10),
+                      child: FittedBox(fit:BoxFit.fitWidth,
+                        child: Text('${_displayRecipis.length}品', style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+  //                          fontWeight: FontWeight.bold
+                        ),),
+                      ),
                     ),
                   ],
                 ),
@@ -1063,20 +1084,24 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Container(
-                      padding: EdgeInsets.all(10),
-                      child: Text('検索結果', style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-//                          fontWeight: FontWeight.bold
-                      ),),
+                      padding: EdgeInsets.only(left: 10,right: 10),
+                      child: FittedBox(fit:BoxFit.fitWidth,
+                        child: Text('検索結果', style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+  //                          fontWeight: FontWeight.bold
+                        ),),
+                      ),
                     ),
                     Container(
-                      padding: EdgeInsets.all(10),
-                      child: Text('${_displaySearchs.length}品', style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-//                          fontWeight: FontWeight.bold
-                      ),),
+                      padding: EdgeInsets.only(left: 10,right: 10),
+                      child: FittedBox(fit:BoxFit.fitWidth,
+                        child: Text('${_displaySearchs.length}品', style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+  //                          fontWeight: FontWeight.bold
+                        ),),
+                      ),
                     ),
                   ],
                 ),
@@ -1182,122 +1207,125 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
     return
       SizedBox(
         width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height * 0.16,
+//        height: MediaQuery.of(context).size.height * 0.16,
         child: Container(
           color: Colors.white,
-          padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
+//          padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
+          padding: EdgeInsets.all(5),
           child: InkWell(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  if(this._isCheck)
-                    Container(
-                        width: MediaQuery.of(context).size.width * 0.1,
-//                      padding: EdgeInsets.all(5),
-                        child:Checkbox(
-                          value: this._displayList[index].isCheck,
-                          onChanged: (bool value){
-                            _onItemCheck(index: index);
-                            print('ID:${this._displayList[index].id},name:${this._displayList[index].title},isCheck:${this._displayList[index].isCheck}');
-                          },
-                        )
-                    ),
-                  //サムネイルエリア
-                  this._displayList[index].thumbnail.isNotEmpty
-                      ? Card(
-                    child: Container(
-                      height: MediaQuery.of(context).size.width * 0.25,
-                      width: MediaQuery.of(context).size.width * 0.25,
-                      child: Image.file(File(common.replaceImage(this._displayList[index].thumbnail)),fit: BoxFit.cover,),
-                    ),
-                  )
-                      : Card(
-                    child: Container(
-                      height: MediaQuery.of(context).size.width * 0.25,
-                      width: MediaQuery.of(context).size.width * 0.25,
-                      color: Colors.amber[100 * (1 % 9)],
-                      child: Icon(Icons.restaurant,color: Colors.white,size: 50,),
-                    ),
-                  ),
-                  //タイトル、材料、タグエリア
-                  Container(
-//                      color: Colors.grey,
-                    width: MediaQuery.of(context).size.width * 0.58,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        //タイトル
-                        Container(
-                          height: MediaQuery.of(context).size.height * 0.045,
-                          padding: EdgeInsets.all(5),
-                          child: Text('${this._displayList[index].title}',
-                            maxLines: 2,
-                            style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold
-                            ),),
-                        ),
-                        //材料
-                        Container(
-                          height: MediaQuery.of(context).size.height * 0.04,
-                          padding: EdgeInsets.all(5),
-//                            child: Text('${ingredients.join(',')}',
-                          child: Text('${ingredientsTX}',
-                            maxLines: 2,
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey
-                            ),),
-                        ),
-                        //タグ
-                        if(tags.length > 0)
-                          Container(
-                            height: MediaQuery.of(context).size.height * 0.05,
-                            padding: EdgeInsets.only(left: 5,right: 5),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: <Widget>[
-                                //タグicon
-                                Container(
-                                  padding: EdgeInsets.only(top: 10),
-                                  width: MediaQuery.of(context).size.width * 0.03,
-                                  child: Icon(Icons.local_offer,size: 20,color: Colors.yellow[100 * (1 % 9)]),
-                                ),
-                                Container(
-//                                      color: Colors.brown,
-                                  width: MediaQuery.of(context).size.width * 0.52,
-                                  child: MultiSelectChipDisplay(
-                                    chipColor: Colors.yellow,
-                                    onTap: null,
-                                    items: tags
-                                        .map((e) => MultiSelectItem<Tag>(e, e.name))
-                                        .toList(),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        //フォルダicon
-                      ],
-                    ),
-                  ),
-                  //フォルダエリア
-                  if(!this._isCheck)
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.12,
-                      height: MediaQuery.of(context).size.height * 0.16,
+              child: FittedBox(fit:BoxFit.fitWidth,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    if(this._isCheck)
+                      Container(
+                          width: MediaQuery.of(context).size.width * 0.1,
+  //                      padding: EdgeInsets.all(5),
+                          child:Checkbox(
+                            value: this._displayList[index].isCheck,
+                            onChanged: (bool value){
+                              _onItemCheck(index: index);
+                              print('ID:${this._displayList[index].id},name:${this._displayList[index].title},isCheck:${this._displayList[index].isCheck}');
+                            },
+                          )
+                      ),
+                    //サムネイルエリア
+                    this._displayList[index].thumbnail.isNotEmpty
+                        ? Card(
                       child: Container(
-//                          color: Colors.greenAccent,
-                        padding: EdgeInsets.all(5),
-                        child: InkWell(
-                          child: Icon(Icons.folder,color: Colors.orange[100 * (3 % 9)],size: 30,),
-                          onTap: (){
-                            _onFolderTap(index: index,ingredients: ingredientsTX,tags: tags,type: 0);
-                          },
-                        ),
+                        height: MediaQuery.of(context).size.width * 0.25,
+                        width: MediaQuery.of(context).size.width * 0.25,
+                        child: Image.file(File(common.replaceImage(this._displayList[index].thumbnail)),fit: BoxFit.cover,),
+                      ),
+                    )
+                        : Card(
+                      child: Container(
+                        height: MediaQuery.of(context).size.width * 0.25,
+                        width: MediaQuery.of(context).size.width * 0.25,
+                        color: Colors.amber[100 * (1 % 9)],
+                        child: Icon(Icons.restaurant,color: Colors.white,size: 50,),
                       ),
                     ),
-                ],
+                    //タイトル、材料、タグエリア
+                    Container(
+  //                      color: Colors.grey,
+                      width: MediaQuery.of(context).size.width * 0.58,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          //タイトル
+                          Container(
+//                            height: MediaQuery.of(context).size.height * 0.045,
+                            padding: EdgeInsets.all(5),
+                            child: Text('${this._displayList[index].title}',
+                              maxLines: 2,
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold
+                              ),),
+                          ),
+                          //材料
+                          Container(
+//                            height: MediaQuery.of(context).size.height * 0.04,
+                            padding: EdgeInsets.all(5),
+  //                            child: Text('${ingredients.join(',')}',
+                            child: Text('${ingredientsTX}',
+                              maxLines: 2,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey
+                              ),),
+                          ),
+                          //タグ
+                          if(tags.length > 0)
+                            Container(
+                              height: MediaQuery.of(context).size.height * 0.08,
+                              padding: EdgeInsets.only(left: 5,right: 5),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: <Widget>[
+                                  //タグicon
+                                  Container(
+                                    padding: EdgeInsets.only(top: 10),
+                                    width: MediaQuery.of(context).size.width * 0.03,
+                                    child: Icon(Icons.local_offer,color: Colors.yellow[100 * (1 % 9)]),
+                                  ),
+                                  Container(
+  //                                      color: Colors.brown,
+                                    width: MediaQuery.of(context).size.width * 0.52,
+                                    child: MultiSelectChipDisplay(
+                                      chipColor: Colors.yellow,
+                                      onTap: null,
+                                      items: tags
+                                          .map((e) => MultiSelectItem<Tag>(e, e.name))
+                                          .toList(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          //フォルダicon
+                        ],
+                      ),
+                    ),
+                    //フォルダエリア
+                    if(!this._isCheck)
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.12,
+                        height: MediaQuery.of(context).size.height * 0.16,
+                        child: Container(
+  //                          color: Colors.greenAccent,
+                          padding: EdgeInsets.all(5),
+                          child: InkWell(
+                            child: Icon(Icons.folder,color: Colors.orange[100 * (3 % 9)],size: 30,),
+                            onTap: (){
+                              _onFolderTap(index: index,ingredients: ingredientsTX,tags: tags,type: 0);
+                            },
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
               onTap: (){
                 if(this._isCheck){
@@ -1315,63 +1343,68 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
   Widget searchArea(){
     return
       SizedBox(
-        height: MediaQuery.of(context).size.height * 0.06,
+//        height: MediaQuery.of(context).size.height * 0.07,
         width: MediaQuery.of(context).size.width,
         child: Container(
+          padding: EdgeInsets.all(5),
           color: Colors.white30,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              //テキスト検索エリア
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8,
-                height: MediaQuery.of(context).size.height * 0.04,
-                child: Container(
-                  child: TextField(
-                      onChanged: _onSearch,
-                      style: const TextStyle(fontSize: 15.0, color: Colors.grey,),
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.search,size: 25,),
-                        hintText:"${_folder.name}から検索",
-                        contentPadding: const EdgeInsets.only(top: 10),
-                        border: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.grey, width: 32.0),
-                            borderRadius: BorderRadius.circular(15.0)
-                        ),
-                      )
+          child: FittedBox(fit:BoxFit.fitWidth,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                //テキスト検索エリア
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.055,
+                  width: MediaQuery.of(context).size.width * 0.85,
+                  child: Container(
+                    child: TextField(
+                        onChanged: _onSearch,
+                        style: const TextStyle(fontSize: 15.0, color: Colors.grey,),
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(Icons.search,size: 25,),
+                          hintText:"${_folder.name}から検索",
+                          contentPadding: const EdgeInsets.only(top: 10),
+                          border: OutlineInputBorder(
+                              borderSide: const BorderSide(color: Colors.grey, width: 32.0),
+                              borderRadius: BorderRadius.circular(15.0)
+                          ),
+                        )
+                    ),
                   ),
                 ),
-              ),
-              //タグ検索エリア
-              Container(
-                decoration: BoxDecoration(
-//                  color: Colors.blueGrey,
-                ),
-                width: MediaQuery.of(context).size.width * 0.15,
-                child: Column(
-                  children: <Widget>[
-                    MultiSelectBottomSheetField(
-                      initialChildSize: 0.40,
-                      listType: MultiSelectListType.CHIP,
-                      searchable: true,
-                      buttonIcon: Icon(Icons.local_offer,color: _selectedtags == null || _selectedtags.isEmpty ? Colors.grey : Colors.deepOrange[100 * (1 % 9)] ,size: 35,),
-                      buttonText: Text(""),
-                      title: Text("タグで検索"),
-//                      selectedColor: Colors.deepOrange[100 * (2 % 9)] ,
-//                      backgroundColor: Colors.blueGrey,
-//                      chipColor: Colors.white,
-                      items: _displayTags,
-                      onConfirm: (results) {
-                        setState(() {
-                          _selectedtags = results;
-                        });
-                        this._onTagSearch();
-                      },
+                //タグ検索エリア
+                Container(
+                  decoration: BoxDecoration(
+  //                  color: Colors.blueGrey,
+                  ),
+  //                width: MediaQuery.of(context).size.width * 0.15,
+//                  child: FittedBox(fit:BoxFit.fitWidth,
+                    child: Column(
+                      children: <Widget>[
+                        MultiSelectBottomSheetField(
+                          initialChildSize: 0.40,
+                          listType: MultiSelectListType.CHIP,
+                          searchable: true,
+                          buttonIcon: Icon(Icons.local_offer,color: _selectedtags == null || _selectedtags.isEmpty ? Colors.grey : Colors.deepOrange[100 * (1 % 9)] ,size: 35,),
+                          buttonText: Text(""),
+                          title: Text("タグで検索"),
+    //                      selectedColor: Colors.deepOrange[100 * (2 % 9)] ,
+    //                      backgroundColor: Colors.blueGrey,
+    //                      chipColor: Colors.white,
+                          items: _displayTags,
+                          onConfirm: (results) {
+                            setState(() {
+                              _selectedtags = results;
+                            });
+                            this._onTagSearch();
+                          },
+                        ),
+                      ],
                     ),
-                  ],
+//                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       );

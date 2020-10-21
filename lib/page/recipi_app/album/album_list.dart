@@ -516,14 +516,16 @@ class _AlbumListState extends State<AlbumList>{
           _isCheck
               ? _selected[index]
               ? Container(
-            child: IconButton(
-              icon: Icon(Icons.check_circle_outline,color: Colors.white,size: 30,),
-              onPressed: (){
-                setState(() {
-                  _selected[index] = !_selected[index];
-//                        print('selected:${this._selected}');
-                });
-              },
+              child: FittedBox(fit:BoxFit.fitWidth,
+                child: IconButton(
+                icon: Icon(Icons.check_circle_outline,color: Colors.white),
+                onPressed: (){
+                  setState(() {
+                    _selected[index] = !_selected[index];
+  //                        print('selected:${this._selected}');
+                  });
+                },
+              ),
             ),
           )
               : Container()
@@ -541,19 +543,21 @@ class _AlbumListState extends State<AlbumList>{
             width: MediaQuery.of(context).size.width * 0.35,
             child: Padding(
               padding: EdgeInsets.only(top: 5,bottom: 5,left: 6,right: 6),
-              child: FlatButton(
-                onPressed:
-                _selectedCount().isEmpty
-                    ? null
-                    : (){
-                  _onImgShareSave();
-                },
-                color: Colors.deepOrange[100 * (1 % 9)],
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    const Text('共有 / 保存する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
-                  ],
+              child: FittedBox(fit:BoxFit.fitWidth,
+                child: FlatButton(
+                  onPressed:
+                  _selectedCount().isEmpty
+                      ? null
+                      : (){
+                    _onImgShareSave();
+                  },
+                  color: Colors.deepOrange[100 * (1 % 9)],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      const Text('共有 / 保存する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -567,44 +571,53 @@ class _AlbumListState extends State<AlbumList>{
       width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
-        child: FlatButton(
-          color: Colors.white,
-          child: Text('完了',
-            style: TextStyle(
-              color: Colors.deepOrange[100 * (1 % 9)],
-              fontSize: 15,
+        child: FittedBox(fit:BoxFit.fitWidth,
+          child: FlatButton(
+            color: Colors.white,
+            child: Text('完了',
+              style: TextStyle(
+                color: Colors.deepOrange[100 * (1 % 9)],
+                fontSize: 15,
+              ),
             ),
+            onPressed: (){
+              setState(() {
+                this._isCheck = !this._isCheck;
+              });
+            },
           ),
-          onPressed: (){
-            setState(() {
-              this._isCheck = !this._isCheck;
-            });
-          },
         ),
       ),
     );
   }
 
+  //チェックボタン
   Widget checkBtn(){
-    return IconButton(
-        color: Colors.white,
-        icon: const Icon(Icons.check_circle_outline,size:30,),
-        onPressed: (){
-          _onCheck();
-        }
+    return FittedBox(fit:BoxFit.fitWidth,
+      child: IconButton(
+          color: Colors.white,
+          icon: const Icon(Icons.check_circle_outline),
+          onPressed: (){
+            _onCheck();
+          }
+      ),
     );
   }
 
+  //追加ボタン
   Widget addBtn(BuildContext context){
-    return IconButton(
-      color: Colors.white,
-      icon: const Icon(Icons.add_circle_outline,size:30,),
-      onPressed: (){
-        _onEdit(-1);
-      },
+    return FittedBox(fit:BoxFit.fitWidth,
+      child: IconButton(
+        color: Colors.white,
+        icon: const Icon(Icons.add_circle_outline),
+        onPressed: (){
+          _onEdit(-1);
+        },
+      ),
     );
   }
 
+  //ナビゲーション
   Widget bottomNavigationBar(BuildContext context){
     return Consumer<Display>(
 //        key: GlobalKey(),

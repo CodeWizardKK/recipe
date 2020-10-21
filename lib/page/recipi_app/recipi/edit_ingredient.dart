@@ -172,12 +172,14 @@ class _EditIngredientState extends State<EditIngredient>{
 //            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Container(
-                padding: EdgeInsets.all(10),
-                child: Text('材料',style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-//                  fontWeight: FontWeight.bold
-                ),),
+                padding: EdgeInsets.only(left: 10,right: 10),
+                child: FittedBox(fit:BoxFit.fitWidth,
+                  child: Text('材料',style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+  //                  fontWeight: FontWeight.bold
+                  ),),
+                ),
               ),
             ],
           ),
@@ -205,7 +207,7 @@ class _EditIngredientState extends State<EditIngredient>{
           ),
         ),
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 10.0,vertical: 10.0),
+          padding: EdgeInsets.symmetric(horizontal: 10.0,vertical: 5.0),
           height:  MediaQuery.of(context).size.height * 0.08,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
@@ -213,16 +215,18 @@ class _EditIngredientState extends State<EditIngredient>{
             itemBuilder: (context,index) {
               return Row(
                 children: <Widget>[
-                  RoundedButton(
-                    title: '${_seasonings[index].name}',
-                    buttonColor: Colors.amber[100 * (1 % 9)],
-                    splashColor: Colors.orangeAccent,
-                    onPressed: () {
-                      setState(() {
-                        _name.text = _seasonings[index].name;
-                      });
-//                      print('${_seasonings[index].name}');
-                    },
+                  FittedBox(fit:BoxFit.fitWidth,
+                    child:RoundedButton(
+                      title: '${_seasonings[index].name}',
+                      buttonColor: Colors.amber[100 * (1 % 9)],
+                      splashColor: Colors.orangeAccent,
+                      onPressed: () {
+                        setState(() {
+                          _name.text = _seasonings[index].name;
+                        });
+  //                      print('${_seasonings[index].name}');
+                      },
+                    ),
                   ),
                   SizedBox(width: 2.0,)
                 ],
@@ -246,12 +250,14 @@ class _EditIngredientState extends State<EditIngredient>{
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Container(
-                padding: EdgeInsets.all(10),
-                child: Text('分量',style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-//                    fontWeight: FontWeight.bold
-                ),),
+                padding: EdgeInsets.only(left: 10,right: 10),
+                child: FittedBox(fit:BoxFit.fitWidth,
+                  child: Text('分量',style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+  //                    fontWeight: FontWeight.bold
+                  ),),
+                ),
               ),
             ],
           ),
@@ -279,7 +285,7 @@ class _EditIngredientState extends State<EditIngredient>{
           ),
         ),
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 10.0,vertical: 10.0),
+          padding: EdgeInsets.symmetric(horizontal: 10.0,vertical: 5.0),
           height:  MediaQuery.of(context).size.height * 0.08,
           child: ListView.builder(
               scrollDirection: Axis.horizontal,
@@ -287,20 +293,22 @@ class _EditIngredientState extends State<EditIngredient>{
               itemBuilder: (context,index) {
                 return Row(
                   children: <Widget>[
-                    RoundedButton(
-                      title: '${_quantityunit[index].name}',
-                      buttonColor: Colors.amber[100 * (1 % 9)],
-                      splashColor: Colors.orangeAccent,
-                      onPressed: () {
-                        setState(() {
-                          if(_quantityunit[index].id < 5){
-                            _quantity.text = '${_quantity.text}${_quantityunit[index].name}';
-                          } else {
-                            _quantity.text = '${_quantityunit[index].name}${_quantity.text}';
-                          }
-                        });
-                        print('${_quantityunit[index].name}');
-                      },
+                    FittedBox(fit:BoxFit.fitWidth,
+                      child:RoundedButton(
+                        title: '${_quantityunit[index].name}',
+                        buttonColor: Colors.amber[100 * (1 % 9)],
+                        splashColor: Colors.orangeAccent,
+                        onPressed: () {
+                          setState(() {
+                            if(_quantityunit[index].id < 5){
+                              _quantity.text = '${_quantity.text}${_quantityunit[index].name}';
+                            } else {
+                              _quantity.text = '${_quantityunit[index].name}${_quantity.text}';
+                            }
+                          });
+                          print('${_quantityunit[index].name}');
+                        },
+                      ),
                     ),
                     SizedBox(width: 2.0,)
                   ],
@@ -322,14 +330,16 @@ class _EditIngredientState extends State<EditIngredient>{
         child: SizedBox(
           width: MediaQuery.of(context).size.width * 0.45,
           height: MediaQuery.of(context).size.height * 0.05,
-          child: RaisedButton.icon(
-            icon: Icon(Icons.delete,color: Colors.white,),
-            label: Text('材料を削除する'),
-            textColor: Colors.white,
-            color: Colors.red[100 * (3 % 9)],
-            onPressed:(){
-              Navigator.pop(context,'delete');
-            },
+          child: FittedBox(fit:BoxFit.fitWidth,
+            child: RaisedButton.icon(
+              icon: Icon(Icons.delete,color: Colors.white),
+              label: Text('材料を削除する'),
+              textColor: Colors.white,
+              color: Colors.red[100 * (3 % 9)],
+              onPressed:(){
+                Navigator.pop(context,'delete');
+              },
+            ),
           ),
         ),
       )
@@ -343,21 +353,23 @@ class _EditIngredientState extends State<EditIngredient>{
       width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
-        child: FlatButton(
-          color: Colors.white,
-//          shape: RoundedRectangleBorder(
-//            borderRadius: BorderRadius.circular(10.0),
-//          ),
-          child: Text('保存',
-            style: TextStyle(
-              color: Colors.deepOrange[100 * (1 % 9)],
-              fontSize: 15,
+        child: FittedBox(fit:BoxFit.fitWidth,
+          child: FlatButton(
+            color: Colors.white,
+  //          shape: RoundedRectangleBorder(
+  //            borderRadius: BorderRadius.circular(10.0),
+  //          ),
+            child: Text('保存',
+              style: TextStyle(
+                color: Colors.deepOrange[100 * (1 % 9)],
+                fontSize: 15,
+              ),
             ),
+            onPressed: (){
+              //入力したdataをstoreへ保存
+              _onSubmit();
+            },
           ),
-          onPressed: (){
-            //入力したdataをstoreへ保存
-            _onSubmit();
-          },
         ),
       ),
     );
@@ -365,11 +377,13 @@ class _EditIngredientState extends State<EditIngredient>{
 
   //ｘボタン
   Widget closeBtn(){
-    return IconButton(
-      icon: const Icon(Icons.close,color: Colors.white,size: 30,),
-      onPressed: (){
-        Navigator.pop(context);
-      },
+    return FittedBox(fit:BoxFit.fitWidth,
+      child: IconButton(
+        icon: const Icon(Icons.close,color: Colors.white),
+        onPressed: (){
+          Navigator.pop(context);
+        },
+      ),
     );
   }
 }

@@ -323,20 +323,24 @@ class _HomeListState extends State<HomeList>{
   }
 
   Widget checkBtn(){
-    return IconButton(
-      color: Colors.white,
-      icon: const Icon(Icons.check_circle_outline,size:30,),
-      onPressed: null,
-      disabledColor: Colors.deepOrange[100 * (1 % 9)],
+    return FittedBox(fit:BoxFit.fitWidth,
+      child: IconButton(
+        color: Colors.white,
+        icon: const Icon(Icons.check_circle_outline),
+        onPressed: null,
+        disabledColor: Colors.deepOrange[100 * (1 % 9)],
+      ),
     );
   }
 
   Widget addBtn(){
-    return IconButton(
-      color: Colors.white,
-      icon: const Icon(Icons.add_circle_outline,size:30,),
-      onPressed: null,
-      disabledColor: Colors.deepOrange[100 * (1 % 9)],
+    return FittedBox(fit:BoxFit.fitWidth,
+      child: IconButton(
+        color: Colors.white,
+        icon: const Icon(Icons.add_circle_outline),
+        onPressed: null,
+        disabledColor: Colors.deepOrange[100 * (1 % 9)],
+      ),
     );
   }
 

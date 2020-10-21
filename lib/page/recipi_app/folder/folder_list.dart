@@ -613,19 +613,21 @@ class _FolderListState extends State<FolderList>{
       width: MediaQuery.of(context).size.width * 0.25,
       child: Padding(
         padding: EdgeInsets.all(10),
-        child: FlatButton(
-          color: Colors.white,
-          child: Text('完了',
-            style: TextStyle(
-              color: Colors.deepOrange[100 * (1 % 9)],
-              fontSize: 15,
+        child: FittedBox(fit:BoxFit.fitWidth,
+          child: FlatButton(
+            color: Colors.white,
+            child: Text('完了',
+              style: TextStyle(
+                color: Colors.deepOrange[100 * (1 % 9)],
+                fontSize: 15,
+              ),
             ),
+            onPressed: (){
+              setState(() {
+                this._isCheck = !this._isCheck;
+              });
+            },
           ),
-          onPressed: (){
-            setState(() {
-              this._isCheck = !this._isCheck;
-            });
-          },
         ),
       ),
     );
@@ -633,23 +635,27 @@ class _FolderListState extends State<FolderList>{
 
   //チェックボタン
   Widget checkBtn(){
-    return IconButton(
-      color: Colors.white,
-      icon: const Icon(Icons.check_circle_outline,size:30,),
-      onPressed: (){
-        _onCheck();
-      },
+    return FittedBox(fit:BoxFit.fitWidth,
+      child: IconButton(
+        color: Colors.white,
+        icon: const Icon(Icons.check_circle_outline),
+        onPressed: (){
+          _onCheck();
+        },
+      ),
     );
   }
 
   //追加ボタン
   Widget addBtn(){
-    return IconButton(
-      color: Colors.white,
-      icon: const Icon(Icons.add_circle_outline,size:30,),
-      onPressed: (){
-        _onAdd();
-      },
+    return FittedBox(fit:BoxFit.fitWidth,
+      child: IconButton(
+        color: Colors.white,
+        icon: const Icon(Icons.add_circle_outline),
+        onPressed: (){
+          _onAdd();
+        },
+      ),
     );
   }
 
@@ -720,19 +726,21 @@ class _FolderListState extends State<FolderList>{
               width: MediaQuery.of(context).size.width * 0.3,
               child: Padding(
                 padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
-                child: FlatButton(
-                  color: Colors.red[100 * (3 % 9)],
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      const Icon(Icons.delete_outline,color: Colors.white,),
-                      const Text('削除する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
-                    ],
+                child: FittedBox(fit:BoxFit.fitWidth,
+                  child: FlatButton(
+                    color: Colors.red[100 * (3 % 9)],
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        const Icon(Icons.delete_outline,color: Colors.white,),
+                        const Text('削除する', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12,),),
+                      ],
+                    ),
+                    onPressed: _onDisabled(type: 3) ? null :(){
+                      _onDelete();
+                      print('削除する');
+                    },
                   ),
-                  onPressed: _onDisabled(type: 3) ? null :(){
-                    _onDelete();
-                    print('削除する');
-                  },
                 ),
               ),
             ),
@@ -789,12 +797,14 @@ class _FolderListState extends State<FolderList>{
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Container(
-                      padding: EdgeInsets.all(10),
-                      child: Text('フォルダ別レシピ', style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-//                          fontWeight: FontWeight.bold
-                      ),),
+                      padding: EdgeInsets.only(left: 10,right: 10),
+                      child: FittedBox(fit:BoxFit.fitWidth,
+                        child: Text('フォルダ別レシピ', style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+  //                          fontWeight: FontWeight.bold
+                        ),),
+                      ),
                     ),
                   ],
                 ),

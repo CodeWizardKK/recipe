@@ -188,8 +188,8 @@ class _EditRecipiState extends State<EditRecipi>{
                       child: Container(
                         width: 100,
                         height: 100,
-                        color: Colors.grey,
-                        child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
+                        color: Colors.amber[100 * (1 % 9)],
+                        child: Icon(Icons.restaurant,color: Colors.white,size: 50,),
                     ),
                   ),
                   Positioned(
@@ -229,12 +229,14 @@ class _EditRecipiState extends State<EditRecipi>{
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Container(
-                      padding: EdgeInsets.all(10),
-                      child: Text('レシピから選択', style: TextStyle(
-                        color: Colors.white,
-                          fontSize: 15,
-//                          fontWeight: FontWeight.bold
-                      ),),
+                      padding: EdgeInsets.only(left: 10,right: 10),
+                      child: FittedBox(fit:BoxFit.fitWidth,
+                        child: Text('レシピから選択', style: TextStyle(
+                          color: Colors.white,
+                            fontSize: 15,
+  //                          fontWeight: FontWeight.bold
+                        ),),
+                      ),
                     ),
                   ],
                 ),
@@ -305,11 +307,13 @@ class _EditRecipiState extends State<EditRecipi>{
       return
         SizedBox(
           width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height * 0.16,
+//          height: MediaQuery.of(context).size.height * 0.16,
           child: Container(
             color: Colors.white,
-            padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
+//            padding: EdgeInsets.only(top: 10,bottom: 10,left: 10),
+            padding: EdgeInsets.all(5),
             child: InkWell(
+              child: FittedBox(fit:BoxFit.fitWidth,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
@@ -326,8 +330,8 @@ class _EditRecipiState extends State<EditRecipi>{
                       height: MediaQuery.of(context).size.width * 0.25,
                       width: MediaQuery.of(context).size.width * 0.25,
                       child: Container(
-                        color: Colors.grey,
-                        child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
+                        color: Colors.amber[100 * (1 % 9)],
+                        child: Icon(Icons.restaurant,color: Colors.white,size: 50,),
                       ),
                     ),
                     //タイトル、材料、タグエリア
@@ -339,7 +343,7 @@ class _EditRecipiState extends State<EditRecipi>{
                         children: <Widget>[
                           //タイトル
                           Container(
-                            height: MediaQuery.of(context).size.height * 0.045,
+//                            height: MediaQuery.of(context).size.height * 0.045,
                             padding: EdgeInsets.all(5),
                             child: Text('${this._recipis[index].title}',
                               maxLines: 2,
@@ -350,7 +354,7 @@ class _EditRecipiState extends State<EditRecipi>{
                           ),
                           //材料
                           Container(
-                            height: MediaQuery.of(context).size.height * 0.04,
+//                            height: MediaQuery.of(context).size.height * 0.04,
                             padding: EdgeInsets.all(5),
 //                            child: Text('${ingredients.join(',')}',
                             child: Text('${ingredientsTX}',
@@ -365,17 +369,19 @@ class _EditRecipiState extends State<EditRecipi>{
                             Container(
 //                              width: MediaQuery.of(context).size.width * 0.5,
 //                              color: Colors.grey,
-                              height: MediaQuery.of(context).size.height * 0.05,
+                              height: MediaQuery.of(context).size.height * 0.08,
                               padding: EdgeInsets.only(left: 5,right: 5),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: <Widget>[
                                   //タグicon
                                   Container(
-                                    child: Icon(Icons.local_offer,size: 20,color: Colors.yellow[100 * (1 % 9)]),
+                                    padding: EdgeInsets.only(top: 10),
+                                    width: MediaQuery.of(context).size.width * 0.03,
+                                    child: Icon(Icons.local_offer,color: Colors.yellow[100 * (1 % 9)]),
                                   ),
                                   Container(
-                                    width: MediaQuery.of(context).size.width * 0.60,
+                                    width: MediaQuery.of(context).size.width * 0.52,
                                     child: MultiSelectChipDisplay(
                                       chipColor: Colors.yellow,
                                       onTap: null,
@@ -393,6 +399,7 @@ class _EditRecipiState extends State<EditRecipi>{
                     ),
                   ],
                 ),
+              ),
                 onTap: (){
                   print('recipiID:${this._recipis[index].id},thumbnail:${this._recipis[index].thumbnail}');
                   bool isDelete = false;
