@@ -102,17 +102,14 @@ class _AlbumListState extends State<AlbumList>{
   }
 
   //チェックボックスにて選択した値を返す
-  String _selectedCount(){
+  int _selectedCount(){
     int count = 0;
     for(var i = 0; i < this._selected.length; i++){
       if(this._selected[i]){
         count++;
       }
     }
-    if(count == 0){
-      return '';
-    }
-    return count.toString();
+    return count;
   }
 
 
@@ -546,7 +543,7 @@ class _AlbumListState extends State<AlbumList>{
               child: FittedBox(fit:BoxFit.fitWidth,
                 child: FlatButton(
                   onPressed:
-                  _selectedCount().isEmpty
+                  _selectedCount() == 0
                       ? null
                       : (){
                     _onImgShareSave();
