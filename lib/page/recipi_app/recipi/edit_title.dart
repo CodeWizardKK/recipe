@@ -175,8 +175,6 @@ class _EditTitleState extends State<EditTitle>{
   Widget titleInputArea(){
     return
       SizedBox(
-//        height: MediaQuery.of(context).size.height * 0.08,
-//        width: MediaQuery.of(context).size.width,
         child: Container(
           color: Colors.white,
           width: MediaQuery.of(context).size.width * 0.98,

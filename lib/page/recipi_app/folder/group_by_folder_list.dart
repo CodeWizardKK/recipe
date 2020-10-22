@@ -1279,7 +1279,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
                           //タグ
                           if(tags.length > 0)
                             Container(
-                              height: MediaQuery.of(context).size.height * 0.08,
+                              height: MediaQuery.of(context).size.height < 600 ? MediaQuery.of(context).size.height * 0.08 : MediaQuery.of(context).size.height * 0.06,
                               padding: EdgeInsets.only(left: 5,right: 5),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,

@@ -902,6 +902,7 @@ class _RecipiListState extends State<RecipiList>{
 
   @override
   Widget build(BuildContext context) {
+    print('height:${MediaQuery.of(context).size.height}');
     return Scaffold(
       drawer: _isCheck ? null : drawerNavigation(),
       appBar: AppBar(
@@ -1673,7 +1674,6 @@ class _RecipiListState extends State<RecipiList>{
                               //タグ
                               if(tags.length > 0)
                                 Container(
-                                  height: MediaQuery.of(context).size.height * 0.08,
                                   padding: EdgeInsets.only(left: 5,right: 5),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
@@ -1686,6 +1686,7 @@ class _RecipiListState extends State<RecipiList>{
                                       ),
                                         Container(
   //                                      color: Colors.brown,
+                                        height: MediaQuery.of(context).size.height < 600 ? MediaQuery.of(context).size.height * 0.08 : MediaQuery.of(context).size.height * 0.06,
                                         width: MediaQuery.of(context).size.width * 0.52,
                                         child: MultiSelectChipDisplay(
                                           chipColor: Colors.yellow,

@@ -715,7 +715,7 @@ class _FolderListState extends State<FolderList>{
     !_isCheck
       ? Container()
       : SizedBox(
-      height: MediaQuery.of(context).size.height * 0.05,
+//      height: MediaQuery.of(context).size.height * 0.05,
       width: MediaQuery.of(context).size.width,
       child: SafeArea(
         child: Row(

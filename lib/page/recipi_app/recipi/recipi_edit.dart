@@ -543,8 +543,8 @@ class _RecipiEditState extends State<RecipiEdit>{
 //            height: MediaQuery.of(context).size.height * 0.07,
             width: MediaQuery.of(context).size.width,
             child: Container(
-              padding: EdgeInsets.all(10),
-//              color: Colors.grey,
+              padding: EdgeInsets.only(left: 10,top: 20,right: 10,bottom: 20),
+              color: Colors.white,
               child: InkWell(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -599,9 +599,9 @@ class _RecipiEditState extends State<RecipiEdit>{
       column.add(
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.06,
-  //        width: MediaQuery.of(context).size.width,
+          width: MediaQuery.of(context).size.width,
           child: Container(
-//            padding: EdgeInsets.all(10),
+//            padding: EdgeInsets.only(left: 10,top: 20,right: 10,bottom: 20),
             color: Colors.white,
             child: InkWell(
                 child: Row(
@@ -661,7 +661,7 @@ class _RecipiEditState extends State<RecipiEdit>{
 //            height: MediaQuery.of(context).size.height * 0.18,
             child: Container(
               color: Colors.white,
-              padding: EdgeInsets.all(10),
+              padding: EdgeInsets.only(left: 10,top: 20,right: 10,bottom: 20),
               child: InkWell(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -738,7 +738,7 @@ class _RecipiEditState extends State<RecipiEdit>{
       column.add(
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.06,
-//        width: MediaQuery.of(context).size.width,
+          width: MediaQuery.of(context).size.width,
           child: Container(
 //            padding: EdgeInsets.all(10),
             color: Colors.white,

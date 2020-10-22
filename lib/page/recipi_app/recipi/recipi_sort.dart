@@ -502,7 +502,7 @@ class _RecipiSortState extends State<RecipiSort>{
     for(var i=0; i < this._folders.length; i++){
       column.add(
           SizedBox(
-//            height: MediaQuery.of(context).size.height * 0.06,
+            height: MediaQuery.of(context).size.height * 0.06,
             width: MediaQuery.of(context).size.width,
             child: Container(
               color: Colors.white,
@@ -637,7 +637,7 @@ class _RecipiSortState extends State<RecipiSort>{
     for(var i=0; i < this._tags.length; i++){
       column.add(
           SizedBox(
-//            height: MediaQuery.of(context).size.height * 0.06,
+            height: MediaQuery.of(context).size.height * 0.06,
             width: MediaQuery.of(context).size.width,
             child: Container(
               color: Colors.white,
@@ -1164,7 +1164,7 @@ class _RecipiSortState extends State<RecipiSort>{
       ? Container()
       : Container(
 //      color:Colors.grey,
-      height: MediaQuery.of(context).size.height * 0.08,
+      height: MediaQuery.of(context).size.height < 600 ? MediaQuery.of(context).size.height * 0.08 : MediaQuery.of(context).size.height * 0.06,
       padding: EdgeInsets.only(left: 5,right: 5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,

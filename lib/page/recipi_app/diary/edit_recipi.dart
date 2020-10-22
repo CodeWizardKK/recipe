@@ -369,7 +369,7 @@ class _EditRecipiState extends State<EditRecipi>{
                             Container(
 //                              width: MediaQuery.of(context).size.width * 0.5,
 //                              color: Colors.grey,
-                              height: MediaQuery.of(context).size.height * 0.08,
+                              height: MediaQuery.of(context).size.height < 600 ? MediaQuery.of(context).size.height * 0.08 : MediaQuery.of(context).size.height * 0.06,
                               padding: EdgeInsets.only(left: 5,right: 5),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
