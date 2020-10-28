@@ -287,6 +287,9 @@ class _RecipiListState extends State<RecipiList>{
     ).then((result) {
       //最新のリストを取得し展開する
       this.refreshImages();
+      if(this._displayRecipis.length < increment ){
+        this._loadMoreRecipi();
+      }
     });
   }
 

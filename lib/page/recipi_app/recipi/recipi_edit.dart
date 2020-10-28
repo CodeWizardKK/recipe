@@ -1403,95 +1403,83 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //レシピタイトル
   Widget titleArea(){
-//    return Consumer<Display>(
-//      builder: (context,Display,_) {
-        return
-          _isEdit
-          //編集画面の場合
-          ? SizedBox(
-//            height: MediaQuery.of(context).size.height * 0.12,
-//            height: _type == 3 ? MediaQuery.of(context).size.height * 0.05 : MediaQuery.of(context).size.height * 0.1,
-            width: MediaQuery.of(context).size.width,
-            child: Container(
-              color: Colors.white,
-              child: InkWell(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Container(
-                        padding: EdgeInsets.only(left: 10,top: 5,right: 10,bottom: 5),
-//                        child: FittedBox(fit:BoxFit.fitWidth,
-                          child: Text(_titleForm.title.isEmpty ? 'タイトルを入力' :'${_titleForm.title}',
-                            maxLines: 1,
-                            style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold
-                            ),),
-//                        ),
-                      ),
-                      _type == 3
-                      ? Container()
-                      : Container(
-                        padding: EdgeInsets.only(left: 10,top: 5,right: 10,bottom: 5),
-//                        child: FittedBox(fit:BoxFit.fitWidth,
-                          child: Text(_titleForm.description.isEmpty ?'レシピの説明やメモを入力' :'${_titleForm.description}',
-                            maxLines: 1,
-                            style: TextStyle(
-                              fontSize: 15,
-                            ),
-                          ),
-//                        ),
-                      ),
-                    ],
-                  ),
-                  onTap: _isDescriptionEdit ? null : () {
-                    print('タイトル');
-                    _changeEditType(editType: 0); //タイトル
-                  }
-              ),
-            ),
-          )
-
-          //詳細画面の場合
-          : SizedBox(
-//            height: MediaQuery.of(context).size.height * 0.1,
-            width: MediaQuery.of(context).size.width,
-            child: Container(
-              color: Colors.white,
+    return
+      _isEdit
+      //編集画面の場合
+      ? SizedBox(
+        width: MediaQuery.of(context).size.width,
+        child: Container(
+          color: Colors.white,
+          child: InkWell(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Container(
-                    padding: EdgeInsets.only(left: 10,top: 5,right: 10,bottom: 5),
-                    child: Text('${_titleForm.title}',
-                      maxLines: 1,
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold
-                      ),),
+                    padding: EdgeInsets.only(left: 10,top: 10,right: 10,bottom: 10),
+                      child: Text(_titleForm.title.isEmpty ? 'タイトルを入力' :'${_titleForm.title}',
+                        maxLines: 1,
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold
+                        ),),
                   ),
                   _type == 3
-                      ? Container()
-                      : Container(
-                    padding: EdgeInsets.only(left: 10,top: 5,right: 10,bottom: 5),
-                    child: Text('${_titleForm.description}',
-                      maxLines: 1,
-                      style: TextStyle(
-                        fontSize: 15,
-                      ),),
+                  ? Container()
+                  : Container(
+                    padding: EdgeInsets.only(left: 10,top: 10,right: 10,bottom: 10),
+                      child: Text(_titleForm.description.isEmpty ?'レシピの説明やメモを入力' :'${_titleForm.description}',
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 15,
+                        ),
+                      ),
                   ),
                 ],
               ),
-            ),
-          );
-//      }
-//    );
+              onTap: _isDescriptionEdit ? null : () {
+                print('タイトル');
+                _changeEditType(editType: 0); //タイトル
+              }
+          ),
+        ),
+      )
+
+      //詳細画面の場合
+      : SizedBox(
+        width: MediaQuery.of(context).size.width,
+        child: Container(
+          color: Colors.white,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.only(left: 10,top: 10,right: 10,bottom: 10),
+                child: Text('${_titleForm.title}',
+                  maxLines: 1,
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold
+                  ),),
+              ),
+              _type == 3
+              ? Container(
+                )
+              : Container(
+                  padding: EdgeInsets.only(left: 10,top: 10,right: 10,bottom: 10),
+                  child: Text('${_titleForm.description}',
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: 15,
+                    ),),
+                ),
+            ],
+          ),
+        ),
+      );
   }
 
   //材料
   Widget ingredientArea(){
-//    return Consumer<Display>(
-//        builder: (context,Display,_) {
     return
       SizedBox(
         height: MediaQuery.of(context).size.height * 0.05,
@@ -1511,11 +1499,6 @@ class _RecipiEditState extends State<RecipiEdit>{
                       fontSize: 15,
                     ),)
                 ),
-//                child: Text('材料', style: TextStyle(
-//                    color: Colors.white,
-//                    fontSize: 15,
-////                    fontWeight: FontWeight.bold
-//                ),),
               ),
               Container(
                 padding: EdgeInsets.only(left: 10,right: 10),
@@ -1531,8 +1514,6 @@ class _RecipiEditState extends State<RecipiEdit>{
           ),
         ),
       );
-//    }
-//    );
   }
 
   //材料追加
@@ -1544,8 +1525,6 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //作り方
   Widget howToArea(){
-//    return Consumer<Display>(
-//        builder: (context,Display,_) {
     return
       SizedBox(
         height: MediaQuery.of(context).size.height * 0.05,
@@ -1580,8 +1559,6 @@ class _RecipiEditState extends State<RecipiEdit>{
           ),
         ),
       );
-//        }
-//    );
   }
 
   //作り方追加
@@ -1593,8 +1570,6 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //写真エリア
   Widget photoArea(){
-//    return Consumer<Display>(
-//        builder: (context,Display,_) {
       return
           SizedBox(
           height: MediaQuery.of(context).size.height * 0.05,
@@ -1632,9 +1607,6 @@ class _RecipiEditState extends State<RecipiEdit>{
             ),
           ),
         );
-//          :Container();
-//    },
-//    );
   }
 
   //写真追加
@@ -1646,8 +1618,6 @@ class _RecipiEditState extends State<RecipiEdit>{
   }
 
   Widget DescriptionTitleArea(){
-//    return Consumer<Display>(
-//        builder: (context,Display,_) {
       return
        _isEdit
         ? Column(
@@ -1720,7 +1690,7 @@ class _RecipiEditState extends State<RecipiEdit>{
                      Container(
                       padding: EdgeInsets.only(left: 10,right: 10),
                       child: FittedBox(fit:BoxFit.fitWidth,
-                       child: Text('説明', style: TextStyle(
+                       child: Text('説明/メモ', style: TextStyle(
                          color: Colors.white,
                          fontSize: 15,
                        ),),
