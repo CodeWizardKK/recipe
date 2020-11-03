@@ -35,6 +35,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      // Debug無効
+      debugShowCheckedModeBanner: false,
 //        key: GlobalKey(),
       title: 'RECIPI APP',
       theme: ThemeData(
