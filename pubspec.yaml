@@ -44,7 +44,7 @@ dependencies:
 # シングルトンなサービスをDIで利用できるようにするため使用
   get_it: ^4.0.1
 # Firebase RemoteConfigの為に使用
-  firebase_remote_config: ^0.3.0+3
+  firebase_remote_config: ^0.4.1
 # パッケージ情報からVersionCode(BuildNumber)を簡単に取得するために使用
   package_info: '>=0.4.0+17 <2.0.0'
 # Playストア、Appストアを開くために使用
