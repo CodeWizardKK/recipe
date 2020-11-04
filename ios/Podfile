@@ -7,6 +7,10 @@ pod 'Firebase/MLVisionBarcodeModel'
 pod 'Firebase/MLVisionFaceModel'
 pod 'Firebase/MLVisionLabelModel'
 pod 'Firebase/MLVisionTextModel'
+# add the Firebase pod for Google Analytics
+pod 'Firebase/Analytics'
+pod 'Firebase/RemoteConfig'
+pod 'Firebase/Functions'
 
 project 'Runner', {
   'Debug' => :debug,

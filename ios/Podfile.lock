@@ -40,14 +40,31 @@ PODS:
   - file_picker (0.0.1):
     - DKImagePickerController/PhotoGallery
     - Flutter
+  - Firebase/Analytics (6.33.0):
+    - Firebase/Core
   - Firebase/Core (6.33.0):
     - Firebase/CoreOnly
     - FirebaseAnalytics (= 6.8.3)
   - Firebase/CoreOnly (6.33.0):
     - FirebaseCore (= 6.10.3)
+  - Firebase/Functions (6.33.0):
+    - Firebase/CoreOnly
+    - FirebaseFunctions (~> 2.9.0)
   - Firebase/MLVision (6.33.0):
     - Firebase/CoreOnly
     - FirebaseMLVision (~> 0.21.0)
+  - Firebase/MLVisionBarcodeModel (6.33.0):
+    - Firebase/CoreOnly
+    - FirebaseMLVisionBarcodeModel (~> 0.21.0)
+  - Firebase/MLVisionFaceModel (6.33.0):
+    - Firebase/CoreOnly
+    - FirebaseMLVisionFaceModel (~> 0.21.0)
+  - Firebase/MLVisionLabelModel (6.33.0):
+    - Firebase/CoreOnly
+    - FirebaseMLVisionLabelModel (~> 0.21.0)
+  - Firebase/MLVisionTextModel (6.33.0):
+    - Firebase/CoreOnly
+    - FirebaseMLVisionTextModel (~> 0.21.0)
   - Firebase/RemoteConfig (6.33.0):
     - Firebase/CoreOnly
     - FirebaseRemoteConfig (~> 4.9.0)
@@ -83,6 +100,9 @@ PODS:
     - GoogleUtilities/Environment (~> 6.7)
     - GoogleUtilities/Logger (~> 6.7)
     - nanopb (~> 1.30906.0)
+  - FirebaseFunctions (2.9.0):
+    - FirebaseCore (~> 6.10)
+    - GTMSessionFetcher/Core (~> 1.1)
   - FirebaseInstallations (1.7.0):
     - FirebaseCore (~> 6.10)
     - GoogleUtilities/Environment (~> 6.7)
@@ -106,6 +126,14 @@ PODS:
     - "GoogleToolboxForMac/NSData+zlib (~> 2.1)"
     - GTMSessionFetcher/Core (~> 1.1)
     - Protobuf (~> 3.12)
+  - FirebaseMLVisionBarcodeModel (0.21.0):
+    - FirebaseMLVision (~> 0.21)
+  - FirebaseMLVisionFaceModel (0.21.0):
+    - FirebaseMLVision (~> 0.21)
+  - FirebaseMLVisionLabelModel (0.21.0):
+    - FirebaseMLVision (~> 0.21)
+  - FirebaseMLVisionTextModel (0.21.0):
+    - FirebaseMLVision (~> 0.21)
   - FirebaseRemoteConfig (4.9.1):
     - FirebaseABTesting (~> 4.2)
     - FirebaseCore (~> 6.10)
@@ -219,6 +247,13 @@ PODS:
 DEPENDENCIES:
   - ext_storage (from `.symlinks/plugins/ext_storage/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
+  - Firebase/Analytics
+  - Firebase/Functions
+  - Firebase/MLVisionBarcodeModel
+  - Firebase/MLVisionFaceModel
+  - Firebase/MLVisionLabelModel
+  - Firebase/MLVisionTextModel
+  - Firebase/RemoteConfig
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_ml_vision (from `.symlinks/plugins/firebase_ml_vision/ios`)
   - firebase_remote_config (from `.symlinks/plugins/firebase_remote_config/ios`)
@@ -245,9 +280,14 @@ SPEC REPOS:
     - FirebaseAnalytics
     - FirebaseCore
     - FirebaseCoreDiagnostics
+    - FirebaseFunctions
     - FirebaseInstallations
     - FirebaseMLCommon
     - FirebaseMLVision
+    - FirebaseMLVisionBarcodeModel
+    - FirebaseMLVisionFaceModel
+    - FirebaseMLVisionLabelModel
+    - FirebaseMLVisionTextModel
     - FirebaseRemoteConfig
     - FMDB
     - GoogleAPIClientForREST
@@ -314,9 +354,14 @@ SPEC CHECKSUMS:
   FirebaseAnalytics: 5dd088bd2e67bb9d13dbf792d1164ceaf3052193
   FirebaseCore: d889d9e12535b7f36ac8bfbf1713a0836a3012cd
   FirebaseCoreDiagnostics: 770ac5958e1372ce67959ae4b4f31d8e127c3ac1
+  FirebaseFunctions: 27518fdd14d8b3a849e2443f921cd1b471ab7acd
   FirebaseInstallations: 466c7b4d1f58fe16707693091da253726a731ed2
   FirebaseMLCommon: d218d75dd1c6c4e447f731ac22da56b88cb79431
   FirebaseMLVision: 68dd092b4c52a7ac163ec0d4f541d5711fc9fec6
+  FirebaseMLVisionBarcodeModel: 394cd61c52dc03558088caf82b0dade8028f57d5
+  FirebaseMLVisionFaceModel: a67b2bf9b8407127a0bdb0ba98eb265637d1dc9d
+  FirebaseMLVisionLabelModel: c6922e607cf4549b14981c80bf0d69eb51a2b547
+  FirebaseMLVisionTextModel: e9f3cba0f31022ae9dd3d246aff9849075cacd98
   FirebaseRemoteConfig: 35a729305f254fb15a2e541d4b36f3a379da7fdc
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_image_compress: 082f8daaf6c1b0c9fe798251c750ef0ecd98d7ae
@@ -345,6 +390,6 @@ SPEC CHECKSUMS:
   TOCropViewController: da59f531f8ac8a94ef6d6c0fc34009350f9e8bfe
   url_launcher: 6fef411d543ceb26efce54b05a0a40bfd74cbbef
 
-PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
+PODFILE CHECKSUM: 2d8cb3d97311dc0ac5309ae162a84ed50ff67f49
 
 COCOAPODS: 1.10.0
