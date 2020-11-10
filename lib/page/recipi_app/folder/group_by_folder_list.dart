@@ -1346,7 +1346,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
 //        height: MediaQuery.of(context).size.height * 0.07,
         width: MediaQuery.of(context).size.width,
         child: Container(
-          padding: EdgeInsets.all(5),
+          padding: EdgeInsets.only(left: 5,right: 5),
           color: Colors.white30,
           child: FittedBox(fit:BoxFit.fitWidth,
             child: Row(
@@ -1354,19 +1354,21 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
               children: <Widget>[
                 //テキスト検索エリア
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.055,
+                  height: MediaQuery.of(context).size.height * 0.045,
                   width: MediaQuery.of(context).size.width * 0.85,
                   child: Container(
+                    color: Colors.white,
                     child: TextField(
                         onChanged: _onSearch,
                         style: const TextStyle(fontSize: 15.0, color: Colors.grey,),
                         decoration: InputDecoration(
                           prefixIcon: const Icon(Icons.search,size: 25,),
                           hintText:"${_folder.name}から検索",
+                          hintStyle: TextStyle(color: Colors.grey),
                           contentPadding: const EdgeInsets.only(top: 10),
                           border: OutlineInputBorder(
                               borderSide: const BorderSide(color: Colors.grey, width: 32.0),
-                              borderRadius: BorderRadius.circular(15.0)
+//                              borderRadius: BorderRadius.circular(15.0)
                           ),
                         )
                     ),
