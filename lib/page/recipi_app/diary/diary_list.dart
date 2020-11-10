@@ -42,6 +42,7 @@ class _DiaryListState extends State<DiaryList>{
 //  int _dcurrentLength = 0;                                //遅延読み込み件数を格納
   final int increment = 5;                               //読み込み件数
 //  final int dincrement = 5;                               //読み込み件数
+  bool _isGetDiarys = false;
 
   @override
   void initState() {
@@ -50,14 +51,17 @@ class _DiaryListState extends State<DiaryList>{
   }
 
   //初期処理
-  void init(){
+  void init() async {
+    //初期化
     dbHelper = DBHelper();
     common = Common();
-    //レコードリフレッシュ
-    this.refreshImages();
+    this._displayDiaryGroupDates.clear();
     this._lazy.clear();
+
+    //レコードリフレッシュ
+    await this.refreshImages();
     //レシピリスト用遅延読み込み
-    this._loadMore();
+    await this._loadMore();
   }
 
   //レシピリスト用遅延読み込み
@@ -198,49 +202,14 @@ class _DiaryListState extends State<DiaryList>{
       );
 
       displayDiarys.clear();
-      this._displayDiaryGroupDates.add(displayDiaryGroupDate);
-      this._displayDiaryGroupDates.sort((a,b) => b.id.compareTo(a.id));
-//      for(var i = 0; i < 1; i++){
-//        print(this._displayDiaryGroupDates[i].month);
-//        this._DDG.clear();
-//        this._DDG.add(this._displayDiaryGroupDates[i]);
-//      }
-//      this._DDG.forEach((element) => print('②②②②②month:${element.month},displayDiarys:${element.displayDiarys.length}'));
-//      print('${this._DDG.length}');
+      setState(() {
+        this._displayDiaryGroupDates.add(displayDiaryGroupDate);
+        this._displayDiaryGroupDates.sort((a,b) => b.id.compareTo(a.id));
+      });
     }
-//    for(var i = 0; i < this._displayDiaryGroupDates.length; i++){
-//      print('######################################################');
-//      print('id:${this._displayDiaryGroupDates[i].id},month:${this._displayDiaryGroupDates[i].month}');
-//      for(var j = 0; j < this._displayDiaryGroupDates[i].displayDiarys.length; j++){
-//        print('+++++++++++++++++++++++++++++++++++++++++++++');
-//        print('id:${this._displayDiaryGroupDates[i].displayDiarys[j].id}');
-//        print('body:${this._displayDiaryGroupDates[i].displayDiarys[j].body}');
-//        print('date:${this._displayDiaryGroupDates[i].displayDiarys[j].date}');
-//        print('category:${this._displayDiaryGroupDates[i].displayDiarys[j].category}');
-//        print('thumbnail:${this._displayDiaryGroupDates[i].displayDiarys[j].thumbnail}');
-//        print('------ phtos ------------------');
-//        for(var k = 0; k < this._displayDiaryGroupDates[i].displayDiarys[j].photos.length; k++){
-//          print('-- [$k] --');
-//          print('id:${this._displayDiaryGroupDates[i].displayDiarys[j].photos[k].id}');
-//          print('diary_id:${this._displayDiaryGroupDates[i].displayDiarys[j].photos[k].diary_id}');
-//          print('no:${this._displayDiaryGroupDates[i].displayDiarys[j].photos[k].no}');
-//          print('path:${this._displayDiaryGroupDates[i].displayDiarys[j].photos[k].path}');
-//          print('---------');
-//        }
-//        print('------------------------');
-//        print('------- recipis -----------------');
-//        for(var k = 0; k < this._displayDiaryGroupDates[i].displayDiarys[j].recipis.length; k++){
-//          print('-- [$k] --');
-//          print('id:${this._displayDiaryGroupDates[i].displayDiarys[j].recipis[k].id}');
-//          print('diary_id:${this._displayDiaryGroupDates[i].displayDiarys[j].recipis[k].diary_id}');
-//          print('no:${this._displayDiaryGroupDates[i].displayDiarys[j].recipis[k].recipi_id}');
-//          print('image:${this._displayDiaryGroupDates[i].displayDiarys[j].recipis[k].image}');
-//          print('---------');
-//        }
-//        print('------------------------');
-//        print('+++++++++++++++++++++++++++++++++++++++++++++');
-//      }
-//    }
+    setState(() {
+      this._isGetDiarys = true;
+    });
   }
 
   //写真リストを作成し返す
@@ -585,9 +554,25 @@ class _DiaryListState extends State<DiaryList>{
   Widget diaryList(){
     return Stack(
       children: [
-        listViewArea(),
+        this._isGetDiarys
+        ? this._displayDiaryGroupDates.length == 0
+          ? showDefault()
+          : listViewArea()
+        : Container(),
         updater(),
       ],
+    );
+  }
+
+  Widget showDefault(){
+    return Center(
+      child: Text('右上のプラスボタンから新しい\nごはん日記を登録しましょう。',
+        style: TextStyle(
+            color: Colors.grey,
+            fontSize: 20,
+            fontWeight: FontWeight.bold
+        ),
+      ),
     );
   }
 

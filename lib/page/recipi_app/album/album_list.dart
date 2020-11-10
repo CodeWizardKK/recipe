@@ -38,6 +38,7 @@ class _AlbumListState extends State<AlbumList>{
   bool _isLoading = false;             //true:遅延読み込み中
   int _currentLength = 0;              //遅延読み込み件数を格納
   final int increment = 22;            //読み込み件数
+  bool _isGetDiaryPhotos = false;
 
   @override
   void initState() {
@@ -46,14 +47,16 @@ class _AlbumListState extends State<AlbumList>{
   }
 
   //初期処理
-  void init(){
+  void init() async {
+    //初期化
     dbHelper = DBHelper();
     common = Common();
-    //レコードリフレッシュ
-    refreshImages();
-    //レシピリスト用遅延読み込み
     _lazy.clear();
-    this._loadMore();
+
+    //レコードリフレッシュ
+    await this.refreshImages();
+    //レシピリスト用遅延読み込み
+    await this._loadMore();
   }
 
   //レシピリスト用遅延読み込み
@@ -87,7 +90,6 @@ class _AlbumListState extends State<AlbumList>{
 
   //表示しているレコードのリセットし、最新のレコードを取得し、表示
   Future<void> refreshImages() async {
-
     //写真の取得
     await dbHelper.getAllDiaryPhotos().then((item){
       setState(() {
@@ -95,9 +97,12 @@ class _AlbumListState extends State<AlbumList>{
         this._photoAll.addAll(item);
       });
     });
+    setState(() {
+      this._isGetDiaryPhotos = true;
+    });
+    print('************************');
 //    print('アルバム件数：${this._photoAll.length}');
-  print('************************');
-  this._photoAll.forEach((element) => print('${element.diary_id},${element.id},${element.no},${element.path}'));
+    this._photoAll.forEach((element) => print('${element.diary_id},${element.id},${element.no},${element.path}'));
     print('************************');
   }
 
@@ -433,16 +438,31 @@ class _AlbumListState extends State<AlbumList>{
   Widget albumList(){
     return Stack(
       children: [
-        Column(
-          children: <Widget>[
-            Expanded(child: gridViewArea(),),
-            shareAndSaveBtn(),
-          ],
-        ),
+        this._isGetDiaryPhotos
+          ? this._photoAll.length == 0
+            ? showDefault()
+            : Column(
+                children: <Widget>[
+                  Expanded(child: gridViewArea(),),
+                  shareAndSaveBtn(),
+                ],
+              )
+          : Container(),
         updater(),
       ],
     );
+  }
 
+  Widget showDefault(){
+    return Center(
+      child: Text('ごはん日記に写真を登録すると\nここから見れるようになります。',
+        style: TextStyle(
+            color: Colors.grey,
+            fontSize: 20,
+            fontWeight: FontWeight.bold
+        ),
+      ),
+    );
   }
 
   //画像リスト

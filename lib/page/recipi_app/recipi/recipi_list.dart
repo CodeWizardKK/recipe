@@ -64,6 +64,7 @@ class _RecipiListState extends State<RecipiList>{
   int _searchCurrentLength = 0;                                //遅延読み込み件数を格納
   final int increment = 10; //読み込み件数
   bool _isError = false;
+  bool _isGetMyRecipis = false;
 
   @override
   void initState() {
@@ -71,7 +72,7 @@ class _RecipiListState extends State<RecipiList>{
     this.init();
   }
 
-  void init(){
+  void init() async {
     //初期化
     dbHelper = DBHelper();
     common = Common();
@@ -91,11 +92,11 @@ class _RecipiListState extends State<RecipiList>{
     _displaySearchsLazy.clear();
 
     //レコードリフレッシュ
-    this.refreshImages();
+    await this.refreshImages();
     //タグリスト取得
-    this._getTags(type: 0);
+    await this._getTags(type: 0);
     //レシピリスト用遅延読み込み
-    this._loadMoreRecipi();
+    await this._loadMoreRecipi();
   }
 
   //レシピリスト用遅延読み込み
@@ -168,13 +169,13 @@ class _RecipiListState extends State<RecipiList>{
     List<MstFolder> folders = [];
 
     try{
-      //フォルダ別レシピ件数の取得
-      await dbHelper.getMyRecipisCount().then((item){
-        setState(() {
-          _recipisGroupBy.clear();
-          _recipisGroupBy.addAll(item);
-        });
-      });
+//      //フォルダ別レシピ件数の取得
+//      await dbHelper.getMyRecipisCount().then((item){
+//        setState(() {
+//          _recipisGroupBy.clear();
+//          _recipisGroupBy.addAll(item);
+//        });
+//      });
 
       //レシピの取得
       await dbHelper.getMyRecipis().then((item){
@@ -185,6 +186,12 @@ class _RecipiListState extends State<RecipiList>{
       });
       //取得したレシピをstoreに保存
       Provider.of<Display>(context, listen: false).setRecipis(_recipis);
+      setState(() {
+        print('11111111111');
+        //チェックBox付きレシピリストの生成
+        this._displayRecipis = Provider.of<Display>(context, listen: false).createDisplayRecipiList(isFolderIdZero: true);
+        this._isGetMyRecipis = true;
+      });
 
       //材料の取得
       await dbHelper.getAllIngredients().then((item){
@@ -207,8 +214,8 @@ class _RecipiListState extends State<RecipiList>{
       setState(() {
         //チェックBox付きフォルダリストの生成
         this._folders = Provider.of<Display>(context, listen: false).createFoldersCheck();
-        //チェックBox付きレシピリストの生成
-        this._displayRecipis = Provider.of<Display>(context, listen: false).createDisplayRecipiList(isFolderIdZero: true);
+//        //チェックBox付きレシピリストの生成
+//        this._displayRecipis = Provider.of<Display>(context, listen: false).createDisplayRecipiList(isFolderIdZero: true);
       });
     } catch (exception) {
       print(exception);
@@ -490,14 +497,14 @@ class _RecipiListState extends State<RecipiList>{
     );
   }
 
-  //フォルダ別レシピリストの表示
-  void _onListGroupBy({int index}){
-    print('folderID:${this._folders[index].id},name:${this._folders[index].name},isCheck:${this._folders[index].isCheck}');
-    //フォルダ情報をset
-    Provider.of<Display>(context, listen: false).setFolder(this._folders[index]);
-    //4:フォルダ別レシピ一覧へ遷移
-    Provider.of<Display>(context, listen: false).setState(1);
-  }
+//  //フォルダ別レシピリストの表示
+//  void _onListGroupBy({int index}){
+//    print('folderID:${this._folders[index].id},name:${this._folders[index].name},isCheck:${this._folders[index].isCheck}');
+//    //フォルダ情報をset
+//    Provider.of<Display>(context, listen: false).setFolder(this._folders[index]);
+//    //4:フォルダ別レシピ一覧へ遷移
+//    Provider.of<Display>(context, listen: false).setState(1);
+//  }
 
   //レシピを選択時処理
   Future<void> _onDetail({int index}) async {
@@ -558,11 +565,11 @@ class _RecipiListState extends State<RecipiList>{
   bool _onDisabled({int type}){
     //フォルダ、タグ付け
     if(type != 3){
-      for(var i = 0; i<this._folders.length; i++){
-        if(this._folders[i].isCheck){
-          return true;
-        }
-      }
+//      for(var i = 0; i<this._folders.length; i++){
+//        if(this._folders[i].isCheck){
+//          return true;
+//        }
+//      }
       for(var i = 0; i<this._displayList.length; i++){
         if(this._displayList[i].isCheck){
           return false;
@@ -571,12 +578,12 @@ class _RecipiListState extends State<RecipiList>{
       return true;
     }
 
-    //削除する
-    for(var i = 0; i<this._folders.length; i++){
-      if(this._folders[i].isCheck){
-        return false;
-      }
-    }
+//    //削除する
+//    for(var i = 0; i<this._folders.length; i++){
+//      if(this._folders[i].isCheck){
+//        return false;
+//      }
+//    }
     for(var i = 0; i<this._displayList.length; i++){
       if(this._displayList[i].isCheck){
         return false;
@@ -587,18 +594,18 @@ class _RecipiListState extends State<RecipiList>{
 
   //フォルダ、レシピ毎のチェックボックス
   void _onItemCheck({int index,int type}){
-    //フォルダリスト
-    if(type == 1){
-      setState(() {
-        this._folders[index].isCheck = !this._folders[index].isCheck;
-      });
-
-      //レシピリスト
-    }else{
+//    //フォルダリスト
+//    if(type == 1){
+//      setState(() {
+//        this._folders[index].isCheck = !this._folders[index].isCheck;
+//      });
+//
+//      //レシピリスト
+//    }else{
       setState(() {
         this._displayList[index].isCheck = !this._displayList[index].isCheck;
       });
-    }
+//    }
 
   }
 
@@ -713,8 +720,8 @@ class _RecipiListState extends State<RecipiList>{
       });
     }else{
       setState(() {
-        //チェックBox付きフォルダリストの生成
-        this._folders = Provider.of<Display>(context, listen: false).createFoldersCheck();
+//        //チェックBox付きフォルダリストの生成
+//        this._folders = Provider.of<Display>(context, listen: false).createFoldersCheck();
         //チェックBox付きレシピリストの生成
         this._displayRecipis.clear();
         this._displayRecipis = Provider.of<Display>(context, listen: false).createDisplayRecipiList(isFolderIdZero: true);
@@ -745,12 +752,12 @@ class _RecipiListState extends State<RecipiList>{
         //レシピIDに紐づくごはん日記のレシピリストを削除する
         await dbHelper.deleteDiaryRecipibyRecipiID(recipi.id);
       } else {
-        //選択したフォルダマスタを削除
-        for(var i = 0; i < this._folders.length; i++){
-          if(this._folders[i].isCheck){
-            ids.add(this._folders[i].id);
-          }
-        }
+//        //選択したフォルダマスタを削除
+//        for(var i = 0; i < this._folders.length; i++){
+//          if(this._folders[i].isCheck){
+//            ids.add(this._folders[i].id);
+//          }
+//        }
         if(ids.length > 0){
           print('削除するフォルダマスタID：${ids}');
           //フォルダマスタ削除処理
@@ -877,11 +884,11 @@ class _RecipiListState extends State<RecipiList>{
         count++;
       }
     }
-    for(var i = 0; i < this._folders.length; i++){
-      if(_folders[i].isCheck){
-        count++;
-      }
-    }
+//    for(var i = 0; i < this._folders.length; i++){
+//      if(_folders[i].isCheck){
+//        count++;
+//      }
+//    }
     return count;
   }
 
@@ -1229,17 +1236,32 @@ class _RecipiListState extends State<RecipiList>{
   Widget recipiList(){
     return Stack(
       children: [
-        showList(),
+        this._isGetMyRecipis
+        ? this._displayRecipis.length == 0
+            ? showDefault()
+            : showList()
+        : Container(),
         updater(),
         error(isError: this._isError,),
       ],
     );
   }
 
+  Widget showDefault(){
+    return Center(
+      child: Text('右上のプラスボタンから新しい\nレシピを登録しましょう。',
+        style: TextStyle(
+          color: Colors.grey,
+          fontSize: 20,
+          fontWeight: FontWeight.bold
+        ),
+      ),
+    );
+  }
+
   //リストページ全体
   Widget showList(){
-    return
-      Column(
+    return Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children:
         _isSeach || _isTagSeach
@@ -1296,133 +1318,133 @@ class _RecipiListState extends State<RecipiList>{
     );
   }
 
-  //フォルダ別リスト
-  Widget folderListArea(){
-    return Container(
-        height: MediaQuery.of(context).size.height * 0.2,
-      child:
-      ListView.builder(
-          shrinkWrap: true,
-          itemCount: this._folders.length,
-          itemBuilder: (context,index) {
-            return createFolder(index);
-          }
-      ),
-//      Column(
-//      children:List.generate(this._folders.length, (int index){
-//    return createFolder(index);
+//  //フォルダ別リスト
+//  Widget folderListArea(){
+//    return Container(
+//        height: MediaQuery.of(context).size.height * 0.2,
+//      child:
+//      ListView.builder(
+//          shrinkWrap: true,
+//          itemCount: this._folders.length,
+//          itemBuilder: (context,index) {
+//            return createFolder(index);
+//          }
+//      ),
+////      Column(
+////      children:List.generate(this._folders.length, (int index){
+////    return createFolder(index);
+////    }
+////    ),
+//    );
+//  }
+
+//  //フォルダリスト
+//  Widget createFolder(int index){
+//    //材料リストを展開する
+//      int count = 0;
+//    //レシピIDに紐づくタグを取得する
+//    var recipisGroupBy = this._recipisGroupBy.firstWhere(
+//            (_recipi) => _recipi.folder_id == this._folders[index].id,
+//        orElse: () => null
+//    );
+//
+//    if(recipisGroupBy != null){
+//      count = recipisGroupBy.count;
+//      print('###グループ別：${recipisGroupBy.count}');
 //    }
-//    ),
-    );
-  }
-
-  //フォルダリスト
-  Widget createFolder(int index){
-    //材料リストを展開する
-      int count = 0;
-    //レシピIDに紐づくタグを取得する
-    var recipisGroupBy = this._recipisGroupBy.firstWhere(
-            (_recipi) => _recipi.folder_id == this._folders[index].id,
-        orElse: () => null
-    );
-
-    if(recipisGroupBy != null){
-      count = recipisGroupBy.count;
-      print('###グループ別：${recipisGroupBy.count}');
-    }
-
-//      for(var k=0; k < this._recipisGroupBy.length; k++){
-//        if(this._folders[index].id == this._recipisGroupBy[k].folder_id)
-//          count = this._recipisGroupBy[k].count;
-//      }
-
-    return
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.23,
-          height: MediaQuery.of(context).size.height * 0.07,
-          child: Container(
-            color: Colors.white,
-            child: InkWell(
-                child: Row(
-//                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    if(this._isCheck)
-                      Container(
-                          width: MediaQuery.of(context).size.width * 0.1,
+//
+////      for(var k=0; k < this._recipisGroupBy.length; k++){
+////        if(this._folders[index].id == this._recipisGroupBy[k].folder_id)
+////          count = this._recipisGroupBy[k].count;
+////      }
+//
+//    return
+//        SizedBox(
+//          width: MediaQuery.of(context).size.width * 0.23,
+//          height: MediaQuery.of(context).size.height * 0.07,
+//          child: Container(
+//            color: Colors.white,
+//            child: InkWell(
+//                child: Row(
+////                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                  children: <Widget>[
+//                    if(this._isCheck)
+//                      Container(
+//                          width: MediaQuery.of(context).size.width * 0.1,
+////                      padding: EdgeInsets.all(5),
+//                          child:Checkbox(
+//                            value: _folders[index].isCheck,
+//                            onChanged: (bool value){
+//                              _onItemCheck(index: index,type: 1);
+//                              print('folderID:${_folders[index].id},name:${_folders[index].name},isCheck:${_folders[index].isCheck}');
+//                            },
+//                          )
+//                      ),
+//                    Container(
 //                      padding: EdgeInsets.all(5),
-                          child:Checkbox(
-                            value: _folders[index].isCheck,
-                            onChanged: (bool value){
-                              _onItemCheck(index: index,type: 1);
-                              print('folderID:${_folders[index].id},name:${_folders[index].name},isCheck:${_folders[index].isCheck}');
-                            },
-                          )
-                      ),
-                    Container(
-                      padding: EdgeInsets.all(5),
-                      child: SizedBox(
-                        height: MediaQuery.of(context).size.width * 0.1,
-                        width: MediaQuery.of(context).size.width * 0.1,
-                        child: Container(
-                          color: Colors.amber[100 * (1 % 9)],
-                          child: Icon(Icons.folder_open,color: Colors.white,size: 30,),
-                        ),
-                      ),
-                    ),
-                    Container(
-//                      color: Colors.redAccent,
-                      width: MediaQuery.of(context).size.width * 0.7,
-                      padding: EdgeInsets.all(5),
-                      child: Text('${_folders[index].name}',
-                        maxLines: 1,
-                        style: TextStyle(
-                          fontSize: 15,
-//                              fontWeight: FontWeight.bold
-                        ),),
-                    ),
-                    if(!this._isCheck)
-                      Container(
-//                      color: Colors.blue,
-                        width: MediaQuery.of(context).size.width * 0.08,
-                        padding: EdgeInsets.all(5),
-                        child: Text('${count}',
-                          maxLines: 1,
-                          style: TextStyle(
-                            fontSize: 12,
-//                              fontWeight: FontWeight.bold
-                          ),),
-                      ),
-                    if(!this._isCheck)
-                      Container(
-//                        color: Colors.grey,
-                          width: MediaQuery.of(context).size.width * 0.05,
-                          padding: EdgeInsets.all(5),
-                          child: Icon(Icons.arrow_forward_ios,size: 12,)
-                      ),
-                  ],
-                ),
-                onTap: (){
-                  if(this._isCheck) {
-                    _onItemCheck(index: index, type: 1);
-                    print('folderID:${_folders[index].id},name:${_folders[index].name},isCheck:${_folders[index].isCheck}');
-                  }else{
-                    //フォルダ別レシピリストを表示する
-                    _onListGroupBy(index: index);
-                  }
-                }
-            ),
-          ),
-        );
-//      );
-//      column.add(
-//        Divider(
-//          color: Colors.grey,
-//          height: 0.5,
-//          thickness: 0.5,
-//        ),
-//      );
-//    }
-  }
+//                      child: SizedBox(
+//                        height: MediaQuery.of(context).size.width * 0.1,
+//                        width: MediaQuery.of(context).size.width * 0.1,
+//                        child: Container(
+//                          color: Colors.amber[100 * (1 % 9)],
+//                          child: Icon(Icons.folder_open,color: Colors.white,size: 30,),
+//                        ),
+//                      ),
+//                    ),
+//                    Container(
+////                      color: Colors.redAccent,
+//                      width: MediaQuery.of(context).size.width * 0.7,
+//                      padding: EdgeInsets.all(5),
+//                      child: Text('${_folders[index].name}',
+//                        maxLines: 1,
+//                        style: TextStyle(
+//                          fontSize: 15,
+////                              fontWeight: FontWeight.bold
+//                        ),),
+//                    ),
+//                    if(!this._isCheck)
+//                      Container(
+////                      color: Colors.blue,
+//                        width: MediaQuery.of(context).size.width * 0.08,
+//                        padding: EdgeInsets.all(5),
+//                        child: Text('${count}',
+//                          maxLines: 1,
+//                          style: TextStyle(
+//                            fontSize: 12,
+////                              fontWeight: FontWeight.bold
+//                          ),),
+//                      ),
+//                    if(!this._isCheck)
+//                      Container(
+////                        color: Colors.grey,
+//                          width: MediaQuery.of(context).size.width * 0.05,
+//                          padding: EdgeInsets.all(5),
+//                          child: Icon(Icons.arrow_forward_ios,size: 12,)
+//                      ),
+//                  ],
+//                ),
+//                onTap: (){
+//                  if(this._isCheck) {
+//                    _onItemCheck(index: index, type: 1);
+//                    print('folderID:${_folders[index].id},name:${_folders[index].name},isCheck:${_folders[index].isCheck}');
+//                  }else{
+//                    //フォルダ別レシピリストを表示する
+//                    _onListGroupBy(index: index);
+//                  }
+//                }
+//            ),
+//          ),
+//        );
+////      );
+////      column.add(
+////        Divider(
+////          color: Colors.grey,
+////          height: 0.5,
+////          thickness: 0.5,
+////        ),
+////      );
+////    }
+//  }
 
   //MYレシピ
   Widget myrecipiArea(){
@@ -1743,17 +1765,18 @@ class _RecipiListState extends State<RecipiList>{
 //        height: MediaQuery.of(context).size.height * 0.07,
         width: MediaQuery.of(context).size.width,
         child: Container(
-          padding: EdgeInsets.all(5),
-          color: Colors.white30,
+          padding: EdgeInsets.only(left: 5,right: 5),
+//          color: Colors.deepOrange[100 * (1 % 9)],
           child: FittedBox(fit:BoxFit.fitWidth,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
                 //テキスト検索エリア
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.055,
+                  height: MediaQuery.of(context).size.height * 0.045,
                   width: MediaQuery.of(context).size.width * 0.85,
                   child: Container(
+                    color: Colors.white,
                     child: TextField(
                         onChanged: _onSearch,
                         style: const TextStyle(fontSize: 15.0, color: Colors.grey,),
@@ -1761,10 +1784,11 @@ class _RecipiListState extends State<RecipiList>{
                           //                contentPadding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
                           prefixIcon: const Icon(Icons.search,size: 25,),
                           hintText:"全てのレシピを検索",
+                          hintStyle: TextStyle(color: Colors.grey),
                           contentPadding: const EdgeInsets.only(top: 10),
                           border: OutlineInputBorder(
                               borderSide: const BorderSide(color: Colors.grey, width: 32.0),
-                              borderRadius: BorderRadius.circular(15.0)
+//                              borderRadius: BorderRadius.circular(5.0)
                           ),
                         )
                     ),

@@ -38,6 +38,7 @@ class _FolderListState extends State<FolderList>{
   List<Check> _folders;                       //チェックボック付きフォルダリスト
   bool _isCheck = false;                      //true:チェックボックス表示
   bool _isError = false;
+  bool _isGetMstFolders = false;
 
   @override
   void initState() {
@@ -45,7 +46,7 @@ class _FolderListState extends State<FolderList>{
     this.init();
   }
 
-  void init(){
+  void init() async {
     //初期化
     dbHelper = DBHelper();
     common = Common();
@@ -83,6 +84,7 @@ class _FolderListState extends State<FolderList>{
       setState(() {
         //チェックBox付きフォルダリストの生成
         this._folders = Provider.of<Display>(context, listen: false).createFoldersCheck();
+        this._isGetMstFolders = true;
       });
     } catch (exception) {
       print(exception);
@@ -306,24 +308,11 @@ class _FolderListState extends State<FolderList>{
   }
 
   //削除処理
-  void _onDelete({Myrecipi recipi}) async {
+  void _onDelete() async {
     List ids = [];
 
     try{
-
-        //レシピを削除
-        await dbHelper.deleteMyRecipi(recipi.id);
-        //レシピIDに紐づくタグを削除する
-        await dbHelper.deleteTagRecipiId(recipi.id);
-        //レシピIDに紐づく材料リストを削除
-        await dbHelper.deleteRecipiIngredient(recipi.id);
-        //レシピIDに紐づく作り方リストを削除
-        await dbHelper.deleteRecipiHowto(recipi.id);
-        //レシピIDに紐づく写真リストを削除
-        await dbHelper.deleteRecipiPhoto(recipi.id);
-        //レシピIDに紐づくごはん日記のレシピリストを削除する
-        await dbHelper.deleteDiaryRecipibyRecipiID(recipi.id);
-        //選択したフォルダマスタを削除
+       //選択したフォルダマスタを削除
         for(var i = 0; i < this._folders.length; i++){
           if(this._folders[i].isCheck){
             ids.add(this._folders[i].id);
@@ -738,7 +727,7 @@ class _FolderListState extends State<FolderList>{
                     ),
                     onPressed: _onDisabled(type: 3) ? null :(){
                       _onDelete();
-                      print('削除する');
+//                      print('削除する');
                     },
                   ),
                 ),
@@ -753,11 +742,26 @@ class _FolderListState extends State<FolderList>{
   Widget recipiList(){
     return Stack(
       children: [
-//        test(),
-        showList(),
+        this._isGetMstFolders
+        ? this._folders.length == 0
+          ? showDefault()
+          : showList()
+        : Container(),
         updater(),
         error(isError: this._isError,),
       ],
+    );
+  }
+
+  Widget showDefault(){
+    return Center(
+      child: Text('左上のメニューから新しい\nフォルダを登録しましょう。',
+        style: TextStyle(
+            color: Colors.grey,
+            fontSize: 20,
+            fontWeight: FontWeight.bold
+        ),
+      ),
     );
   }
 
