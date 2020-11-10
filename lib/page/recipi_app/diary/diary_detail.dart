@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
+import 'package:image_pickers/image_pickers.dart';
 
 import 'package:recipe_app/page/recipi_app/diary/diary_edit.dart';
 import 'package:recipe_app/page/recipi_app/recipi/recipi_edit.dart';
@@ -43,6 +44,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
   final int increment = 10;                   //読み込み件数
   static GlobalKey previewContainer = GlobalKey();
   bool _isUpdate = false;
+  List<Media> _listImagePaths = List();
 
   @override
   void initState() {
@@ -71,6 +73,16 @@ class _DiaryDetailState extends State<DiaryDetail>{
          }
        }
       }
+    });
+
+    //previewImagesByMedia用にセット
+    this._listImagePaths.clear();
+    this._diary.photos.forEach((photo) {
+      Media media = Media();
+      media.path = photo.path;
+      setState(() {
+        this._listImagePaths.add(media);
+      });
     });
 
     //ご飯日記IDに紐づくレシピの取得
@@ -437,7 +449,11 @@ class _DiaryDetailState extends State<DiaryDetail>{
       Column(
         children: [
           CarouselSlider(
-            items: _diary.photos.map((item) => Container(
+            items: _diary.photos.map((item) => GestureDetector(
+              onTap: (){
+//                ImagePickers.previewImage(item.path);
+                ImagePickers.previewImagesByMedia(_listImagePaths,item.no - 1);
+              },
               child: Container(
                 margin: EdgeInsets.all(5.0),
                 child: ClipRRect(
@@ -454,7 +470,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  Color.fromARGB(200, 0, 0, 0),
+                                  Color.fromARGB(0, 0, 0, 0),
                                   Color.fromARGB(0, 0, 0, 0)
                                 ],
                                 begin: Alignment.bottomCenter,
@@ -483,7 +499,6 @@ class _DiaryDetailState extends State<DiaryDetail>{
 //                autoPlay: true,
 //                enlargeCenterPage: true,
                 aspectRatio: 2.0,
-
                 onPageChanged: (index, reason) {
                   print(inspect(this));
 //                    print('indexO:${index}');

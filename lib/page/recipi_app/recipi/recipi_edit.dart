@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:image_pickers/image_pickers.dart';
 
 import 'package:recipe_app/model/Myrecipi.dart';
 import 'package:recipe_app/page/recipi_app/recipi/edit_howto.dart';
@@ -801,10 +802,13 @@ class _RecipiEditState extends State<RecipiEdit>{
             child: Container(
               child: InkWell(
                   child: Image.file(File(_photos[i].path),fit: BoxFit.cover,),
-                  onTap: _isDescriptionEdit || !_isEdit ? null : (){
+                  onTap: (){
+                  _isDescriptionEdit || !_isEdit
+                  ? ImagePickers.previewImage(_photos[i].path)
+                  : _showImgSelectModal(thumbnail: false,edit: true,photo: _photos[i],index: i);
                     print('###tap!!!!');
                     print('no:${_photos[i].no},path:${_photos[i].path}');
-                      _showImgSelectModal(thumbnail: false,edit: true,photo: _photos[i],index: i);
+
                   }
               ),
             ),
@@ -1375,7 +1379,7 @@ class _RecipiEditState extends State<RecipiEdit>{
                 child: InkWell(
                     child: Image.file(File(_recipi.thumbnail),fit: BoxFit.cover,),
                     onTap: (){
-                      //                      _showImgSelectModal(thumbnail: true);
+                      ImagePickers.previewImage(_recipi.thumbnail);
                     }
                 ),
               ),
