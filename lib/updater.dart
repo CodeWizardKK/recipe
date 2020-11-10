@@ -156,7 +156,8 @@ class _updaterState extends State<updater> {
 
   // FIXME ストアにアプリを登録したらurlが入れられる
   static const APP_STORE_URL =
-      'https://apps.apple.com/jp/app/id[アプリのApple ID]?mt=8';
+      'https://apps.apple.com/jp/';
+//      'https://apps.apple.com/jp/app/id[アプリのApple ID]?mt=8';
 
   // FIXME ストアにアプリを登録したらurlが入れられる
   static const PLAY_STORE_URL =

@@ -64,7 +64,13 @@ class Common {
     await Share.shareFiles(photos);
   }
 
-  //スクリーンショット(URL)のシェア機能
+  //スクリーンショット(画像のみ)のシェア機能
+  Future<void> takeFullScreenShot(File imgFile) async {
+    //シェア
+    await Share.shareFiles([imgFile.path]);
+  }
+
+  //URLのシェア機能
   Future<void> takeURLScreenShot() async {
     String text = 'おすすめレシピアプリ！https://aaaaaa.aaaff/aa/aaaaa';
     //シェア
