@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:recipe_app/model/diary/edit/Photo.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:recipe_app/services/Common.dart';
+import 'package:image_pickers/image_pickers.dart';
 
 
 class EditPhoto extends StatefulWidget{
@@ -26,10 +27,14 @@ class _EditPhotoState extends State<EditPhoto>{
   List<DPhoto> _selectedPhotos = List<DPhoto>();
   String _error = 'No Error Dectected';
 
+  GalleryMode _galleryMode = GalleryMode.image;
+  GlobalKey globalKey;
+
   @override
   void initState() {
     super.initState();
     this.init();
+    globalKey = GlobalKey();
   }
 
   //初期処理
@@ -42,33 +47,36 @@ class _EditPhotoState extends State<EditPhoto>{
   }
 
   //+ボタン押下時処理
-  Future<void> loadFiles() async {
+  Future<void> selectImages() async {
+    List<Media> _listImagePaths = List();
+
     List<File> files = List<File>();
-    print('files:${files}');
+//    print('files:${files}');
     String error = 'No Error Dectected';
 
     try{
-      files = await FilePicker.getMultiFile(
-        type: FileType.custom,
-        allowedExtensions: ['JPG','JPEG','jpg','jpeg','PNG','png'],
-      );
 
-//      var resultList = await MultiImagePicker.pickImages(
-//          maxImages: 300,
-////          enableCamera: true,
-////        selectedAssets: this.images,
-//        cupertinoOptions: CupertinoOptions(takePhotoIcon: "chat"),
-//        materialOptions: MaterialOptions(
-//          actionBarColor: "#abcdef",
-//          actionBarTitle: "カメラロールから選択",
-////          allViewTitle: "All Photos",
-//          useDetailsView: false,
-//          selectCircleStrokeColor: "#000000"
-//        ),
+//      files = await FilePicker.getMultiFile(
+//        type: FileType.custom,
+//        allowedExtensions: ['JPG','JPEG','jpg','jpeg','PNG','png'],
 //      );
-//      for(var i = 0; i < resultList.length; i++){
-//        resultList[i].
-//      }
+
+      _galleryMode = GalleryMode.image;
+      _listImagePaths = await ImagePickers.pickerPaths(
+        galleryMode: _galleryMode,
+        showGif: true,
+        selectCount: 10,
+        showCamera: false,
+        cropConfig :CropConfig(enableCrop: true,height: 1,width: 1),
+        compressSize: 500,
+        uiConfig: UIConfig(
+//          uiThemeColor: Color(0xffff0000),
+        ),
+
+      );
+      _listImagePaths.forEach((media){
+        print(media.path.toString());
+      });
 
 
 
@@ -78,20 +86,20 @@ class _EditPhotoState extends State<EditPhoto>{
 
     if(!mounted) return;
 
-      if(files != null) {
-        for(var i = 0; i < files.length; i++){
-          DPhoto photo = DPhoto(path: files[i].path);
+      if(_listImagePaths != null) {
+        for(var i = 0; i < _listImagePaths.length; i++){
+          DPhoto photo = DPhoto(path: _listImagePaths[i].path);
           setState(() {
             this._selectedPhotos.add(photo);
           });
 
-          File thumbnailfile = files[i];
+          Media thumbnailfile = _listImagePaths[i];
           //サムネイル用にファイル名を変更
           String thumbnailPath = common.replaceImageDiary(thumbnailfile.path);
 
           // flutter_image_compressで指定サイズ／品質に圧縮
           List<int> thumbnailresult = await FlutterImageCompress.compressWithFile(
-            thumbnailfile.absolute.path,
+            thumbnailfile.path,
             minWidth: 200,
             minHeight: 200,
             quality: 50,
@@ -165,7 +173,7 @@ class _EditPhotoState extends State<EditPhoto>{
             ),
             floatingActionButton: FloatingActionButton(
               onPressed: (){
-                loadFiles();
+                selectImages();
               },
               child: Icon(Icons.add,size: 30,),
               backgroundColor: Colors.red[100 * (3 % 9)],
