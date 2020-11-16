@@ -10,6 +10,8 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:image_pickers/image_pickers.dart';
+//import 'package:path_provider/path_provider.dart';
+
 
 import 'package:recipe_app/model/Myrecipi.dart';
 import 'package:recipe_app/page/recipi_app/recipi/edit_howto.dart';
@@ -413,8 +415,7 @@ class _RecipiEditState extends State<RecipiEdit>{
   Future<void> _getAndSaveImageFromDevice({ImageSource source,bool thumbnail,bool edit,Photo photo,int index}) async {
 
     // 撮影/選択したFileが返ってくる
-//    File imageFile = await ImagePicker.pickImage(source: source,imageQuality: 50);
-    File imageFile = await ImagePicker.pickImage(source: source);
+    PickedFile imageFile = await ImagePicker().getImage(source: source);
 
     // 画像が選択されなかった場合はスキップ
     if (imageFile == null) {
@@ -422,7 +423,7 @@ class _RecipiEditState extends State<RecipiEdit>{
     }
     print('###setしたimagepath:${imageFile.path}');
 
-    File thumbnailfile = imageFile;
+    File thumbnailfile = File(imageFile.path);
     //サムネイル用にファイル名を変更
     String thumbnailPath = common.replaceImage(thumbnailfile.path);
 
@@ -444,7 +445,7 @@ class _RecipiEditState extends State<RecipiEdit>{
       //スキャンレシピの場合
       if(_type == 3 ){
         //写真のトリミング処理の呼び出し
-        var isNull = await this._cropImage(imageFile: imageFile);
+        var isNull = await this._cropImage(imageFile: File(imageFile.path));
         //トリミング処理にてXまたは<ボタン押下時
         if(isNull){
           //編集画面へ戻る
