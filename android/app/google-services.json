@@ -8,35 +8,6 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:960815181980:android:6a22bc8ade304346b23d59",
-        "android_client_info": {
-          "package_name": "com.example.mlkit_app"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "960815181980-ib4f5enuekeovr2tjnqcgve0v5f5bcdg.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyB_60cv8wR9Sh175dlcA9O8IUOW0UvD_aI"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "960815181980-ib4f5enuekeovr2tjnqcgve0v5f5bcdg.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:960815181980:android:0c06b3d61f0be4e4b23d59",
         "android_client_info": {
           "package_name": "com.example.recipe_app"
@@ -59,6 +30,13 @@
             {
               "client_id": "960815181980-ib4f5enuekeovr2tjnqcgve0v5f5bcdg.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "960815181980-gqrqkm0l4ut14n21e49bnif9qnv0f40a.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.recipeApp-ios"
+              }
             }
           ]
         }
@@ -66,9 +44,9 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:960815181980:android:f1eb816934cab493b23d59",
+        "mobilesdk_app_id": "1:960815181980:android:68b13b90d681d4afb23d59",
         "android_client_info": {
-          "package_name": "com.example.textscanner_app"
+          "package_name": "com.example.sample_20201111"
         }
       },
       "oauth_client": [
@@ -88,6 +66,13 @@
             {
               "client_id": "960815181980-ib4f5enuekeovr2tjnqcgve0v5f5bcdg.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "960815181980-gqrqkm0l4ut14n21e49bnif9qnv0f40a.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.recipeApp-ios"
+              }
             }
           ]
         }
