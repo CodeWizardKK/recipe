@@ -5,10 +5,10 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:recipe_app/model/diary/edit/Photo.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:recipe_app/services/Common.dart';
 import 'package:image_pickers/image_pickers.dart';
-
+import 'package:multi_image_picker/multi_image_picker.dart';
+import 'package:flutter_absolute_path/flutter_absolute_path.dart';
 
 class EditPhoto extends StatefulWidget{
 
@@ -46,21 +46,72 @@ class _EditPhotoState extends State<EditPhoto>{
     });
   }
 
-  //+ボタン押下時処理
-  Future<void> selectImages() async {
-    List<Media> _listImagePaths = List();
+  //+ボタン押下時処理(Android)
+  Future<void> selectImageAndroid() async {
+    print('android');
+    List<Asset> resultList = List<Asset>();
+    List<Asset> images = List<Asset>();
+    String error = 'No Error Dectected';
 
-    List<File> files = List<File>();
-//    print('files:${files}');
+      try {
+        resultList = await MultiImagePicker.pickImages(
+          maxImages: 10,
+          enableCamera: false,
+          selectedAssets: images,
+          cupertinoOptions: CupertinoOptions(takePhotoIcon: "chat"),
+          materialOptions: MaterialOptions(
+            actionBarColor: "#000000",
+            actionBarTitleColor: "#ffffff",
+            actionBarTitle: "選択",
+            allViewTitle: "全ての写真",
+            useDetailsView: false,
+            selectCircleStrokeColor: "#ffffff",
+            statusBarColor: '#000000',
+          ),
+        );
+      } on Exception catch (e) {
+        error = e.toString();
+      }
+
+      if (!mounted) return;
+
+      for (int i = 0; i < resultList.length; i++) {
+        var path = await FlutterAbsolutePath.getAbsolutePath(resultList[i].identifier);
+        print('path:${path}');
+        DPhoto photo = DPhoto(path: path);
+        setState(() {
+          this._selectedPhotos.add(photo);
+        });
+        File thumbnailfile = File(path);
+        //サムネイル用にファイル名を変更
+        String thumbnailPath = common.replaceImageDiary(thumbnailfile.path);
+
+        // flutter_image_compressで指定サイズ／品質に圧縮
+        List<int> thumbnailresult = await FlutterImageCompress.compressWithFile(
+          thumbnailfile.absolute.path,
+          minWidth: 200,
+          minHeight: 200,
+          quality: 50,
+        );
+
+        // 圧縮したファイルを端末の拡張ディスクに保存
+        File saveFile = File(thumbnailPath);
+        await saveFile.writeAsBytesSync(thumbnailresult, flush: true, mode: FileMode.write);
+        print('saveFile:${saveFile.path}');
+      }
+
+    setState(() {
+      this._error = error;
+    });
+  }
+
+  //+ボタン押下時処理(iOS)
+  Future<void> selectImageIOS() async {
+    print('iOS');
+    List<Media> _listImagePaths = List();
     String error = 'No Error Dectected';
 
     try{
-
-//      files = await FilePicker.getMultiFile(
-//        type: FileType.custom,
-//        allowedExtensions: ['JPG','JPEG','jpg','jpeg','PNG','png'],
-//      );
-
       _galleryMode = GalleryMode.image;
       _listImagePaths = await ImagePickers.pickerPaths(
         galleryMode: _galleryMode,
@@ -72,14 +123,10 @@ class _EditPhotoState extends State<EditPhoto>{
         uiConfig: UIConfig(
 //          uiThemeColor: Color(0xffff0000),
         ),
-
       );
       _listImagePaths.forEach((media){
         print(media.path.toString());
       });
-
-
-
     } on Exception catch(e){
       error = e.toString();
     }
@@ -108,11 +155,7 @@ class _EditPhotoState extends State<EditPhoto>{
           // 圧縮したファイルを端末の拡張ディスクに保存
           File saveFile = File(thumbnailPath);
           await saveFile.writeAsBytesSync(thumbnailresult, flush: true, mode: FileMode.write);
-//          File saveFile = await files[i].copy(thumbnailPath);
           print('saveFile:${saveFile.path}');
-//          saveFile.copy('/storage/emulated/0/Android/data/com.example.recipe_app/files/Pictures/test20200910_thumb.jpg');
-
-
         }
 //        print('++++++++++++++++++++++++++++++++++++++++');
 //        for(var i = 0; i < this._selectedPhotos.length; i++){
@@ -173,7 +216,9 @@ class _EditPhotoState extends State<EditPhoto>{
             ),
             floatingActionButton: FloatingActionButton(
               onPressed: (){
-                selectImages();
+                Platform.isIOS
+                ? selectImageIOS()
+                : selectImageAndroid();
               },
               child: Icon(Icons.add,size: 30,),
               backgroundColor: Colors.red[100 * (3 % 9)],

@@ -6,7 +6,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share/share.dart';
-import 'package:awesome_dialog/awesome_dialog.dart';
 
 class Common {
 
@@ -26,7 +25,7 @@ class Common {
   //圧縮して端末の拡張ディスク(指定)に保存したimagePathを呼び出す
   String replaceImageDiary(String imagePath){
     String newImagePath = imagePath;
-    newImagePath = newImagePath.replaceAll('/data/user/0/com.example.recipe_app/cache/file_picker','/storage/emulated/0/Android/data/com.example.recipe_app/files/Pictures');
+    newImagePath = newImagePath.replaceAll('/data/user/0/com.example.recipe_app/cache/','/storage/emulated/0/Android/data/com.example.recipe_app/files/Pictures/');
     newImagePath = newImagePath.replaceAll('.JPG','_thumb.JPG');
     newImagePath = newImagePath.replaceAll('.JPEG','_thumb.JPEG');
     newImagePath = newImagePath.replaceAll('.jpg','_thumb.jpg');
