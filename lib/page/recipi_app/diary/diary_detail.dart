@@ -112,30 +112,6 @@ class _DiaryDetailState extends State<DiaryDetail>{
       });
     }
     print('ごはん日記に紐づくレシピ件数：${this._recipis.length}');
-//    for(var i = 0; i < this._recipis.length; i++){
-//      print('------------${i}---------------');
-//      print('id:${this._recipis[i].recipi.id}');
-//      print('thumbnail:${this._recipis[i].recipi.thumbnail}');
-//      print('title${this._recipis[i].recipi.title}');
-//      print('description:${this._recipis[i].recipi.description}');
-//      print('unit:${this._recipis[i].recipi.unit}');
-//      print('time:${this._recipis[i].recipi.time}');
-//      print('folder_id:${this._recipis[i].recipi.folder_id}');
-//      for(var j = 0; j < this._recipis[i].tags.length; j++){
-//        print('recipi_id:${this._recipis[i].tags[j].recipi_id}');
-//        print('id:${this._recipis[i].tags[j].id}');
-//        print('name:${this._recipis[i].tags[j].name}');
-//      }
-//      for(var j = 0; j < this._recipis[i].ingredients.length; j++){
-//        print('recipi_id:${this._recipis[i].ingredients[j].recipi_id}');
-//        print('id:${this._recipis[i].ingredients[j].id}');
-//        print('name${this._recipis[i].ingredients[j].name}');
-//        print('quantity:${this._recipis[i].ingredients[j].quantity}');
-//      }
-//    }
-//    this._ingredients = [];
-//    this._howTos = [];
-//    this._photos = [];
   }
 
   //レシピを選択時処理
@@ -260,9 +236,6 @@ class _DiaryDetailState extends State<DiaryDetail>{
     return newDate;
   }
 
-  final _scaffoldKey = new GlobalKey<ScaffoldState>();
-  final _globalKey = new GlobalKey<ScaffoldState>();
-
   @override
   Widget build(BuildContext context) {
     return
@@ -270,7 +243,6 @@ class _DiaryDetailState extends State<DiaryDetail>{
       key: previewContainer,
       child:
       Scaffold(
-//        key: _scaffoldKey,
         appBar: AppBar(
           backgroundColor: Colors.deepOrange[100 * (1 % 9)],
           leading: backBtn(),
@@ -291,7 +263,6 @@ class _DiaryDetailState extends State<DiaryDetail>{
           ],
         ),
         body: scrollArea()
-//        body: imageArea()
       ),
     );
   }
@@ -324,10 +295,10 @@ class _DiaryDetailState extends State<DiaryDetail>{
   Widget backBtn(){
     return FittedBox(fit:BoxFit.fitWidth,
       child:IconButton(
-          icon: const Icon(Icons.arrow_back_ios,color: Colors.white),
-          onPressed: (){
-            _onBack();
-          },
+        icon: const Icon(Icons.arrow_back_ios,color: Colors.white),
+        onPressed: (){
+          _onBack();
+        },
       ),
     );
   }
@@ -336,7 +307,6 @@ class _DiaryDetailState extends State<DiaryDetail>{
   Widget scrollArea(){
     return Container(
       child: SingleChildScrollView(
-//        key: _globalKey,
         child: showForm(),
       ),
     );
@@ -348,188 +318,99 @@ class _DiaryDetailState extends State<DiaryDetail>{
       alignment: Alignment.center,
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
-          children:
-               <Widget>[
-                 dateCategoryArea(),   //日付 分類
-                 imageArea(),
-//                 thumbnailArea(),     //選択した画像
-//                 photosArea(),        //写真リスト
-                 bodyArea(),          //本文
-                 recipiArea(),        //レシピ
-                 recipiListArea(),    //レシピリスト
-              ]
+          children: <Widget>[
+             dateCategoryArea(),   //日付 分類
+             imageArea(),          //写真
+             bodyArea(),          //本文
+             recipiArea(),        //レシピ
+             recipiListArea(),    //レシピリスト
+          ]
       ),
     );
   }
 
-  //線
-  Widget line(){
-    return Divider(
-      color: Colors.grey,
-      height: 0.5,
-      thickness: 0.5,
-    );
-  }
-
-  //サムネイルエリア
-  Widget thumbnailArea(){
-    return
-      _diary.photos.length == 0
-          ? Container()
-          : SizedBox(
-            height: MediaQuery.of(context).size.height * 0.40,
-            width: MediaQuery.of(context).size.width,
-            child: Container(
-              child: Image.file(File(_diary.photos[_photoIndex].path),fit: BoxFit.cover,),
-          ),
-        );
-  }
-
-  //選択レシピリスト
-  Widget photosArea(){
-    return
-      _diary.photos.length == 0
-          ? Container()
-          : Container(
-        padding: EdgeInsets.symmetric(horizontal: 5.0,vertical: 5.0),
-        height: MediaQuery.of(context).size.height * 0.1,
-        child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: _diary.photos.length,
-            itemBuilder: (context,index){
-              return InkWell(
-                onTap: (){
-                  setState(() {
-                    _photoIndex = index;
-                  });
-                },
-                child:Container(
-                    width: MediaQuery.of(context).size.width * 0.2,
-                    child: Stack(
-                      children: <Widget>[
-                        Card(
-//                    color: Colors.blue,
-                            child:
-                            index == _photoIndex
-                                ? Container(
-                              width: MediaQuery.of(context).size.width * 0.25,
-                              height: MediaQuery.of(context).size.width * 0.25,
-                              child: Image.file(File(_diary.photos[index].path),fit: BoxFit.cover,),
-                              decoration: (
-                                  BoxDecoration(
-                                      border: Border.all(
-                                          color: Colors.orangeAccent,
-                                          width: 3.0
-                                      ),
-                                      borderRadius: BorderRadius.circular(4)
-                                  )
-                              ),
-                            )
-                                : Container(
-                              width: MediaQuery.of(context).size.width * 0.25,
-                              height: MediaQuery.of(context).size.width * 0.25,
-                              child: Image.file(File(_diary.photos[index].path),fit: BoxFit.cover,),
-                            )
-                        ),
-                      ],
-                    )
-                ),
-              );
-            }
-        ),
-      );
-  }
-
+  //写真エリア
   Widget imageArea(){
     return
       _diary.photos.length == 0
-          ? Container()
-          : Container(
-          child:
-      Column(
-        children: [
-          CarouselSlider(
-            items: _diary.photos.map((item) => GestureDetector(
-              onTap: (){
-//                ImagePickers.previewImage(item.path);
-                ImagePickers.previewImagesByMedia(_listImagePaths,item.no - 1);
-              },
+      ? Container()
+      : _diary.photos.length == 1
+        ? Container(
+          margin: EdgeInsets.all(10.0),
+            child : SizedBox(
+              height: MediaQuery.of(context).size.height * 0.40,
+              width: MediaQuery.of(context).size.width,
               child: Container(
-                margin: EdgeInsets.all(5.0),
-                child: ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                    child: Stack(
-                      children: <Widget>[
-//                          Image.network(item, fit: BoxFit.cover, width: 1000.0),
-                        Image.file(File(item.path),fit: BoxFit.cover, width: 1000.0),
-                        Positioned(
-                          bottom: 0.0,
-                          left: 0.0,
-                          right: 0.0,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Color.fromARGB(0, 0, 0, 0),
-                                  Color.fromARGB(0, 0, 0, 0)
-                                ],
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                              ),
-                            ),
-                            padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-//                              child: Text(
-//                                'No. ${_diary.photos.indexOf(item)} image',
-//                                style: TextStyle(
-//                                  color: Colors.white,
-//                                  fontSize: 20.0,
-//                                  fontWeight: FontWeight.bold,
-//                                ),
-//                              ),
-                          ),
-                        ),
-                      ],
-                    )
+                child: InkWell(
+                  child: Image.file(File(_diary.photos[0].path),fit: BoxFit.cover),
+                  onTap: (){
+                    ImagePickers.previewImage(_diary.photos[0].path);
+                  }
                 ),
               ),
-            )).toList(),
-            options: CarouselOptions(
-                initialPage: _photoIndex,
-                scrollDirection: Axis.horizontal,
-//                autoPlay: true,
-//                enlargeCenterPage: true,
-                aspectRatio: 2.0,
-                onPageChanged: (index, reason) {
-                  print(inspect(this));
-//                    print('indexO:${index}');
-
-                  setState(() {
-                    this._current = index;
-                  });
-                }
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: _diary.photos.map((photo) {
-              int no = _diary.photos.indexOf(photo);
-              print('index②:${no}');
-              return Container(
-                width: MediaQuery.of(context).size.width * 0.015,
-                height: MediaQuery.of(context).size.width * 0.015,
-                margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 2.0),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: this._current == no
-                      ? Color.fromRGBO(0, 0, 0, 0.9)
-                      : Color.fromRGBO(0, 0, 0, 0.4),
+            )
+          )
+        : Container(
+          child: Column(
+            children: [
+              CarouselSlider(
+                items: _diary.photos.map((item) => GestureDetector(
+                  onTap: (){
+                    ImagePickers.previewImagesByMedia(_listImagePaths,item.no - 1);
+                  },
+                  child: Container(
+                    margin: EdgeInsets.all(10.0),
+                    child:
+                      ClipRRect(
+//                        borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                        child:
+                          Stack(
+                          children: <Widget>[
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.40,
+                              child: Image.file(File(item.path),fit: BoxFit.cover,width: 400),
+                            )
+                          ],
+                        )
+                    ),
+                  ),
+                )).toList(),
+                options: CarouselOptions(
+                  height: MediaQuery.of(context).size.height * 0.40,
+                  initialPage: _photoIndex,
+//                  scrollDirection: Axis.horizontal,
+//                    autoPlay: true,
+//                    enlargeCenterPage: true,
+                  aspectRatio: 2.0,
+                  onPageChanged: (index, reason) {
+                    print(inspect(this));
+                    setState(() {
+                      this._current = index;
+                    });
+                  }
                 ),
-              );
-            }).toList(),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: _diary.photos.map((photo) {
+                  int no = _diary.photos.indexOf(photo);
+                  print('index②:${no}');
+                  return Container(
+                    width: MediaQuery.of(context).size.width * 0.015,
+                    height: MediaQuery.of(context).size.width * 0.015,
+                    margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 2.0),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: this._current == no
+                          ? Color.fromRGBO(0, 0, 0, 0.9)
+                          : Color.fromRGBO(0, 0, 0, 0.4),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ]
           ),
-        ]
-    ),
-    );
+        );
   }
 
   //本文
@@ -604,31 +485,6 @@ class _DiaryDetailState extends State<DiaryDetail>{
     return
     _diary.recipis.length == 0
       ? Container()
-//      : Column(
-//      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//      children: <Widget>[
-//        SizedBox(
-//          height: MediaQuery.of(context).size.height * 0.05,
-//          width: MediaQuery.of(context).size.width,
-//          child: Container(
-//            color: Colors.deepOrange[100 * (2 % 9)],
-//            padding: EdgeInsets.only(left: 10,right: 10),
-//            child: FittedBox(fit:BoxFit.fitWidth,
-//              child: Text('レシピ', style: TextStyle(
-//              color: Colors.white,
-//              fontSize: 15,
-////              fontWeight: FontWeight.bold
-//              ),),
-//            ),
-//          ),
-//        ),
-//        Divider(
-//          color: Colors.grey,
-//          height: 0.5,
-//          thickness: 0.5,
-//        ),
-//      ],
-//    );
       : SizedBox(
         height: MediaQuery.of(context).size.height * 0.05,
         width: MediaQuery.of(context).size.width,
