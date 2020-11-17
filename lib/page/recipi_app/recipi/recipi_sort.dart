@@ -625,6 +625,19 @@ class _RecipiSortState extends State<RecipiSort>{
         ),
       ),
     );
+    _sortType == 1 || _sortType == 3
+    ?
+    // 空
+    column.add(
+      SizedBox(
+        height: MediaQuery.of(context).size.height * 0.06,
+        width: MediaQuery.of(context).size.width,
+        child: Container(
+          color: Colors.white10,
+        ),
+      ),
+    )
+    : null;
     return Column(
       children: column,
     );
@@ -755,6 +768,16 @@ class _RecipiSortState extends State<RecipiSort>{
                 _onAdd(type: 2);
               }
           ),
+        ),
+      ),
+    );
+    // 空
+    column.add(
+      SizedBox(
+        height: MediaQuery.of(context).size.height * 0.06,
+        width: MediaQuery.of(context).size.width,
+        child: Container(
+          color: Colors.white10,
         ),
       ),
     );
@@ -958,7 +981,7 @@ class _RecipiSortState extends State<RecipiSort>{
           ? Container(
             width: MediaQuery.of(context).size.width * 0.3,
             child: Padding(
-              padding: EdgeInsets.only(top: 5,bottom: 5,left: 10,right: 10),
+              padding: EdgeInsets.only(top: 5,bottom: 30,left: 10,right: 10),
               child: FittedBox(fit:BoxFit.fitWidth,
                 child: FlatButton(
                   color: Colors.red[100 * (3 % 9)],

@@ -59,6 +59,7 @@ dependencies:
   # Firebase RemoteConfigの為に使用
   firebase_remote_config: ^0.4.2
   firebase_ml_vision: ^0.9.9
+  flutter_switch: ^0.1.5
 
 dev_dependencies:
 #  analysis_tool:

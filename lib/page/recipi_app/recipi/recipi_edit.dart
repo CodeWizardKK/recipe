@@ -11,7 +11,7 @@ import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:image_pickers/image_pickers.dart';
 //import 'package:path_provider/path_provider.dart';
-
+import 'package:flutter_switch/flutter_switch.dart';
 
 import 'package:recipe_app/model/Myrecipi.dart';
 import 'package:recipe_app/page/recipi_app/recipi/edit_howto.dart';
@@ -859,7 +859,19 @@ class _RecipiEditState extends State<RecipiEdit>{
             ),
           ),
         ),
-    );
+      );
+      if(_selectedID == -1){
+        // 空
+        column.add(
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.06,
+            width: MediaQuery.of(context).size.width,
+            child: Container(
+              color: Colors.white10,
+            ),
+          ),
+        );
+      }
     }
     if(!_isEdit){
       // 空
@@ -1624,6 +1636,7 @@ class _RecipiEditState extends State<RecipiEdit>{
     );
   }
 
+  //説明メモエリア
   Widget DescriptionTitleArea(){
       return
        _isEdit
@@ -1653,17 +1666,40 @@ class _RecipiEditState extends State<RecipiEdit>{
                       padding: EdgeInsets.all(10),
                       child: Row(
                         children: <Widget>[
-                          Icon(Icons.text_fields,
-                              color: _isDescriptionEdit
-                                  ? Colors.grey
-                                  : Colors.deepOrange[100 * (3 % 9)]),
-                          Switch(
+                          Container(
+                            padding: EdgeInsets.only(left: 5,right: 5),
+                            child:FittedBox(fit:BoxFit.fitWidth,
+                              child: Row(
+                                children: <Widget>[
+                                  Icon(Icons.edit, color: Colors.white),
+                                  Text('編集する', style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          FlutterSwitch(
+//                            activeText: '編集中',
+//                            inactiveText: '編集完了',
+                            toggleColor: Colors.white,
+                            activeColor: Colors.red,
+                            inactiveColor: Colors.white38,
+                            activeTextColor: Colors.white,
+                            inactiveTextColor: Colors.white,
+                            height: MediaQuery.of(context).size.height * 0.05,
+                            width: MediaQuery.of(context).size.width * 0.15,
+                            valueFontSize: 13.0,
+                            toggleSize: 17.0,
                             value: this._isDescriptionEdit,
-                            activeColor: Colors.deepOrange[100 * (3 % 9)],
-                            onChanged: (value) {
+//                            borderRadius: 30.0,
+//                            padding: 3.0,
+                            showOnOff: true,
+                            onToggle: (val) {
                               setState(() {
                                 this._isDescriptionEdit = !this._isDescriptionEdit;
-
                               });
                               if(!this._isDescriptionEdit){
                                 print('セットする');
@@ -1671,9 +1707,6 @@ class _RecipiEditState extends State<RecipiEdit>{
                               }
                             },
                           ),
-                          Icon(Icons.edit, color: _isDescriptionEdit
-                              ? Colors.deepOrange[100 * (3 % 9)]
-                              : Colors.grey)
                         ],
                       ),
                     ),
