@@ -258,6 +258,7 @@ class _EditHowToState extends State<EditHowTo>{
                       child: InkWell(
                           child: Icon(Icons.camera_alt,color: Colors.white,size: 50,),
                           onTap: (){
+                            FocusScope.of(context).unfocus();
                             _showImgSelectModal();
                           }
                       ),
@@ -270,6 +271,7 @@ class _EditHowToState extends State<EditHowTo>{
                       child: InkWell(
                         child: Image.file(File(_photo),fit: BoxFit.cover,),
                         onTap: (){
+                          FocusScope.of(context).unfocus();
                           _showImgSelectModal();
                         }
                       ),

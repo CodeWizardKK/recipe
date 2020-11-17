@@ -816,6 +816,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
               ),
             ),
             onPressed: (){
+              FocusScope.of(context).unfocus();
               setState(() {
                 this._isCheck = !this._isCheck;
               });
@@ -833,6 +834,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
         color: Colors.white,
         icon: const Icon(Icons.check_circle_outline),
         onPressed: (){
+          FocusScope.of(context).unfocus();
           _onCheck();
         },
       ),
@@ -846,6 +848,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
         color: Colors.white,
         icon: const Icon(Icons.add_circle_outline),
         onPressed: (){
+          FocusScope.of(context).unfocus();
           _onAdd();
         },
       ),
@@ -1319,6 +1322,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
                           child: InkWell(
                             child: Icon(Icons.folder,color: Colors.orange[100 * (3 % 9)],size: 30,),
                             onTap: (){
+                              FocusScope.of(context).unfocus();
                               _onFolderTap(index: index,ingredients: ingredientsTX,tags: tags,type: 0);
                             },
                           ),
@@ -1328,6 +1332,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
                 ),
               ),
               onTap: (){
+                FocusScope.of(context).unfocus();
                 if(this._isCheck){
                   _onItemCheck(index: index);
                 }else{

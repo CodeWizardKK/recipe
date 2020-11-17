@@ -975,6 +975,7 @@ class _RecipiListState extends State<RecipiList>{
                       ),
                     ),
                     onTap: () {
+                      FocusScope.of(context).unfocus();
                       _onFolderTap(type: 3);
                     },
                   ),
@@ -990,6 +991,7 @@ class _RecipiListState extends State<RecipiList>{
                       ),
                     ),
                     onTap: () {
+                      FocusScope.of(context).unfocus();
                       _onFolderTap(type: 4);
                     },
                   ),
@@ -1005,6 +1007,7 @@ class _RecipiListState extends State<RecipiList>{
                       ),
                     ),
                     onTap: () {
+                      FocusScope.of(context).unfocus();
                       _onShareSave();
                     },
                   ),
@@ -1020,6 +1023,7 @@ class _RecipiListState extends State<RecipiList>{
                       ),
                     ),
                     onTap: () {
+                      FocusScope.of(context).unfocus();
                       _showAbout();
                     },
                   ),
@@ -1060,6 +1064,7 @@ class _RecipiListState extends State<RecipiList>{
               ),
             ),
             onPressed: (){
+              FocusScope.of(context).unfocus();
               setState(() {
                 this._isCheck = !this._isCheck;
               });
@@ -1077,6 +1082,7 @@ class _RecipiListState extends State<RecipiList>{
         color: Colors.white,
         icon: const Icon(Icons.check_circle_outline),
         onPressed: (){
+          FocusScope.of(context).unfocus();
           _onCheck();
         },
       ),
@@ -1090,6 +1096,7 @@ class _RecipiListState extends State<RecipiList>{
         color: Colors.white,
         icon: const Icon(Icons.add_circle_outline),
         onPressed: (){
+          FocusScope.of(context).unfocus();
           _onAdd();
         },
       ),
@@ -1317,134 +1324,6 @@ class _RecipiListState extends State<RecipiList>{
         }
     );
   }
-
-//  //フォルダ別リスト
-//  Widget folderListArea(){
-//    return Container(
-//        height: MediaQuery.of(context).size.height * 0.2,
-//      child:
-//      ListView.builder(
-//          shrinkWrap: true,
-//          itemCount: this._folders.length,
-//          itemBuilder: (context,index) {
-//            return createFolder(index);
-//          }
-//      ),
-////      Column(
-////      children:List.generate(this._folders.length, (int index){
-////    return createFolder(index);
-////    }
-////    ),
-//    );
-//  }
-
-//  //フォルダリスト
-//  Widget createFolder(int index){
-//    //材料リストを展開する
-//      int count = 0;
-//    //レシピIDに紐づくタグを取得する
-//    var recipisGroupBy = this._recipisGroupBy.firstWhere(
-//            (_recipi) => _recipi.folder_id == this._folders[index].id,
-//        orElse: () => null
-//    );
-//
-//    if(recipisGroupBy != null){
-//      count = recipisGroupBy.count;
-//      print('###グループ別：${recipisGroupBy.count}');
-//    }
-//
-////      for(var k=0; k < this._recipisGroupBy.length; k++){
-////        if(this._folders[index].id == this._recipisGroupBy[k].folder_id)
-////          count = this._recipisGroupBy[k].count;
-////      }
-//
-//    return
-//        SizedBox(
-//          width: MediaQuery.of(context).size.width * 0.23,
-//          height: MediaQuery.of(context).size.height * 0.07,
-//          child: Container(
-//            color: Colors.white,
-//            child: InkWell(
-//                child: Row(
-////                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                  children: <Widget>[
-//                    if(this._isCheck)
-//                      Container(
-//                          width: MediaQuery.of(context).size.width * 0.1,
-////                      padding: EdgeInsets.all(5),
-//                          child:Checkbox(
-//                            value: _folders[index].isCheck,
-//                            onChanged: (bool value){
-//                              _onItemCheck(index: index,type: 1);
-//                              print('folderID:${_folders[index].id},name:${_folders[index].name},isCheck:${_folders[index].isCheck}');
-//                            },
-//                          )
-//                      ),
-//                    Container(
-//                      padding: EdgeInsets.all(5),
-//                      child: SizedBox(
-//                        height: MediaQuery.of(context).size.width * 0.1,
-//                        width: MediaQuery.of(context).size.width * 0.1,
-//                        child: Container(
-//                          color: Colors.amber[100 * (1 % 9)],
-//                          child: Icon(Icons.folder_open,color: Colors.white,size: 30,),
-//                        ),
-//                      ),
-//                    ),
-//                    Container(
-////                      color: Colors.redAccent,
-//                      width: MediaQuery.of(context).size.width * 0.7,
-//                      padding: EdgeInsets.all(5),
-//                      child: Text('${_folders[index].name}',
-//                        maxLines: 1,
-//                        style: TextStyle(
-//                          fontSize: 15,
-////                              fontWeight: FontWeight.bold
-//                        ),),
-//                    ),
-//                    if(!this._isCheck)
-//                      Container(
-////                      color: Colors.blue,
-//                        width: MediaQuery.of(context).size.width * 0.08,
-//                        padding: EdgeInsets.all(5),
-//                        child: Text('${count}',
-//                          maxLines: 1,
-//                          style: TextStyle(
-//                            fontSize: 12,
-////                              fontWeight: FontWeight.bold
-//                          ),),
-//                      ),
-//                    if(!this._isCheck)
-//                      Container(
-////                        color: Colors.grey,
-//                          width: MediaQuery.of(context).size.width * 0.05,
-//                          padding: EdgeInsets.all(5),
-//                          child: Icon(Icons.arrow_forward_ios,size: 12,)
-//                      ),
-//                  ],
-//                ),
-//                onTap: (){
-//                  if(this._isCheck) {
-//                    _onItemCheck(index: index, type: 1);
-//                    print('folderID:${_folders[index].id},name:${_folders[index].name},isCheck:${_folders[index].isCheck}');
-//                  }else{
-//                    //フォルダ別レシピリストを表示する
-//                    _onListGroupBy(index: index);
-//                  }
-//                }
-//            ),
-//          ),
-//        );
-////      );
-////      column.add(
-////        Divider(
-////          color: Colors.grey,
-////          height: 0.5,
-////          thickness: 0.5,
-////        ),
-////      );
-////    }
-//  }
 
   //MYレシピ
   Widget myrecipiArea(){
@@ -1738,6 +1617,7 @@ class _RecipiListState extends State<RecipiList>{
                               child: InkWell(
                                 child: Icon(Icons.folder,color: Colors.orange[100 * (3 % 9)],size: 30,),
                                 onTap: (){
+                                  FocusScope.of(context).unfocus();
                                   _onFolderTap(index: index,ingredients: ingredientsTX,tags: tags,type: 0);
                                 },
                               ),
@@ -1747,6 +1627,7 @@ class _RecipiListState extends State<RecipiList>{
                     ),
                   ),
                   onTap: (){
+                    FocusScope.of(context).unfocus();
                     if(this._isCheck){
                       _onItemCheck(index: index,type: 2);
                     }else{
