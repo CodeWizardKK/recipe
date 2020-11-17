@@ -300,11 +300,7 @@ class _EditIngredientState extends State<EditIngredient>{
                         splashColor: Colors.orangeAccent,
                         onPressed: () {
                           setState(() {
-                            if(_quantityunit[index].id < 5){
-                              _quantity.text = '${_quantity.text}${_quantityunit[index].name}';
-                            } else {
-                              _quantity.text = '${_quantityunit[index].name}${_quantity.text}';
-                            }
+                            _quantity.text += '${_quantityunit[index].name}';
                           });
                           print('${_quantityunit[index].name}');
                         },
