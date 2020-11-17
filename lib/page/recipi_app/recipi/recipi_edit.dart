@@ -706,7 +706,9 @@ class _RecipiEditState extends State<RecipiEdit>{
 //                              color: Colors.redAccent,
                               child: InkWell(
                                 child: Image.file(File(_howTos[i].photo),fit: BoxFit.cover,),
-    //                              onTap: (){}
+                                  onTap: _isEdit ? null : (){
+                                    ImagePickers.previewImage(_howTos[i].photo);
+                                  }
                               ),
                             ),
                           )
@@ -1378,7 +1380,7 @@ class _RecipiEditState extends State<RecipiEdit>{
               width: MediaQuery.of(context).size.width,
               child: Container(
                 child: InkWell(
-                    child: Image.file(File(_recipi.thumbnail),fit: BoxFit.cover,),
+                    child: Image.file(File(_recipi.thumbnail),fit: BoxFit.cover),
                     onTap: (){
                       ImagePickers.previewImage(_recipi.thumbnail);
                     }
