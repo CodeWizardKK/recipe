@@ -4,7 +4,6 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
 import 'package:recipe_app/page/recipi_app/diary/diary_detail.dart';
 import 'package:recipe_app/page/recipi_app/diary/diary_edit.dart';
 import 'package:recipe_app/page/recipi_app/navigation/about.dart';
@@ -19,6 +18,7 @@ import 'package:recipe_app/model/diary/edit/Recipi.dart';
 import 'package:recipe_app/model/diary/DisplayDiary.dart';
 import 'package:recipe_app/model/diary/DisplayDiaryGroupDate.dart';
 import 'package:intl/intl.dart';
+import 'package:frefresh/frefresh.dart';
 
 import 'package:recipe_app/updater.dart';
 
@@ -34,15 +34,15 @@ class _DiaryListState extends State<DiaryList>{
   DBHelper dbHelper;
   Common common;
   List<DisplayDiaryGroupDate> _displayDiaryGroupDates = List<DisplayDiaryGroupDate>();
-//  List<DisplayDiaryGroupDate> _DDG = List<DisplayDiaryGroupDate>();
-
   List<DisplayDiaryGroupDate> _lazy = List<DisplayDiaryGroupDate>(); //遅延読み込み用リスト
-  bool _isLoading = false;                               //true:遅延読み込み中
-  int _currentLength = 0;                                //遅延読み込み件数を格納
-//  int _dcurrentLength = 0;                                //遅延読み込み件数を格納
-  final int increment = 5;                               //読み込み件数
-//  final int dincrement = 5;                               //読み込み件数
+  final int increment = 10;                               //読み込み件数
   bool _isGetDiarys = false;
+  int _DDGcurrentLength = 0;                                //遅延読み込み件数を格納
+  int _DDcurrentLength = 0;                                //遅延読み込み件数を格納
+  FRefreshController controller = FRefreshController();
+  String text = "Drop-down to loading";
+  bool _isDuplicate = false;
+  DisplayDiaryGroupDate _ddg = DisplayDiaryGroupDate(id: -1);
 
   @override
   void initState() {
@@ -57,6 +57,8 @@ class _DiaryListState extends State<DiaryList>{
     common = Common();
     this._displayDiaryGroupDates.clear();
     this._lazy.clear();
+    controller = FRefreshController();
+    FRefresh.debug = true;
 
     //レコードリフレッシュ
     await this.refreshImages();
@@ -67,80 +69,52 @@ class _DiaryListState extends State<DiaryList>{
   //レシピリスト用遅延読み込み
   Future _loadMore() async {
     print('+++++_loadMore+++++++');
-    if(mounted){
-      setState(() {
-        _isLoading = true;
-      });
-    }
-
-    await Future.delayed(const Duration(seconds: 1));
-    for (var i = _currentLength; i < _currentLength + increment; i++) {
-      if( i < this._displayDiaryGroupDates.length){
-        if(mounted){
-          setState(() {
-            _lazy.add(_displayDiaryGroupDates[i]);
-          });
+    var count = 0;
+    for(var i = _DDGcurrentLength; i < this._displayDiaryGroupDates.length; i++){
+      if(this._ddg.id != this._displayDiaryGroupDates[i].id){
+        setState(() {
+          this._ddg  = DisplayDiaryGroupDate(
+              id: this._displayDiaryGroupDates[i].id
+              ,month: this._displayDiaryGroupDates[i].month
+              ,displayDiarys: []
+          );
+          this._DDcurrentLength = 0;
+          this._isDuplicate = false;
+        });
+      } else {
+        setState(() {
+          this._isDuplicate = true;
+        });
+      }
+      for(var k = _DDcurrentLength; k <_DDcurrentLength + increment; k++){
+        if(count == increment){
+          break;
         }
-      }else{
+        if(k < _displayDiaryGroupDates[i].displayDiarys.length){
+          setState(() {
+            this._ddg.displayDiarys.add(this._displayDiaryGroupDates[i].displayDiarys[k]);
+          });
+          count++;
+        } else {
+          setState(() {
+            this._DDGcurrentLength++;
+          });
+          break;
+        }
+      }
+      setState(() {
+        if(_isDuplicate){
+          _lazy[i].displayDiarys = this._ddg.displayDiarys;
+        } else {
+          _lazy.add(this._ddg);
+        }
+        _DDcurrentLength = this._ddg.displayDiarys.length;
+      });
+      if(count == increment){
         break;
       }
-
-    }
-    if(mounted){
-      setState(() {
-        _isLoading = false;
-        _currentLength = _lazy.length;
-      });
     }
   }
-//  //レシピリスト用遅延読み込み
-//  Future _loadMore() async {
-//    print('+++++_loadMore+++++++');
-//    if(mounted){
-//      setState(() {
-//        _isLoading = true;
-//        print('++++${_isLoading}++++');
-//      });
-//    }
-//
-//    await Future.delayed(const Duration(seconds: 1));
-//
-//
-//    DisplayDiaryGroupDate d  = DisplayDiaryGroupDate(id: -1,month: '',displayDiarys: []);
-//    for (var i = _currentLength; i < _currentLength + increment; i++) {
-//      if( i < this._DDG.length) {
-//        d.month = this._DDG[i].month;
-//        d.id = this._DDG[i].id;
-//        for (var k = 0; k < dincrement; k++) {
-//          d.displayDiarys.add(this._DDG[i].displayDiarys[k]);
-//          print('①K++++ ${k} +++++');
-//        }
-//        print('①i++++ ${i} +++++');
-////        if (i < this._DDG.length) {
-//          if (mounted) {
-//            setState(() {
-//              _lazy.add(d);
-//            });
-//            print('②++++${_lazy.length}+++++');
-//          }
-////        } else {
-////          print('+++break+++');
-////          break;
-////        }
-//      } else {
-//        print('+++break+++');
-//        break;
-//      }
-//
-//    }
-//    if(mounted){
-//      setState(() {
-//        _isLoading = false;
-//        _currentLength = _lazy.length;
-//        _dcurrentLength = d.displayDiarys.length;
-//      });
-//    }
-//  }
 
   //表示しているレコードのリセットし、最新のレコードを取得し、表示
   Future<void> refreshImages() async {
@@ -271,19 +245,23 @@ class _DiaryListState extends State<DiaryList>{
           builder: (context) => DiaryEdit(diary: diary),
           fullscreenDialog: true,
         )
-    ).then((result) {
+    ).then((result) async {
 //      print('①${result}');
       //新規投稿の場合
       if(result != 'newClose'){
         //最新のリストを取得し展開する
-        this.refreshImages();
+        await this.refreshImages();
         setState(() {
           //レシピリスト用遅延読み込みリセット
           this._lazy.clear();
-          this._currentLength = 0;
+          this._DDcurrentLength = 0;
+          this._DDGcurrentLength = 0;                                //遅延読み込み件数を格納
+          this._isDuplicate = false;
+          this._ddg = DisplayDiaryGroupDate(id: -1);
         });
         //レシピリスト用遅延読み込み
-        this._loadMore();
+        await this._loadMore();
+        await controller.refresh();
       }
     });
   }
@@ -342,19 +320,23 @@ class _DiaryListState extends State<DiaryList>{
           builder: (context) => DiaryDetail(diary: diary,selectedPhoto: DPhoto(id: -1),),
           fullscreenDialog: true,
         )
-    ).then((result) {
+    ).then((result) async {
 //      print('②${result}');
       //削除または更新の場合
       if(result == 'delete' || result == 'update'){
         //最新のリストを取得し展開する
-        this.refreshImages();
+        await this.refreshImages();
         setState(() {
           //レシピリスト用遅延読み込みリセット
           this._lazy.clear();
-          this._currentLength = 0;
+          this._DDcurrentLength = 0;
+          this._DDGcurrentLength = 0;                                //遅延読み込み件数を格納
+          this._isDuplicate = false;
+          this._ddg = DisplayDiaryGroupDate(id: -1);
         });
         //レシピリスト用遅延読み込み
-        this._loadMore();
+        await this._loadMore();
+        await controller.refresh();
       }
     });
   }
@@ -577,31 +559,84 @@ class _DiaryListState extends State<DiaryList>{
   }
 
   //ごはん日記リスト
-  Widget listViewArea(){
-    return
-      LazyLoadScrollView(
-        isLoading: _isLoading,
-        onEndOfPage: () => _loadMore(),
-        child:
-          ListView.builder(
-            shrinkWrap: true,
-            itemCount: _lazy.length,
-            itemBuilder: (context, position) {
-              if(_isLoading && position == _lazy.length - 1){
-                if(this._displayDiaryGroupDates.length == _lazy.length){
-                  return createDiary(position);
-                } else{
-                  return Center(child: CircularProgressIndicator(),);
+  Widget listViewArea() {
+    return FRefresh(
+      controller: controller,
+      footerBuilder: (setter) {
+        controller.setOnStateChangedCallback((state) {
+          setter(() {
+            if (controller.loadState == LoadState.PREPARING_LOAD) {
+              text = "Release to load";
+            } else if (controller.loadState == LoadState.LOADING) {
+              text = "Loading..";
+            } else if (controller.loadState == LoadState.FINISHING) {
+              text = "Loading completed";
+            } else {
+              text = "Drop-down to loading";
+            }
+          });
+        });
+        return Container(
+//          color: Colors.black,
+            height: 38,
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 15,
+                  height: 15,
+                  child: CupertinoActivityIndicator(
+                    animating: true,
+                    radius: 10,
+                  ),
+//                  child: CircularProgressIndicator(
+////                      backgroundColor: mainBackgroundColor,
+//                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+////                      new AlwaysStoppedAnimation<Color>(mainTextSubColor),
+//                    strokeWidth: 2.0,
+//                  ),
+                ),
+                const SizedBox(width: 9.0),
+                Text(text, style: TextStyle(color: Colors.white)),
+              ],
+            ));
+      },
+      footerHeight: 70.0,
+      onLoad: () {
+        Timer(Duration(milliseconds: 1000), () {
+          _loadMore();
+          controller.finishLoad();
+//          print('controller.position = ${controller.position}, controller.scrollMetrics = ${controller.scrollMetrics}');
+//          setState(() {
+//          });
+        });
+      },
+      child: Container(
+        width: 220,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ListView.builder(
+                itemCount: _lazy.length,
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemBuilder: (_, index) {
+                  return LayoutBuilder(builder: (_, constraints) {
+                    return createDiary(index);
+                  });
                 }
-              } else {
-                return createDiary(position);
-              }
-          }),
-      );
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget createDiary(int index){
-    String month = this._displayDiaryGroupDates[index].month.substring(0,4) +'年' + this._displayDiaryGroupDates[index].month.substring(5,7) + '月';
+    String month = this._lazy[index].month.substring(0,4) + '年' + this._lazy[index].month.substring(5,7) + '月';
     //ごはん日記を展開する
     return StickyHeader(
         header: SizedBox(
@@ -627,7 +662,7 @@ class _DiaryListState extends State<DiaryList>{
           ),
         ),
         content: Column(
-          children: List<int>.generate(_displayDiaryGroupDates[index].displayDiarys.length, (index) => index).map((diaryIndex) =>
+          children: List<int>.generate(_lazy[index].displayDiarys.length, (index) => index).map((diaryIndex) =>
               SizedBox(
                 width: MediaQuery.of(context).size.width,
 //                height: MediaQuery.of(context).size.height * 0.11,
@@ -640,12 +675,12 @@ class _DiaryListState extends State<DiaryList>{
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
                           //サムネイルエリア
-                          this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].photos.length > 0
+                          this._lazy[index].displayDiarys[diaryIndex].photos.length > 0
                               ? Card(
                             child: Container(
                               height: MediaQuery.of(context).size.width * 0.2,
                               width: MediaQuery.of(context).size.width * 0.2,
-                              child: Image.file(File(common.replaceImageDiary(_getThumbnail(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex]))),fit: BoxFit.cover,),
+                              child: Image.file(File(common.replaceImageDiary(_getThumbnail(this._lazy[index].displayDiarys[diaryIndex]))),fit: BoxFit.cover,),
                             ),
                           )
                               : Card(
@@ -662,7 +697,7 @@ class _DiaryListState extends State<DiaryList>{
                             child: Container(
 //                              height: MediaQuery.of(context).size.height * 0.05,
                               padding: EdgeInsets.all(5),
-                              child: Text('${this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].body}',
+                              child: Text('${this._lazy[index].displayDiarys[diaryIndex].body}',
                                 maxLines: 2,
                                 style: TextStyle(
                                   fontSize: 15,
@@ -682,7 +717,7 @@ class _DiaryListState extends State<DiaryList>{
                                     SizedBox(
 //                                      height: MediaQuery.of(context).size.height * 0.03,
                                       child: Container(
-                                        child: Text('${DateTime.parse(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].date).day}',
+                                        child: Text('${DateTime.parse(this._lazy[index].displayDiarys[diaryIndex].date).day}',
                                           style: TextStyle(
                                               color: Colors.brown[100 * (2 % 9)],
                                               fontSize: 23,
@@ -694,7 +729,7 @@ class _DiaryListState extends State<DiaryList>{
 //                                      height: MediaQuery.of(context).size.height * 0.025,
                                       child: Container(
                                         padding: EdgeInsets.only(top: 7,right: 5,left: 5),
-                                        child: Text('${this._displayWeekday(DateTime.parse(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].date).weekday)}',
+                                        child: Text('${this._displayWeekday(DateTime.parse(this._lazy[index].displayDiarys[diaryIndex].date).weekday)}',
                                           style: TextStyle(
                                               color: Colors.brown[100 * (2 % 9)],
                                               fontSize: 15,
@@ -709,9 +744,9 @@ class _DiaryListState extends State<DiaryList>{
                                   child: Container(
                                     padding: EdgeInsets.all(5),
                                     child:
-                                    this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].category == 1
+                                    this._lazy[index].displayDiarys[diaryIndex].category == 1
                                         ? Container()
-                                        : Text('${this._displayCategory(this._displayDiaryGroupDates[index].displayDiarys[diaryIndex].category)}',
+                                        : Text('${this._displayCategory(this._lazy[index].displayDiarys[diaryIndex].category)}',
                                       style: TextStyle(
                                           color: Colors.brown[100 * (2 % 9)],
                                           fontSize: 15,
@@ -727,7 +762,7 @@ class _DiaryListState extends State<DiaryList>{
                       ),
                       ),
                       onTap: (){
-                        _onDetail(dd: this._displayDiaryGroupDates[index].displayDiarys[diaryIndex]);
+                        _onDetail(dd: this._lazy[index].displayDiarys[diaryIndex]);
                       }
                   ),
                 ),

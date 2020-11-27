@@ -1,9 +1,10 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
+import 'package:frefresh/frefresh.dart';
 
 import 'package:recipe_app/services/database/DBHelper.dart';
 import 'package:recipe_app/services/Common.dart';
@@ -34,10 +35,10 @@ class _EditRecipiState extends State<EditRecipi>{
   List<Tag> _tags = List<Tag>();
   List<DRecipi> _selectedRecipis = List<DRecipi>();
   List<Myrecipi> _recipisLazy = List<Myrecipi>();               //遅延読み込み用リスト
-  bool _isLoadingRecipi = false;                               //true:遅延読み込み中
   int _recipiCurrentLength = 0;                                //遅延読み込み件数を格納
-
   final int increment = 10; //読み込み件数
+  FRefreshController controller = FRefreshController();
+  String text = "Drop-down to loading";
 
   @override
   void initState() {
@@ -45,49 +46,38 @@ class _EditRecipiState extends State<EditRecipi>{
     this.init();
   }
 
-  void init(){
+  void init() async {
     setState(() {
       this._selectedRecipis = [];
+      this._recipisLazy.clear();
+      this.controller = FRefreshController();
+      FRefresh.debug = true;
     });
-    this.getRecipiList();
-    setState(() {
-      _recipisLazy.clear();
-    });
+    //レシピリスト取得
+    await this.getRecipiList();
     //レシピリスト用遅延読み込み
-    this._loadMoreRecipi();
+    await this._loadMoreRecipi();
   }
 
   //レシピリスト用遅延読み込み
   Future _loadMoreRecipi() async {
     print('+++++_loadMoreRecipi+++++++');
-    if(mounted){
-      setState(() {
-        _isLoadingRecipi = true;
-      });
-    }
-
-    await Future.delayed(const Duration(seconds: 1));
     for (var i = _recipiCurrentLength; i < _recipiCurrentLength + increment; i++) {
       if( i < this._recipis.length){
-        if(mounted){
-          setState(() {
-            _recipisLazy.add(_recipis[i]);
-          });
-        }
+        setState(() {
+          _recipisLazy.add(_recipis[i]);
+        });
       }else{
         break;
       }
 
     }
-    if(mounted){
-      setState(() {
-        _isLoadingRecipi = false;
-        _recipiCurrentLength = _recipisLazy.length;
-      });
-    }
+    setState(() {
+      _recipiCurrentLength = _recipisLazy.length;
+    });
   }
 
-  void getRecipiList() async {
+  Future<void> getRecipiList() async {
     //レシピの取得
     await dbHelper.getMyRecipis().then((item){
       setState(() {
@@ -246,28 +236,78 @@ class _EditRecipiState extends State<EditRecipi>{
 
   //MYレシピリスト
   Widget recipiArea(){
-    return
-      LazyLoadScrollView(
-        isLoading: _isLoadingRecipi,
-        onEndOfPage: () => _loadMoreRecipi(),
-        child:
-        ListView.builder(
-            shrinkWrap: true,
-            itemCount: _recipisLazy.length,
-            itemBuilder: (context,position){
-              if(_isLoadingRecipi && position == _recipisLazy.length - 1){
-                if(this._recipis.length == _recipisLazy.length){
-                  print('${_recipisLazy[position].title}');
-                  return createRecipi(position);
-                } else{
-                  return Center(child: CircularProgressIndicator(),);
-                }
-              } else {
-                return createRecipi(position);
-              }
+    return FRefresh(
+      controller: controller,
+      footerBuilder: (setter) {
+        controller.setOnStateChangedCallback((state) {
+          setter(() {
+            if (controller.loadState == LoadState.PREPARING_LOAD) {
+              text = "Release to load";
+            } else if (controller.loadState == LoadState.LOADING) {
+              text = "Loading..";
+            } else if (controller.loadState == LoadState.FINISHING) {
+              text = "Loading completed";
+            } else {
+              text = "Drop-down to loading";
             }
+          });
+        });
+        return Container(
+//          color: Colors.black,
+            height: 38,
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 15,
+                  height: 15,
+                  child: CupertinoActivityIndicator(
+                    animating: true,
+                    radius: 10,
+                  ),
+//                  child: CircularProgressIndicator(
+////                      backgroundColor: mainBackgroundColor,
+//                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+////                      new AlwaysStoppedAnimation<Color>(mainTextSubColor),
+//                    strokeWidth: 2.0,
+//                  ),
+                ),
+                const SizedBox(width: 9.0),
+                Text(text, style: TextStyle(color: Colors.white)),
+              ],
+            ));
+      },
+      footerHeight: 70.0,
+      onLoad: () {
+        Timer(Duration(milliseconds: 1000), () {
+          _loadMoreRecipi();
+          controller.finishLoad();
+//          print('controller.position = ${controller.position}, controller.scrollMetrics = ${controller.scrollMetrics}');
+//          setState(() {
+//          });
+        });
+      },
+      child: Container(
+        width: 220,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ListView.builder(
+                itemCount: _recipisLazy.length,
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemBuilder: (_, index) {
+                  return LayoutBuilder(builder: (_, constraints) {
+                    return createRecipi(index);
+                  });
+                }),
+          ],
         ),
-      );
+      ),
+    );
   }
 
   //レシピリストの生成

@@ -4,7 +4,6 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
 import 'package:recipe_app/page/recipi_app/diary/diary_detail.dart';
 import 'package:recipe_app/page/recipi_app/diary/diary_edit.dart';
 import 'package:recipe_app/page/recipi_app/navigation/about.dart';
@@ -17,6 +16,7 @@ import 'package:recipe_app/model/diary/edit/Photo.dart';
 import 'package:recipe_app/model/diary/edit/Recipi.dart';
 import 'package:recipe_app/model/diary/DisplayDiary.dart';
 import 'package:intl/intl.dart';
+import 'package:frefresh/frefresh.dart';
 
 import 'package:recipe_app/updater.dart';
 
@@ -35,10 +35,11 @@ class _AlbumListState extends State<AlbumList>{
   List<bool> _selected = List<bool>();     //右上Checkアイコン押下時に表示するチェックボックス
 
   List<DPhoto> _lazy = List<DPhoto>(); //遅延読み込み用リスト
-  bool _isLoading = false;             //true:遅延読み込み中
   int _currentLength = 0;              //遅延読み込み件数を格納
-  final int increment = 22;            //読み込み件数
+  final int increment = 21;            //読み込み件数
   bool _isGetDiaryPhotos = false;
+  FRefreshController controller = FRefreshController();
+  String text = "Drop-down to loading";
 
   @override
   void initState() {
@@ -51,8 +52,9 @@ class _AlbumListState extends State<AlbumList>{
     //初期化
     dbHelper = DBHelper();
     common = Common();
+    controller = FRefreshController();
+    FRefresh.debug = true;
     _lazy.clear();
-
     //レコードリフレッシュ
     await this.refreshImages();
     //レシピリスト用遅延読み込み
@@ -62,30 +64,18 @@ class _AlbumListState extends State<AlbumList>{
   //レシピリスト用遅延読み込み
   Future _loadMore() async {
     print('+++++_loadMore+++++++');
-    if(mounted){
-      setState(() {
-        _isLoading = true;
-      });
-    }
-
-    await Future.delayed(const Duration(seconds: 1));
     for (var i = _currentLength; i < _currentLength + increment; i++) {
       if( i < this._photoAll.length){
-        if(mounted){
           setState(() {
             _lazy.add(_photoAll[i]);
           });
-        }
       }else{
         break;
       }
     }
-    if(mounted){
-      setState(() {
-        _isLoading = false;
-        _currentLength = _lazy.length;
-      });
-    }
+    setState(() {
+      _currentLength = _lazy.length;
+    });
   }
 
   //表示しているレコードのリセットし、最新のレコードを取得し、表示
@@ -150,19 +140,19 @@ class _AlbumListState extends State<AlbumList>{
           builder: (context) => DiaryEdit(diary: diary),
           fullscreenDialog: true,
         )
-    ).then((result) {
-//      print('④${result}');
+    ).then((result) async {
       //新規投稿の場合
       if(result != 'newClose') {
         //最新のリストを取得し展開する
-        this.refreshImages();
+        await this.refreshImages();
         setState(() {
           //レシピリスト用遅延読み込みリセット
           this._lazy.clear();
           this._currentLength = 0;
         });
         //レシピリスト用遅延読み込み
-        this._loadMore();
+        await this._loadMore();
+        await controller.refresh();
       }
     });
   }
@@ -214,19 +204,19 @@ class _AlbumListState extends State<AlbumList>{
           builder: (context) => DiaryDetail(diary: diary,selectedPhoto: selectedPhoto,),
           fullscreenDialog: true,
         )
-    ).then((result) {
-//      print('⑤${result}');
+    ).then((result) async {
       //削除または更新の場合
       if(result == 'delete' || result == 'update') {
         //最新のリストを取得し展開する
-        this.refreshImages();
+        await this.refreshImages();
         setState(() {
           //レシピリスト用遅延読み込みリセット
           this._lazy.clear();
           this._currentLength = 0;
         });
         //レシピリスト用遅延読み込み
-        this._loadMore();
+        await this._loadMore();
+        await controller.refresh();
       }
     });
   }
@@ -465,31 +455,84 @@ class _AlbumListState extends State<AlbumList>{
     );
   }
 
-  //画像リスト
-  Widget gridViewArea(){
-    return
-      LazyLoadScrollView(
-        isLoading: _isLoading,
-        onEndOfPage: () => _loadMore(),
-    child:
-      GridView.builder(
-        itemCount: _lazy.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 2.0,
-          mainAxisSpacing: 2.0,
-        ),
-        itemBuilder: (context, position) {
-          if(_isLoading && position == _lazy.length - 1){
-            if(this._photoAll.length == _lazy.length){
-              return createAlbum(position);
-            } else{
-              return Center(child: CircularProgressIndicator(),);
+  Widget gridViewArea() {
+    return FRefresh(
+      controller: controller,
+      footerBuilder: (setter) {
+        controller.setOnStateChangedCallback((state) {
+          setter(() {
+            if (controller.loadState == LoadState.PREPARING_LOAD) {
+              text = "Release to load";
+            } else if (controller.loadState == LoadState.LOADING) {
+              text = "Loading..";
+            } else if (controller.loadState == LoadState.FINISHING) {
+              text = "Loading completed";
+            } else {
+              text = "Drop-down to loading";
             }
-          } else {
-            return createAlbum(position);
-          }
-      }),
+          });
+        });
+        return Container(
+//          color: Colors.black,
+            height: 38,
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 15,
+                  height: 15,
+                  child: CupertinoActivityIndicator(
+                     animating: true,
+                     radius: 10,
+                  ),
+//                  child: CircularProgressIndicator(
+////                      backgroundColor: mainBackgroundColor,
+//                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+////                      new AlwaysStoppedAnimation<Color>(mainTextSubColor),
+//                    strokeWidth: 2.0,
+//                  ),
+                ),
+                const SizedBox(width: 9.0),
+                Text(text, style: TextStyle(color: Colors.white)),
+              ],
+            ));
+      },
+      footerHeight: 70.0,
+      onLoad: () {
+        Timer(Duration(milliseconds: 1000), () {
+          _loadMore();
+          controller.finishLoad();
+//          print('controller.position = ${controller.position}, controller.scrollMetrics = ${controller.scrollMetrics}');
+//          setState(() {
+//          });
+        });
+      },
+      child: Container(
+        width: 220,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            GridView.builder(
+                itemCount: _lazy.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 2.0,
+                  mainAxisSpacing: 2.0,
+                ),
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemBuilder: (_, index) {
+                  return LayoutBuilder(builder: (_, constraints) {
+                    return createAlbum(index);
+                  });
+                }
+            ),
+          ],
+        ),
+      ),
     );
   }
 

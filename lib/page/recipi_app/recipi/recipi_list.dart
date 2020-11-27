@@ -4,19 +4,17 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
-import 'package:recipe_app/page/recipi_app/navigation/about.dart';
+import 'package:frefresh/frefresh.dart';
 
+import 'package:recipe_app/page/recipi_app/navigation/about.dart';
 import 'package:recipe_app/page/recipi_app/recipi/recipi_edit.dart';
 import 'package:recipe_app/page/recipi_app/recipi/recipi_sort.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
 import 'package:recipe_app/services/Common.dart';
-import 'package:recipe_app/model/Check.dart';
 import 'package:recipe_app/model/CheckRecipi.dart';
 import 'package:recipe_app/model/Myrecipi.dart';
-import 'package:recipe_app/model/MyrecipiGroupFolder.dart';
 import 'package:recipe_app/model/MstFolder.dart';
 import 'package:recipe_app/model/MstTag.dart';
 import 'package:recipe_app/model/Tag.dart';
@@ -41,30 +39,28 @@ class _RecipiListState extends State<RecipiList>{
   List<Ingredient> _ingredients;
   List _displayList;                          //チェックボック付きレシピリストor検索リスト
   List<Myrecipi> _recipis;                    //DBから取得したレコードを格納
-  List<MyrecipiGroupFolder> _recipisGroupBy;  //フォルダID毎のレシピ件数を格納
   List<CheckRecipi> _displayRecipis;          //チェックボック付きレシピリスト
   List<Myrecipi> _searchs;                    //DBから取得したレコードを格納
   List<CheckRecipi> _displaySearchs;          //チェックボック付き検索リスト
-  List<Check> _folders;                       //チェックボック付きフォルダリスト
   List<MstTag> _Mtags;                        //DBから取得したレコードを格納
   List<MultiSelectItem<MstTag>> _displayTags; //DBから取得したレコードをMultiSelectItem型で格納
   List<MstTag> _selectedtags;                 //タグ検索で選択したタグを格納
   List<Tag> _tags;                            //DBから取得したレコードを格納
-  bool _isSeach = false;                      //true:検索結果表示
-  bool _isTagSeach = false;                   //true:タグ検索結果表示
+  bool _isSearch = false;                      //true:検索結果表示
+  bool _isTagSearch = false;                   //true:タグ検索結果表示
   bool _isCheck = false;                      //true:チェックボックス表示
   bool _isSelectedDelete = false;                //true:編集画面にて削除するボタン押下された場合
 
   List<CheckRecipi> _displayRecipisLazy = List<CheckRecipi>(); //遅延読み込み用リスト
-  bool _isLoadingRecipi = false;                               //true:遅延読み込み中
   int _recipiCurrentLength = 0;                                //遅延読み込み件数を格納
 
   List<CheckRecipi> _displaySearchsLazy = List<CheckRecipi>(); //遅延読み込み用リスト
-  bool _isLoadingSearch = false;                               //true:遅延読み込み中
   int _searchCurrentLength = 0;                                //遅延読み込み件数を格納
   final int increment = 10; //読み込み件数
   bool _isError = false;
   bool _isGetMyRecipis = false;
+  FRefreshController controller = FRefreshController();
+  String text = "Drop-down to loading";
 
   @override
   void initState() {
@@ -74,22 +70,22 @@ class _RecipiListState extends State<RecipiList>{
 
   void init() async {
     //初期化
-    dbHelper = DBHelper();
-    common = Common();
-    _ingredients = [];
-    _displayList = [];
-    _recipis = [];
-    _recipisGroupBy = [];
-    _displayRecipis = [];
-    _searchs = [];
-    _displaySearchs = [];
-    _folders = [];
-    _Mtags = [];
-    _displayTags = [];
-    _selectedtags = [];
-    _tags = [];
-    _displayRecipisLazy.clear();
-    _displaySearchsLazy.clear();
+    this.dbHelper = DBHelper();
+    this.common = Common();
+    this._ingredients = [];
+    this._displayList = [];
+    this._recipis = [];
+    this._displayRecipis = [];
+    this._searchs = [];
+    this._displaySearchs = [];
+    this._Mtags = [];
+    this._displayTags = [];
+    this._selectedtags = [];
+    this._tags = [];
+    this._displayRecipisLazy.clear();
+    this._displaySearchsLazy.clear();
+    this.controller = FRefreshController();
+    FRefresh.debug = true;
 
     //レコードリフレッシュ
     await this.refreshImages();
@@ -102,64 +98,42 @@ class _RecipiListState extends State<RecipiList>{
   //レシピリスト用遅延読み込み
   Future _loadMoreRecipi() async {
     print('+++++_loadMoreRecipi+++++++');
-    if(mounted){
-      setState(() {
-        _isLoadingRecipi = true;
-      });
-    }
-
-    await Future.delayed(const Duration(seconds: 1));
     for (var i = _recipiCurrentLength; i < _recipiCurrentLength + increment; i++) {
       if( i < this._displayRecipis.length){
-        if(mounted){
           setState(() {
             _displayRecipisLazy.add(_displayRecipis[i]);
           });
-        }
       } else {
         break;
       }
     }
-    if(mounted){
-      setState(() {
-        _isLoadingRecipi = false;
-        _recipiCurrentLength = _displayRecipisLazy.length;
-      });
-    }
+    setState(() {
+      _recipiCurrentLength = _displayRecipisLazy.length;
+    });
   }
 
   void reset(){
-    this._isSeach = false;
-    this._isTagSeach = false;
+    this._isSearch = false;
+    this._isTagSearch = false;
     this._isCheck = false;
     this._isSelectedDelete = false;
-    this._isLoadingRecipi = false;
     this._recipiCurrentLength = 0;
-    this._isLoadingSearch = false;
     this._searchCurrentLength = 0;
   }
 
   //検索リスト用遅延読み込み
   Future _loadMoreSearch() async {
     print('+++++_loadMoreSearch+++++++');
-    setState(() {
-      _isLoadingSearch = true;
-    });
-
-    await Future.delayed(const Duration(seconds: 1));
     for (var i = _searchCurrentLength; i < _searchCurrentLength + increment; i++) {
       if( i < this._displaySearchs.length){
-//      if(this._displaySearchs.length -1 >= i){
         setState(() {
           _displaySearchsLazy.add(_displaySearchs[i]);
         });
       } else {
         break;
       }
-
     }
     setState(() {
-      _isLoadingSearch = false;
       _searchCurrentLength = _displaySearchsLazy.length;
     });
   }
@@ -169,13 +143,6 @@ class _RecipiListState extends State<RecipiList>{
     List<MstFolder> folders = [];
 
     try{
-//      //フォルダ別レシピ件数の取得
-//      await dbHelper.getMyRecipisCount().then((item){
-//        setState(() {
-//          _recipisGroupBy.clear();
-//          _recipisGroupBy.addAll(item);
-//        });
-//      });
 
       //レシピの取得
       await dbHelper.getMyRecipis().then((item){
@@ -212,8 +179,6 @@ class _RecipiListState extends State<RecipiList>{
       Provider.of<Display>(context, listen: false).setMstFolder(folders);
 
       setState(() {
-        //チェックBox付きフォルダリストの生成
-        this._folders = Provider.of<Display>(context, listen: false).createFoldersCheck();
 //        //チェックBox付きレシピリストの生成
 //        this._displayRecipis = Provider.of<Display>(context, listen: false).createDisplayRecipiList(isFolderIdZero: true);
       });
@@ -223,7 +188,7 @@ class _RecipiListState extends State<RecipiList>{
     }
   }
 
-  void _getTags({int type}) async {
+  Future<void> _getTags({int type}) async {
 
     try{
       if(type == 1) {
@@ -291,11 +256,12 @@ class _RecipiListState extends State<RecipiList>{
           builder: (context) => RecipiEdit(Nrecipi: recipi, Ningredients: [], NhowTos: [], Nphotos: []),
           fullscreenDialog: true,
         )
-    ).then((result) {
+    ).then((result) async {
       //最新のリストを取得し展開する
-      this.refreshImages();
-      if(this._displayRecipis.length < increment ){
-        this._loadMoreRecipi();
+      await this.refreshImages();
+      if(this._displayRecipis.length <= increment ){
+        await this._loadMoreRecipi();
+        await controller.refresh();
       }
     });
   }
@@ -304,12 +270,12 @@ class _RecipiListState extends State<RecipiList>{
   void _onTagSearch() async{
     List recipiIds = [];
     setState(() {
-      this._isTagSeach = this._isTagSeachFlg();
-//      print(_isTagSeach);
+      this._isTagSearch = this._isTagSearchFlg();
+//      print(_isTagSearch);
     });
 
     //検索するタグが選択されている場合
-    if(this._isTagSeach){
+    if(this._isTagSearch){
       //選択したタグIDを取得
       List tagIds = [];
       for(var i = 0; i < this._selectedtags.length; i++){
@@ -331,7 +297,7 @@ class _RecipiListState extends State<RecipiList>{
       });
 
       //テキスト検索ありの場合
-      if(this._isSeach){
+      if(this._isSearch){
         //検索結果を取得
         var searchs = Provider.of<Display>(context, listen: false).getSearchsTX();
 
@@ -392,22 +358,22 @@ class _RecipiListState extends State<RecipiList>{
     if(searchText.isEmpty){
       //seachフラグ解除
       setState(() {
-        this._isSeach = false;
+        this._isSearch = false;
       });
       //検索欄が未入力の場合でタグ検索ありの場合
-      if(this._isTagSeach){
+      if(this._isTagSearch){
         _onTagSearch();
       }
       return;
     }
     //検索欄が入力されている場合
     setState(() {
-      this._isSeach = true;
+      this._isSearch = true;
       this._searchs.clear(); //検索結果用リストのリセット
     });
 
     //タグ検索あり(+テキスト検索あり)の場合
-    if(this._isTagSeach){
+    if(this._isTagSearch){
       //検索結果を取得
       var searchs = Provider.of<Display>(context, listen: false).getSearchs();
 
@@ -497,15 +463,6 @@ class _RecipiListState extends State<RecipiList>{
     );
   }
 
-//  //フォルダ別レシピリストの表示
-//  void _onListGroupBy({int index}){
-//    print('folderID:${this._folders[index].id},name:${this._folders[index].name},isCheck:${this._folders[index].isCheck}');
-//    //フォルダ情報をset
-//    Provider.of<Display>(context, listen: false).setFolder(this._folders[index]);
-//    //4:フォルダ別レシピ一覧へ遷移
-//    Provider.of<Display>(context, listen: false).setState(1);
-//  }
-
   //レシピを選択時処理
   Future<void> _onDetail({int index}) async {
     CheckRecipi item = this._displayList[index];
@@ -565,11 +522,6 @@ class _RecipiListState extends State<RecipiList>{
   bool _onDisabled({int type}){
     //フォルダ、タグ付け
     if(type != 3){
-//      for(var i = 0; i<this._folders.length; i++){
-//        if(this._folders[i].isCheck){
-//          return true;
-//        }
-//      }
       for(var i = 0; i<this._displayList.length; i++){
         if(this._displayList[i].isCheck){
           return false;
@@ -578,12 +530,6 @@ class _RecipiListState extends State<RecipiList>{
       return true;
     }
 
-//    //削除する
-//    for(var i = 0; i<this._folders.length; i++){
-//      if(this._folders[i].isCheck){
-//        return false;
-//      }
-//    }
     for(var i = 0; i<this._displayList.length; i++){
       if(this._displayList[i].isCheck){
         return false;
@@ -594,19 +540,10 @@ class _RecipiListState extends State<RecipiList>{
 
   //フォルダ、レシピ毎のチェックボックス
   void _onItemCheck({int index,int type}){
-//    //フォルダリスト
-//    if(type == 1){
-//      setState(() {
-//        this._folders[index].isCheck = !this._folders[index].isCheck;
-//      });
-//
-//      //レシピリスト
-//    }else{
-      setState(() {
-        this._displayList[index].isCheck = !this._displayList[index].isCheck;
-      });
-//    }
-
+    //レシピリスト
+    setState(() {
+      this._displayList[index].isCheck = !this._displayList[index].isCheck;
+    });
   }
 
   //レシピリストのフォルダアイコンtap時処理
@@ -672,7 +609,7 @@ class _RecipiListState extends State<RecipiList>{
           builder: (context) => RecipiSort(Nrecipi: recipi,ingredientTX: ingredients,tags: tags,sortType: type,title: title,ids: ids, ),
           fullscreenDialog: true,
         )
-    ).then((result) {
+    ).then((result) async {
 //      print(result);
 //    if(type == 3 || type == 4){
 //      this.reset()
@@ -683,13 +620,13 @@ class _RecipiListState extends State<RecipiList>{
         this._isCheck = false;
       }
       //最新のリストを取得し展開する
-      this.refreshImages();
+      await this.refreshImages();
       //タグ検索ありの場合
       if(_selectedtags.length != 0){
-        this._getTags(type: 1);
-        this._onTagSearch();
+        await this._getTags(type: 1);
+        await this._onTagSearch();
       } else {
-        this._getTags(type: 0);
+        await this._getTags(type: 0);
       }
       if(result == 'FolderUpdate'){
         setState(() {
@@ -699,7 +636,8 @@ class _RecipiListState extends State<RecipiList>{
 
         });
         //レシピリスト用遅延読み込み
-        this._loadMoreRecipi();
+        await this._loadMoreRecipi();
+//        await controller.refresh();
       }
 //    }
     });
@@ -712,7 +650,7 @@ class _RecipiListState extends State<RecipiList>{
       this._isCheck = !this._isCheck;
     });
     //検索結果表示の場合
-    if(this._isSeach || _isTagSeach){
+    if(this._isSearch || _isTagSearch){
       //チェックBox付き検索結果リストの生成
       setState(() {
         this._displaySearchs.clear();
@@ -720,8 +658,6 @@ class _RecipiListState extends State<RecipiList>{
       });
     }else{
       setState(() {
-//        //チェックBox付きフォルダリストの生成
-//        this._folders = Provider.of<Display>(context, listen: false).createFoldersCheck();
         //チェックBox付きレシピリストの生成
         this._displayRecipis.clear();
         this._displayRecipis = Provider.of<Display>(context, listen: false).createDisplayRecipiList(isFolderIdZero: true);
@@ -752,12 +688,6 @@ class _RecipiListState extends State<RecipiList>{
         //レシピIDに紐づくごはん日記のレシピリストを削除する
         await dbHelper.deleteDiaryRecipibyRecipiID(recipi.id);
       } else {
-//        //選択したフォルダマスタを削除
-//        for(var i = 0; i < this._folders.length; i++){
-//          if(this._folders[i].isCheck){
-//            ids.add(this._folders[i].id);
-//          }
-//        }
         if(ids.length > 0){
           print('削除するフォルダマスタID：${ids}');
           //フォルダマスタ削除処理
@@ -813,7 +743,7 @@ class _RecipiListState extends State<RecipiList>{
         });
       }
       //検索結果表示の場合
-      if(this._isSeach || _isTagSeach){
+      if(this._isSearch || _isTagSearch){
         List<Myrecipi> searchs = Provider.of<Display>(context, listen: false).getSearchs();
         //検索結果のリフレッシュ
         for(var i = 0; i <ids.length; i++){
@@ -853,6 +783,7 @@ class _RecipiListState extends State<RecipiList>{
         });
         //レシピリスト用遅延読み込み
         await this._loadMoreRecipi();
+        await controller.refresh();
       }
       //削除完了したので、削除フラグをfalseに戻す
       if(this._isSelectedDelete){
@@ -869,7 +800,7 @@ class _RecipiListState extends State<RecipiList>{
   }
 
   //タグ検索モーダルにてタグが選択されている場合trueを返す
-  bool _isTagSeachFlg(){
+  bool _isTagSearchFlg(){
       if(_selectedtags == null || _selectedtags.isEmpty){
         return false;
       }
@@ -1271,7 +1202,7 @@ class _RecipiListState extends State<RecipiList>{
     return Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children:
-        _isSeach || _isTagSeach
+        _isSearch || _isTagSearch
         ? <Widget>[
           searchArea(), //検索欄
           searchResultArea(), //検索結果
@@ -1293,35 +1224,6 @@ class _RecipiListState extends State<RecipiList>{
       color: Colors.grey,
       height: 0.5,
       thickness: 0.5,
-    );
-  }
-
-  //フォルダ別リストエリア
-  Widget folderArea(){
-    return Consumer<Display>(
-        builder: (context,Display,_) {
-          return
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.05,
-              width: MediaQuery.of(context).size.width,
-              child: Container(
-                color: Colors.deepOrange[100 * (2 % 9)],
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Container(
-                      padding: EdgeInsets.all(10),
-                      child: Text('フォルダ別レシピ', style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-//                          fontWeight: FontWeight.bold
-                      ),),
-                    ),
-                  ],
-                ),
-              ),
-            );
-        }
     );
   }
 
@@ -1411,59 +1313,160 @@ class _RecipiListState extends State<RecipiList>{
 
   //MYレシピリスト
   Widget myrecipiListArea(){
-    return
-          LazyLoadScrollView(
-            isLoading: _isLoadingRecipi,
-            onEndOfPage: () => _loadMoreRecipi(),
-            child:
+    return FRefresh(
+      controller: controller,
+      footerBuilder: (setter) {
+        controller.setOnStateChangedCallback((state) {
+          setter(() {
+            if (controller.loadState == LoadState.PREPARING_LOAD) {
+              text = "Release to load";
+            } else if (controller.loadState == LoadState.LOADING) {
+              text = "Loading..";
+            } else if (controller.loadState == LoadState.FINISHING) {
+              text = "Loading completed";
+            } else {
+              text = "Drop-down to loading";
+            }
+          });
+        });
+        return Container(
+//          color: Colors.black,
+            height: 38,
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 15,
+                  height: 15,
+                  child: CupertinoActivityIndicator(
+                    animating: true,
+                    radius: 10,
+                  ),
+//                  child: CircularProgressIndicator(
+////                      backgroundColor: mainBackgroundColor,
+//                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+////                      new AlwaysStoppedAnimation<Color>(mainTextSubColor),
+//                    strokeWidth: 2.0,
+//                  ),
+                ),
+                const SizedBox(width: 9.0),
+                Text(text, style: TextStyle(color: Colors.white)),
+              ],
+            ));
+      },
+      footerHeight: 70.0,
+      onLoad: () {
+        Timer(Duration(milliseconds: 1000), () {
+          _loadMoreRecipi();
+          controller.finishLoad();
+//          print('controller.position = ${controller.position}, controller.scrollMetrics = ${controller.scrollMetrics}');
+//          setState(() {
+//          });
+        });
+      },
+      child: Container(
+        width: 220,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
             ListView.builder(
-              shrinkWrap: true,
-              itemCount: _displayRecipisLazy.length,
-              itemBuilder: (context,position){
-                if(_isLoadingRecipi && position == _displayRecipisLazy.length - 1){
-                  if(this._displayRecipis.length == _displayRecipisLazy.length){
-                    print('${_displayRecipisLazy[position].title}');
-                    return createRecipi(position);
-                  } else{
-                    return Center(child: CircularProgressIndicator(),);
-                  }
-                } else {
-                    return createRecipi(position);
-                }
-              }
-            ),
-          );
+                itemCount: _displayRecipisLazy.length,
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemBuilder: (_, index) {
+                  return LayoutBuilder(builder: (_, constraints) {
+                    return createRecipi(index);
+                  });
+                }),
+          ],
+        ),
+      ),
+    );
   }
 
   //検索結果リスト
   Widget searchResultListArea(){
-    return
-          LazyLoadScrollView(
-            isLoading: _isLoadingSearch,
-            onEndOfPage: () => _loadMoreSearch(),
-            child:
+    return FRefresh(
+      controller: controller,
+      footerBuilder: (setter) {
+        controller.setOnStateChangedCallback((state) {
+          setter(() {
+            if (controller.loadState == LoadState.PREPARING_LOAD) {
+              text = "Release to load";
+            } else if (controller.loadState == LoadState.LOADING) {
+              text = "Loading..";
+            } else if (controller.loadState == LoadState.FINISHING) {
+              text = "Loading completed";
+            } else {
+              text = "Drop-down to loading";
+            }
+          });
+        });
+        return Container(
+//          color: Colors.black,
+            height: 38,
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 15,
+                  height: 15,
+                  child: CupertinoActivityIndicator(
+                    animating: true,
+                    radius: 10,
+                  ),
+//                  child: CircularProgressIndicator(
+////                      backgroundColor: mainBackgroundColor,
+//                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+////                      new AlwaysStoppedAnimation<Color>(mainTextSubColor),
+//                    strokeWidth: 2.0,
+//                  ),
+                ),
+                const SizedBox(width: 9.0),
+                Text(text, style: TextStyle(color: Colors.white)),
+              ],
+            ));
+      },
+      footerHeight: 70.0,
+      onLoad: () {
+        Timer(Duration(milliseconds: 1000), () {
+          _loadMoreSearch();
+          controller.finishLoad();
+//          print('controller.position = ${controller.position}, controller.scrollMetrics = ${controller.scrollMetrics}');
+//          setState(() {
+//          });
+        });
+      },
+      child: Container(
+        width: 220,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
             ListView.builder(
-              shrinkWrap: true,
-              itemCount: _displaySearchsLazy.length,
-              itemBuilder: (context,position){
-                if(_isLoadingSearch && position == _displaySearchsLazy.length - 1){
-                  if(this._displaySearchs.length == _displaySearchsLazy.length){
-                    return createRecipi(position);
-                  } else{
-                    return Center(child: CircularProgressIndicator(),);
-                  }
-                } else {
-                  return createRecipi(position);
-                }
-              }
-            ),
-          );
+                itemCount: _displaySearchsLazy.length,
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemBuilder: (_, index) {
+                  return LayoutBuilder(builder: (_, constraints) {
+                    return createRecipi(index);
+                  });
+                }),
+          ],
+        ),
+      ),
+    );
   }
 
   //レシピリストの生成
   Widget createRecipi(int index){
 
-    if(_isSeach || _isTagSeach){
+    if(_isSearch || _isTagSearch){
       this._displayList = this._displaySearchs;
     }else{
       this._displayList = this._displayRecipis;
