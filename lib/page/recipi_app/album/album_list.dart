@@ -31,8 +31,8 @@ class _AlbumListState extends State<AlbumList>{
   DBHelper dbHelper;
   Common common;
   List<DPhoto> _photoAll = List<DPhoto>(); //アルバム
-  bool _isCheck = false;                   //true:右上Checkアイコン押下時
-  List<bool> _selected = List<bool>();     //右上Checkアイコン押下時に表示するチェックボックス
+  bool _isEditable = false;                   //true:右上Checkアイコン押下時に有効。複数アイテム選択編集モード管理フラグ
+  List<bool> _selectedItems = List<bool>();     //各アルバムアイテムを選択を状態をチェックボックスでオンオフ
 
   List<DPhoto> _lazy = List<DPhoto>(); //遅延読み込み用リスト
   int _currentLength = 0;              //遅延読み込み件数を格納
@@ -97,10 +97,10 @@ class _AlbumListState extends State<AlbumList>{
   }
 
   //チェックボックスにて選択した値を返す
-  int _selectedCount(){
+  int _selectedItemsCount(){
     int count = 0;
-    for(var i = 0; i < this._selected.length; i++){
-      if(this._selected[i]){
+    for(var i = 0; i < this._selectedItems.length; i++){
+      if(this._selectedItems[i]){
         count++;
       }
     }
@@ -224,27 +224,27 @@ class _AlbumListState extends State<AlbumList>{
   //右上チェックボタン押下時処理
   void _onCheck(){
     setState(() {
-      this._isCheck = !this._isCheck;
+      this._isEditable = !this._isEditable;
     });
 
     //チェックボックス作成
-    if(this._isCheck){
-      this._selected = List<bool>.generate(this._photoAll.length, (index) => false);
-      print('selected:${this._selected}');
+    if(this._isEditable){
+      this._selectedItems = List<bool>.generate(this._photoAll.length, (index) => false);
+      print('selected:${this._selectedItems}');
     }
   }
 
   void _onImgShareSave() async {
     List<String> photos = [];
-    for(var i = 0; i < this._selected.length; i++){
-      if(this._selected[i]){
+    for(var i = 0; i < this._selectedItems.length; i++){
+      if(this._selectedItems[i]){
         photos.add(this._photoAll[i].path);
       }
     }
     //シェア機能の呼び出し
     await common.takeImageScreenShot(photos);
     setState(() {
-      this._isCheck = !this._isCheck;
+      this._isEditable = !this._isEditable;
     });
   }
 
@@ -295,12 +295,12 @@ class _AlbumListState extends State<AlbumList>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: _isCheck ? null : drawerNavigation(),
+      drawer: _isEditable ? null : drawerNavigation(),
       appBar: AppBar(
         backgroundColor: Colors.deepOrange[100 * (1 % 9)],
         elevation: 0.0,
         title: Center(
-          child: Text(_isCheck ? '${_selectedCount()}個選択':'レシピ',
+          child: Text(_isEditable ? '${_selectedItemsCount()}個選択':'レシピ',
             style: TextStyle(
               color: Colors.white,
               fontSize: 20,
@@ -309,7 +309,7 @@ class _AlbumListState extends State<AlbumList>{
             ),
           ),
         ),
-        actions: _isCheck
+        actions: _isEditable
             ? <Widget>[
           completeBtn(),
         ]
@@ -543,10 +543,10 @@ class _AlbumListState extends State<AlbumList>{
         children: <Widget>[
           InkWell(
             onTap: (){
-              _isCheck
+              _isEditable
                   ? setState((){
-                _selected[index] = !_selected[index];
-//                      print('selected:${this._selected}');
+                _selectedItems[index] = !_selectedItems[index];
+//                      print('selected:${this._selectedItems}');
               })
                   : _onDetail(photo: _photoAll[index]);
             },
@@ -556,13 +556,13 @@ class _AlbumListState extends State<AlbumList>{
               child: Image.file(File(common.replaceImageDiary(_photoAll[index].path)),fit: BoxFit.cover,),
             ),
           ),
-          _isCheck
-              ? _selected[index]
+          _isEditable
+              ? _selectedItems[index]
               ? InkWell(
               onTap: (){
                 setState(() {
-                  _selected[index] = !_selected[index];
-//                        print('selected:${this._selected}');
+                  _selectedItems[index] = !_selectedItems[index];
+//                        print('selected:${this._selectedItems}');
                 });
               },
               child: Container(
@@ -573,16 +573,16 @@ class _AlbumListState extends State<AlbumList>{
           )
               : Container()
               : Container(),
-          _isCheck
-              ? _selected[index]
+          _isEditable
+              ? _selectedItems[index]
               ? Container(
               child: FittedBox(fit:BoxFit.fitWidth,
                 child: IconButton(
                 icon: Icon(Icons.check_circle_outline,color: Colors.white),
                 onPressed: (){
                   setState(() {
-                    _selected[index] = !_selected[index];
-  //                        print('selected:${this._selected}');
+                    _selectedItems[index] = !_selectedItems[index];
+  //                        print('selected:${this._selectedItems}');
                   });
                 },
               ),
@@ -598,7 +598,7 @@ class _AlbumListState extends State<AlbumList>{
   //共有/保存するボタン
   Widget shareAndSaveBtn(){
     return
-      _isCheck
+      _isEditable
           ? Container(
             width: MediaQuery.of(context).size.width * 0.35,
             child: Padding(
@@ -606,7 +606,7 @@ class _AlbumListState extends State<AlbumList>{
               child: FittedBox(fit:BoxFit.fitWidth,
                 child: FlatButton(
                   onPressed:
-                  _selectedCount() == 0
+                  _selectedItemsCount() == 0
                       ? null
                       : (){
                     _onImgShareSave();
@@ -642,7 +642,7 @@ class _AlbumListState extends State<AlbumList>{
             ),
             onPressed: (){
               setState(() {
-                this._isCheck = !this._isCheck;
+                this._isEditable = !this._isEditable;
               });
             },
           ),
@@ -664,7 +664,7 @@ class _AlbumListState extends State<AlbumList>{
     );
   }
 
-  //追加ボタン
+//追加ボタン
   Widget addBtn(BuildContext context){
     return FittedBox(fit:BoxFit.fitWidth,
       child: IconButton(
