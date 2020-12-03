@@ -10,7 +10,6 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:image_pickers/image_pickers.dart';
-//import 'package:path_provider/path_provider.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 
 import 'package:recipe_app/model/Myrecipi.dart';
@@ -1150,7 +1149,7 @@ class _RecipiEditState extends State<RecipiEdit>{
         child: Scaffold(
           appBar: AppBar(
             backgroundColor: Colors.deepOrange[100 * (1 % 9)],
-            leading: _isDescriptionEdit ? Container() : closeBtn(),
+            leading: _isDescriptionEdit || _isLoading ? Container() : closeBtn(),
             elevation: 0.0,
             title: Center(
                 child: Text( _isEdit ? _selectedID == -1 ? 'レシピを作成' :'レシピを編集'
@@ -1166,13 +1165,16 @@ class _RecipiEditState extends State<RecipiEdit>{
             actions: <Widget>[
               shareBtn(),
               editBtn(),
-              completeBtn(),
+              _isLoading ? Container() : completeBtn(),
             ],
           ),
           body: ModalProgressHUD(
               opacity: 0.5,
               color: Colors.grey,
-              progressIndicator: CircularProgressIndicator(),
+              progressIndicator: CupertinoActivityIndicator(
+                animating: true,
+                radius: 20,
+              ),
               child: scrollArea(),
               inAsyncCall: _isLoading
           ),
@@ -1412,7 +1414,7 @@ class _RecipiEditState extends State<RecipiEdit>{
         child: Container(
             color: Colors.black26,
             child: Center(
-              child: Text('各項目をタップして編集できます',
+              child: Text(_isDescriptionEdit ? '説明/メモの編集するをoffにすると他の項目が編集できます' : '各項目をタップして編集できます',
                 style: TextStyle(color: Colors.white,fontSize: 15),
               ),
             )

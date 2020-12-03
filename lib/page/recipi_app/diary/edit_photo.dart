@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:async';
 
+import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +27,7 @@ class _EditPhotoState extends State<EditPhoto>{
   Common common;
   List<DPhoto> _selectedPhotos = List<DPhoto>();
   String _error = 'No Error Dectected';
-
+  bool _isLoading = false;
   GalleryMode _galleryMode = GalleryMode.image;
   GlobalKey globalKey;
 
@@ -69,6 +70,9 @@ class _EditPhotoState extends State<EditPhoto>{
             statusBarColor: '#000000',
           ),
         );
+        setState(() {
+          this._isLoading = true;
+        });
       } on Exception catch (e) {
         error = e.toString();
       }
@@ -100,6 +104,12 @@ class _EditPhotoState extends State<EditPhoto>{
         print('saveFile:${saveFile.path}');
       }
 
+    Future.delayed(Duration(seconds: 1),(){
+      setState(() {
+        this._isLoading = false;
+      });
+    });
+
     setState(() {
       this._error = error;
     });
@@ -124,8 +134,8 @@ class _EditPhotoState extends State<EditPhoto>{
 //          uiThemeColor: Color(0xffff0000),
         ),
       );
-      _listImagePaths.forEach((media){
-        print(media.path.toString());
+      setState(() {
+        this._isLoading = true;
       });
     } on Exception catch(e){
       error = e.toString();
@@ -133,7 +143,7 @@ class _EditPhotoState extends State<EditPhoto>{
 
     if(!mounted) return;
 
-      if(_listImagePaths != null) {
+      if(_listImagePaths != null || _listImagePaths.length != 0) {
         for(var i = 0; i < _listImagePaths.length; i++){
           DPhoto photo = DPhoto(path: _listImagePaths[i].path);
           setState(() {
@@ -157,12 +167,13 @@ class _EditPhotoState extends State<EditPhoto>{
           await saveFile.writeAsBytesSync(thumbnailresult, flush: true, mode: FileMode.write);
           print('saveFile:${saveFile.path}');
         }
-//        print('++++++++++++++++++++++++++++++++++++++++');
-//        for(var i = 0; i < this._selectedPhotos.length; i++){
-//          print('no:${this._selectedPhotos[i].no},path:${this._selectedPhotos[i].path}');
-//        }
-//        print('++++++++++++++++++++++++++++++++++++++++');
       }
+
+      Future.delayed(Duration(seconds: 1),(){
+        setState(() {
+          this._isLoading = false;
+        });
+      });
       setState(() {
         this._error = error;
       });
@@ -188,10 +199,11 @@ class _EditPhotoState extends State<EditPhoto>{
 
   @override
   Widget build(BuildContext context) {
+//    print('①${this._isLoading}');
           return Scaffold(
             appBar: AppBar(
               backgroundColor: Colors.deepOrange[100 * (1 % 9)],
-              leading: closeBtn(),
+              leading: _isLoading ? Container() : closeBtn(),
               elevation: 0.0,
               title: Center(
                 child: Text( '写真を追加',
@@ -204,17 +216,20 @@ class _EditPhotoState extends State<EditPhoto>{
                 ),
               ),
               actions: <Widget>[
-                completeBtn(),
+                _isLoading ? Container() : completeBtn(),
               ],
             ),
-            body: Column(
-              children: <Widget>[
-                Expanded(
-                  child: buildGridView(),
-                )
-              ],
+            body: ModalProgressHUD(
+                opacity: 0.5,
+                color: Colors.grey,
+                progressIndicator: CupertinoActivityIndicator(
+                  animating: true,
+                  radius: 20,
+                ),
+                child: scrollArea(),
+                inAsyncCall: _isLoading
             ),
-            floatingActionButton: FloatingActionButton(
+             floatingActionButton: _isLoading ? Container() : FloatingActionButton(
               onPressed: (){
                 Platform.isIOS
                 ? selectImageIOS()
@@ -224,6 +239,14 @@ class _EditPhotoState extends State<EditPhoto>{
               backgroundColor: Colors.red[100 * (3 % 9)],
             ),
           );
+  }
+
+  Widget scrollArea(){
+    return Column(
+      children: <Widget>[
+        Expanded(child: buildGridView(),)
+      ],
+    );
   }
 
   //画像リスト表示
