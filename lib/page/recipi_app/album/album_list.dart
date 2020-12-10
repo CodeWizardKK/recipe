@@ -30,16 +30,15 @@ class _AlbumListState extends State<AlbumList>{
 
   DBHelper dbHelper;
   Common common;
-  List<DPhoto> _photoAll = List<DPhoto>(); //アルバム
+  List<DPhoto> _photoAll = List<DPhoto>();    //アルバム
   bool _isEditable = false;                   //true:右上Checkアイコン押下時に有効。複数アイテム選択編集モード管理フラグ
-  List<bool> _selectedItems = List<bool>();     //各アルバムアイテムを選択を状態をチェックボックスでオンオフ
-
-  List<DPhoto> _lazy = List<DPhoto>(); //遅延読み込み用リスト
-  int _currentLength = 0;              //遅延読み込み件数を格納
-  final int increment = 21;            //読み込み件数
-  bool _isGetDiaryPhotos = false;
-  FRefreshController controller = FRefreshController();
-  String text = "Drop-down to loading";
+  List<bool> _selectedItems = List<bool>();   //各アルバムアイテムを選択を状態をチェックボックスでオンオフ
+  List<DPhoto> _lazy = List<DPhoto>();        //遅延読み込み用リスト
+  int _currentLength = 0;                     //遅延読み込み件数を格納
+  final int increment = 21;                   //読み込み件数
+  bool _isGetDiaryPhotos = false;             //true:写真用DBからの読み取り取得完了
+  FRefreshController controller = FRefreshController(); //lazyload
+  String text = "Drop-down to loading";                 //lazyload用text
 
   @override
   void initState() {
@@ -49,12 +48,14 @@ class _AlbumListState extends State<AlbumList>{
 
   //初期処理
   void init() async {
+    setState(() {
     //初期化
-    dbHelper = DBHelper();
-    common = Common();
-    controller = FRefreshController();
-    FRefresh.debug = true;
-    _lazy.clear();
+      this.dbHelper = DBHelper();
+      this.common = Common();
+      this._lazy.clear();
+      this.controller = FRefreshController();
+      FRefresh.debug = true;
+    });
     //レコードリフレッシュ
     await this.refreshImages();
     //レシピリスト用遅延読み込み
@@ -63,7 +64,7 @@ class _AlbumListState extends State<AlbumList>{
 
   //レシピリスト用遅延読み込み
   Future _loadMore() async {
-    print('+++++_loadMore+++++++');
+//    print('+++++_loadMore+++++++');
     for (var i = _currentLength; i < _currentLength + increment; i++) {
       if( i < this._photoAll.length){
           setState(() {
@@ -90,10 +91,10 @@ class _AlbumListState extends State<AlbumList>{
     setState(() {
       this._isGetDiaryPhotos = true;
     });
-    print('************************');
+//    print('************************');
 //    print('アルバム件数：${this._photoAll.length}');
     this._photoAll.forEach((element) => print('${element.diary_id},${element.id},${element.no},${element.path}'));
-    print('************************');
+//    print('************************');
   }
 
   //チェックボックスにて選択した値を返す
@@ -137,7 +138,7 @@ class _AlbumListState extends State<AlbumList>{
     //編集画面へ遷移
     Navigator.push(context,
         MaterialPageRoute(
-          builder: (context) => DiaryEdit(diary: diary),
+          builder: (context) => DiaryEdit(selectedDiary: diary),
           fullscreenDialog: true,
         )
     ).then((result) async {
@@ -201,7 +202,7 @@ class _AlbumListState extends State<AlbumList>{
   void _showDetail({ DisplayDiary diary ,DPhoto selectedPhoto}){
     Navigator.push(context,
         MaterialPageRoute(
-          builder: (context) => DiaryDetail(diary: diary,selectedPhoto: selectedPhoto,),
+          builder: (context) => DiaryDetail(selectedDiary: diary,selectedPhoto: selectedPhoto,),
           fullscreenDialog: true,
         )
     ).then((result) async {
@@ -230,7 +231,7 @@ class _AlbumListState extends State<AlbumList>{
     //チェックボックス作成
     if(this._isEditable){
       this._selectedItems = List<bool>.generate(this._photoAll.length, (index) => false);
-      print('selected:${this._selectedItems}');
+//      print('selected:${this._selectedItems}');
     }
   }
 
@@ -282,7 +283,7 @@ class _AlbumListState extends State<AlbumList>{
           fullscreenDialog: true,
         )
     ).then((result) {
-      print('閉じる');
+//      print('閉じる');
     });
   }
 

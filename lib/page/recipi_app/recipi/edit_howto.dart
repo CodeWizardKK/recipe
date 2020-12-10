@@ -19,10 +19,10 @@ class EditHowTo extends StatefulWidget{
 
 class _EditHowToState extends State<EditHowTo>{
 
-  final _memo= TextEditingController();    //作り方
-  String _photo = '';                      //写真パス
-  bool _isNew = false;                     //選択された作り方のindex番号
-  HowTo _howTo = HowTo();                  //値を更新(セット)し返す
+  HowTo _howTo = HowTo();                  //作り方
+  String _imagePath = '';                  //写真のpath
+  bool _isNew = false;                     //true:新規
+  final _body = TextEditingController();   //本文
 
   @override
   void initState() {
@@ -30,7 +30,7 @@ class _EditHowToState extends State<EditHowTo>{
     setState(() {
       this._howTo = widget.howTo;
     });
-    //追加or更新チェック
+    //新規or更新チェック
     if(this._howTo.id == null){
       setState(() {
         this._isNew = true;
@@ -41,27 +41,26 @@ class _EditHowToState extends State<EditHowTo>{
       });
     }
       //選択した作り方の取得
-      print('[更新]no:${this._howTo.no},memo:${this._howTo.memo},photo:${this._howTo.photo}');
-      this._memo.text = this._howTo.memo;
-      this._photo = this._howTo.photo;
+//      print('[更新]no:${this._howTo.no},memo:${this._howTo.memo},photo:${this._howTo.photo}');
+      this._body.text = this._howTo.memo;
+      this._imagePath = this._howTo.photo;
   }
 
   //保存ボタン押下時処理
   void _onSubmit(){
-    HowTo howto;
     //更新の場合
     if(!_isNew){
-      this._howTo.memo = _memo.text;
-      this._howTo.photo = _photo;
-      print('id:${this._howTo.id},no:${this._howTo.no},name:${this._howTo.memo},quantity:${this._howTo.photo}');
+      this._howTo.memo = _body.text;
+      this._howTo.photo = this._imagePath;
+//      print('id:${this._howTo.id},no:${this._howTo.no},name:${this._howTo.memo},quantity:${this._howTo.photo}');
       Navigator.pop(context,this._howTo);
     //新規の場合
     } else {
       //入力内容が未入力以外の場合
       if(!_isEmptyCheck()) {
         this._howTo.id = -1;
-        this._howTo.memo = _memo.text;
-        this._howTo.photo = _photo;
+        this._howTo.memo = _body.text;
+        this._howTo.photo = this._imagePath;
         Navigator.pop(context,this._howTo);
         //未入力の場合
       } else {
@@ -71,10 +70,10 @@ class _EditHowToState extends State<EditHowTo>{
   }
 
   bool _isEmptyCheck(){
-    if(this._memo.text.isNotEmpty){
+    if(this._body.text.isNotEmpty){
       return false;
     }
-    if(this._photo.isNotEmpty){
+    if(this._imagePath.isNotEmpty){
       return false;
     }
     return true;
@@ -86,8 +85,6 @@ class _EditHowToState extends State<EditHowTo>{
       context: context,
       builder: (BuildContext context) {
         return CupertinoActionSheet(
-//          title: const Text('Choose Options'),
-//          message: const Text('Your options are '),
             actions: <Widget>[
               CupertinoActionSheetAction(
                 child: const Text('写真を撮影'),
@@ -127,11 +124,9 @@ class _EditHowToState extends State<EditHowTo>{
     }
 
     setState(() {
-      _photo = imageFile.path;
+      this._imagePath = imageFile.path;
     });
-
-    print('###_photo:${_photo}');
-
+//    print('###_imagePath:${_imagePath}');
   }
 
   @override
@@ -236,7 +231,7 @@ class _EditHowToState extends State<EditHowTo>{
                   width: MediaQuery.of(context).size.width * 0.7,
 //                  height: 250,
                   child: TextField(
-                    controller: _memo,
+                    controller: _body,
                     autofocus: false,
                     minLines: 10,
                     maxLines: 10,
@@ -249,7 +244,7 @@ class _EditHowToState extends State<EditHowTo>{
                 ),
               ),
               //画像エリア
-              _photo.isEmpty
+              _imagePath.isEmpty
                 ? Card(
                     child: Container(
                       height: MediaQuery.of(context).size.width * 0.23,
@@ -269,7 +264,7 @@ class _EditHowToState extends State<EditHowTo>{
                       height: MediaQuery.of(context).size.width * 0.23,
                       width: MediaQuery.of(context).size.width * 0.23,
                       child: InkWell(
-                        child: Image.file(File(_photo),fit: BoxFit.cover,),
+                        child: Image.file(File(_imagePath),fit: BoxFit.cover,),
                         onTap: (){
                           FocusScope.of(context).unfocus();
                           _showImgSelectModal();

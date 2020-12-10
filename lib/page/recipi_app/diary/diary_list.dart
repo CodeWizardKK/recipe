@@ -33,16 +33,16 @@ class _DiaryListState extends State<DiaryList>{
 
   DBHelper dbHelper;
   Common common;
-  List<DisplayDiaryGroupDate> _displayDiaryGroupDates = List<DisplayDiaryGroupDate>();
-  List<DisplayDiaryGroupDate> _lazy = List<DisplayDiaryGroupDate>(); //遅延読み込み用リスト
-  final int increment = 10;                               //読み込み件数
-  bool _isGetDiarys = false;
-  int _DDGcurrentLength = 0;                                //遅延読み込み件数を格納
-  int _DDcurrentLength = 0;                                //遅延読み込み件数を格納
-  FRefreshController controller = FRefreshController();
-  String text = "Drop-down to loading";
-  bool _isDuplicate = false;
-  DisplayDiaryGroupDate _ddg = DisplayDiaryGroupDate(id: -1);
+  List<DisplayDiaryGroupDate> _displayDiaryGroupDates = List<DisplayDiaryGroupDate>();  //年月別ご飯日記リスト
+  List<DisplayDiaryGroupDate> _lazy = List<DisplayDiaryGroupDate>();                    //遅延読み込み用リスト
+  final int increment = 10;                                   //読み込み件数
+  bool _isGetDiarys = false;                                  //true:DBからの読み込み取得完了
+  int _DDGcurrentLength = 0;                                  //遅延読み込み件数を格納
+  int _DDcurrentLength = 0;                                   //遅延読み込み件数を格納
+  FRefreshController controller = FRefreshController();       //lazyload
+  String text = "Drop-down to loading";                       //lazyload用text
+  bool _isDuplicate = false;                                  //true:lazyload用年月重複
+  DisplayDiaryGroupDate _ddg = DisplayDiaryGroupDate(id: -1); //lazyload用ご飯日記リスト
 
   @override
   void initState() {
@@ -52,14 +52,15 @@ class _DiaryListState extends State<DiaryList>{
 
   //初期処理
   void init() async {
-    //初期化
-    dbHelper = DBHelper();
-    common = Common();
-    this._displayDiaryGroupDates.clear();
-    this._lazy.clear();
-    controller = FRefreshController();
-    FRefresh.debug = true;
-
+    setState(() {
+      //初期化
+      this.dbHelper = DBHelper();
+      this.common = Common();
+      this._displayDiaryGroupDates.clear();
+      this._lazy.clear();
+      this.controller = FRefreshController();
+      FRefresh.debug = true;
+    });
     //レコードリフレッシュ
     await this.refreshImages();
     //レシピリスト用遅延読み込み
@@ -68,7 +69,7 @@ class _DiaryListState extends State<DiaryList>{
 
   //レシピリスト用遅延読み込み
   Future _loadMore() async {
-    print('+++++_loadMore+++++++');
+//    print('+++++_loadMore+++++++');
     var count = 0;
     for(var i = _DDGcurrentLength; i < this._displayDiaryGroupDates.length; i++){
       if(this._ddg.id != this._displayDiaryGroupDates[i].id){
@@ -136,7 +137,7 @@ class _DiaryListState extends State<DiaryList>{
           diarys.clear();
           diarys.addAll(item);
         });
-        print(diarys.length);
+//        print(diarys.length);
       });
       for (var j = 0; j < diarys.length; j++) {
         //ご飯日記IDに紐づくレシピの取得
@@ -242,7 +243,7 @@ class _DiaryListState extends State<DiaryList>{
     //編集画面へ遷移
     Navigator.push(context,
         MaterialPageRoute(
-          builder: (context) => DiaryEdit(diary: diary),
+          builder: (context) => DiaryEdit(selectedDiary: diary),
           fullscreenDialog: true,
         )
     ).then((result) async {
@@ -317,7 +318,7 @@ class _DiaryListState extends State<DiaryList>{
   void _showDetail({ DisplayDiary diary }){
     Navigator.push(context,
         MaterialPageRoute(
-          builder: (context) => DiaryDetail(diary: diary,selectedPhoto: DPhoto(id: -1),),
+          builder: (context) => DiaryDetail(selectedDiary: diary,selectedPhoto: DPhoto(id: -1),),
           fullscreenDialog: true,
         )
     ).then((result) async {
@@ -385,7 +386,7 @@ class _DiaryListState extends State<DiaryList>{
           fullscreenDialog: true,
         )
     ).then((result) {
-      print('閉じる');
+//      print('閉じる');
     });
   }
 

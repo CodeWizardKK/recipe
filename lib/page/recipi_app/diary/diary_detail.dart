@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -23,10 +22,10 @@ import 'package:recipe_app/services/Common.dart';
 
 class DiaryDetail extends StatefulWidget{
 
-  DisplayDiary diary = DisplayDiary();
-  DPhoto selectedPhoto = DPhoto();
+  DisplayDiary selectedDiary = DisplayDiary();      //選択したごはん日記
+  DPhoto selectedPhoto = DPhoto();                  //アルバムリスト遷移してきた場合、tapした画像を選択状態にセット
 
-  DiaryDetail({Key key, @required this.diary, @required this.selectedPhoto}) : super(key: key);
+  DiaryDetail({Key key, @required this.selectedDiary, @required this.selectedPhoto}) : super(key: key);
 
   @override
   _DiaryDetailState createState() => _DiaryDetailState();
@@ -36,33 +35,34 @@ class _DiaryDetailState extends State<DiaryDetail>{
 
   DBHelper dbHelper;
   Common common;
-  DisplayDiary _diary = DisplayDiary();    //選択したごはん日記
-  List<Recipi> _recipis = List<Recipi>();  //選択したごはん日記に紐づくレシピリストを格納
-  int _photoIndex = 0;                     //サムネイルで表示する写真のindexを格納
-  int _current = 0;
-
-  final int increment = 10;                   //読み込み件数
-  static GlobalKey previewContainer = GlobalKey();
-  bool _isUpdate = false;
-  List<Media> _listImagePaths = List();
+  DisplayDiary _diary = DisplayDiary();             //選択したごはん日記
+  List<Recipi> _recipis = List<Recipi>();           //選択したごはん日記に紐づくレシピリストを格納
+  int _photoIndex = 0;                              //サムネイルで表示する写真のindexを格納
+  int _current = 0;                                 //サムネイルで表示する写真のindexを格納(ペジネーション使用)
+  final int increment = 10;                         //読み込み件数
+  static GlobalKey previewContainer = GlobalKey();  //シェア機能
+  bool _isUpdate = false;                           //true:編集画面にて更新
+  List<Media> _imageList = List();                  //写真リスト
 
   @override
   void initState() {
-    init();
-   super.initState();
+    super.initState();
+    this.init();
   }
 
   void init() async {
+    setState(() {
+      this.dbHelper = DBHelper();
+      this.common = Common();
+    });
     await this._getItem();
   }
 
 
-  _getItem() async {
-    dbHelper = DBHelper();
-    common = Common();
+  Future<void> _getItem() async {
     setState(() {
       //選択した日記の取得
-      this._diary = widget.diary;
+      this._diary = widget.selectedDiary;
       //アルバムから遷移してきた場合、tapした画像を選択状態にセット
       if(widget.selectedPhoto.id != -1){
        DPhoto photo = widget.selectedPhoto;
@@ -76,12 +76,12 @@ class _DiaryDetailState extends State<DiaryDetail>{
     });
 
     //previewImagesByMedia用にセット
-    this._listImagePaths.clear();
+    this._imageList.clear();
     this._diary.photos.forEach((photo) {
       Media media = Media();
       media.path = photo.path;
       setState(() {
-        this._listImagePaths.add(media);
+        this._imageList.add(media);
       });
     });
 
@@ -111,7 +111,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
         this._recipis.add(recipi);
       });
     }
-    print('ごはん日記に紐づくレシピ件数：${this._recipis.length}');
+//    print('ごはん日記に紐づくレシピ件数：${this._recipis.length}');
   }
 
   //レシピを選択時処理
@@ -140,7 +140,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
   void _showDetail({ Myrecipi recipi, List<Ingredient> ingredients, List<HowTo> howTos, List<Photo> photos }){
     Navigator.push(context,
         MaterialPageRoute(
-          builder: (context) => RecipiEdit(Nrecipi: recipi,Ningredients: ingredients,NhowTos: howTos,Nphotos: photos,),
+          builder: (context) => RecipiEdit(selectedRecipi: recipi,selectedIngredients: ingredients,selectedHowTos: howTos,selectedPhotos: photos,),
           fullscreenDialog: true,
         )
     ).then((result) {
@@ -168,7 +168,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
     //編集画面へ遷移
     Navigator.push(context,
         MaterialPageRoute(
-          builder: (context) => DiaryEdit(diary: diary,),
+          builder: (context) => DiaryEdit(selectedDiary: diary,),
           fullscreenDialog: true,
         )
     ).then((result) {
@@ -178,7 +178,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
       } else {
         setState(() {
           this._isUpdate = true;
-          widget.diary = result;
+          widget.selectedDiary = result;
         });
         //最新のリストを取得し展開する
         this._getItem();
@@ -356,7 +356,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
               CarouselSlider(
                 items: _diary.photos.map((item) => GestureDetector(
                   onTap: (){
-                    ImagePickers.previewImagesByMedia(_listImagePaths,item.no - 1);
+                    ImagePickers.previewImagesByMedia(_imageList,item.no - 1);
                   },
                   child: Container(
                     margin: EdgeInsets.all(10.0),
@@ -383,7 +383,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
 //                    enlargeCenterPage: true,
                   aspectRatio: 2.0,
                   onPageChanged: (index, reason) {
-                    print(inspect(this));
+//                    print(inspect(this));
                     setState(() {
                       this._current = index;
                     });
@@ -394,7 +394,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: _diary.photos.map((photo) {
                   int no = _diary.photos.indexOf(photo);
-                  print('index②:${no}');
+//                  print('index②:${no}');
                   return Container(
                     width: MediaQuery.of(context).size.width * 0.015,
                     height: MediaQuery.of(context).size.width * 0.015,
@@ -636,7 +636,7 @@ class _DiaryDetailState extends State<DiaryDetail>{
                 ),
                 ),
                 onTap: (){
-                  print('recipiID:${this._recipis[index].recipi.id},thumbnail:${this._recipis[index].recipi.thumbnail}');
+//                  print('recipiID:${this._recipis[index].recipi.id},thumbnail:${this._recipis[index].recipi.thumbnail}');
                   _onRecipiDetail(index: index);
                 }
             ),

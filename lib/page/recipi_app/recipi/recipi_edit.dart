@@ -26,12 +26,12 @@ import 'package:recipe_app/model/edit/Howto.dart';
 
 class RecipiEdit extends StatefulWidget{
 
-  Myrecipi Nrecipi = Myrecipi();
-  List<Ingredient> Ningredients = [];      //レシピIDに紐づく材料リスト
-  List<HowTo> NhowTos = [];                //レシピIDに紐づく作り方リスト
-  List<Photo> Nphotos = [];                //レシピIDに紐づく写真
+  Myrecipi selectedRecipi = Myrecipi();
+  List<Ingredient> selectedIngredients = [];      //レシピIDに紐づく材料リスト
+  List<HowTo> selectedHowTos = [];                //レシピIDに紐づく作り方リスト
+  List<Photo> selectedPhotos = [];                //レシピIDに紐づく写真
 
-  RecipiEdit({Key key, @required this.Nrecipi,@required this.Ningredients,@required this.NhowTos,@required this.Nphotos,}) : super(key: key);
+  RecipiEdit({Key key, @required this.selectedRecipi,@required this.selectedIngredients,@required this.selectedHowTos,@required this.selectedPhotos,}) : super(key: key);
 
   @override
   _RecipiEditState createState() => _RecipiEditState();
@@ -41,15 +41,12 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   DBHelper dbHelper;
   Common common;
-  int _selectedID;                //編集するID
-//  String _thumbnail;            //サムネイル DB送信用
-  int _type;                      //レシピ種別 1:写真レシピ 2:MYレシピ 3:テキストレシピ
   Myrecipi _recipi = Myrecipi();
+  int _selectedID;                //編集するID
+  int _type;                      //レシピ種別 1:写真レシピ 2:MYレシピ 3:テキストレシピ
   List<Ingredient> _ingredients;  //材料リスト
   List<HowTo> _howTos;            //作り方リスト
-  List<Photo> _photos;            //詳細の内容の写真(写真を追加欄)
-//  List<File> imageFiles = new List<File>(); //詳細の内容の写真(写真を追加欄)
-
+  List<Photo> _photos;            //写真リスト
   final _stateController = TextEditingController();
   final _visionTextController = TextEditingController();
   final TextRecognizer _textRecognizer = FirebaseVision.instance.cloudTextRecognizer();
@@ -65,26 +62,30 @@ class _RecipiEditState extends State<RecipiEdit>{
   @override
   void initState() {
     super.initState();
-    dbHelper = DBHelper();
-    common = Common();
+    this.init();
+  }
+
+  //初期処理
+  void init() async {
     setState(() {
+      this.dbHelper = DBHelper();
+      this.common = Common();
       this._howTos = [];
       this._ingredients = [];
       this._photos = [];
-      print('recipi:${widget.Nrecipi.id}');
-      print('hotos:${widget.NhowTos.length}');
-      print('ingredient:${widget.Ningredients.length}');
-      print('photo:${widget.Nphotos.length}');
-      this._recipi = widget.Nrecipi;
-      widget.NhowTos.forEach((howto) => this._howTos.add(howto));
-      widget.Ningredients.forEach((ingredient) => this._ingredients.add(ingredient));
-      widget.Nphotos.forEach((photo) => this._photos.add(photo));
+//      print('recipi:${widget.selectedRecipi.id}');
+//      print('hotos:${widget.selectedHowTos.length}');
+//      print('ingredient:${widget.selectedIngredients.length}');
+//      print('photo:${widget.selectedPhotos.length}');
+      this._recipi = widget.selectedRecipi;
+      widget.selectedHowTos.forEach((howto) => this._howTos.add(howto));
+      widget.selectedIngredients.forEach((ingredient) => this._ingredients.add(ingredient));
+      widget.selectedPhotos.forEach((photo) => this._photos.add(photo));
       //idを取得
       this._selectedID = _recipi.id;
-      print('ID:${_selectedID}');
       //レシピ種別を取得
       this._type = _recipi.type;
-      print('レシピ種別:${this._type}');
+//      print('レシピ種別:${this._type}');
       //タイトル編集欄をセット
       this._titleForm = TitleForm(title: _recipi.title,description: _recipi.description,quantity: _recipi.quantity,unit: _recipi.unit,time: _recipi.time);
       if(this._type == 3){
@@ -126,29 +127,7 @@ class _RecipiEditState extends State<RecipiEdit>{
   //一覧リストへ遷移
   void _onList(){
     Navigator.pop(context);
-//    //新規作成の場合は詳細画面も閉じる
-//    if(this._selectedID == -1){
-//      Navigator.pop(context);
-//    }
   }
-
-//  //初期化処理
-//  void _init(){
-//    //リセット処理
-//    Provider.of<Display>(context, listen: false).reset(); //編集フォーム
-//    Provider.of<Detail>(context, listen: false).reset();  //詳細フォーム
-//  }
-
-  //戻り先の状態を取得
-//  int _getBackState(){
-//    //新規投稿の場合
-//    if(_selectedID == -1){
-//      return -2;
-//    //更新の場合
-//    }else{
-//      return -1;
-//    }
-//  }
 
   //タイトル欄の取得
   bool IsEmptyTitleForm(){
@@ -194,23 +173,10 @@ class _RecipiEditState extends State<RecipiEdit>{
       if(thumbnail.isEmpty && titleIsEmpty) {
         //DBに登録せず、一覧リストへ戻る
         if(this.lengthCheck()){
-          print('登録しない');
+//          print('登録しない');
           _onList();
           return;
         }
-//        if (_type == 2) {
-//          if (this._ingredients.length == 0 && this._howTos.length == 0) {
-////            print('2:空');
-//          _onList();
-//            return;
-//          }
-//        } else {
-//          if (this._photos.length == 0) {
-////            print('1:空');
-//          _onList();
-//            return;
-//          }
-//        }
       }
       //内容のいずれかが入力されている場合
       //タイトル、説明、分量、単位、調理時間
@@ -329,7 +295,7 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //写真削除処理
   void _onPhotoDelete(int index) async {
-    print('####delete');
+//    print('####delete');
     //該当の写真を削除
     setState(() {
       this._photos.removeAt(index);
@@ -406,10 +372,6 @@ class _RecipiEditState extends State<RecipiEdit>{
     );
   }
 
-//  static Future<String> Base64String(Future<Uint8List> data) async{
-//    return base64Encode(data);
-//  }
-
   // カメラまたはライブラリから画像を取得
   Future<void> _getAndSaveImageFromDevice({ImageSource source,bool thumbnail,bool edit,Photo photo,int index}) async {
 
@@ -420,7 +382,7 @@ class _RecipiEditState extends State<RecipiEdit>{
     if (imageFile == null) {
       return;
     }
-    print('###setしたimagepath:${imageFile.path}');
+//    print('###setしたimagepath:${imageFile.path}');
 
     File thumbnailfile = File(imageFile.path);
     //サムネイル用にファイル名を変更
@@ -437,7 +399,7 @@ class _RecipiEditState extends State<RecipiEdit>{
     // 圧縮したファイルを端末の拡張ディスクに保存
     File saveFile = File(thumbnailPath);
     await saveFile.writeAsBytesSync(thumbnailresult, flush: true, mode: FileMode.write);
-    print('saveFile:${saveFile.path}');
+//    print('saveFile:${saveFile.path}');
 
     //サムネイル画像の場合
     if(thumbnail){
@@ -508,7 +470,7 @@ class _RecipiEditState extends State<RecipiEdit>{
         iosUiSettings: IOSUiSettings(
           title: 'Cropper',
         ));
-    print('croppedFile:${croppedFile}');
+//    print('croppedFile:${croppedFile}');
     if (croppedFile != null) {
         File image = croppedFile;
         //セット
@@ -527,7 +489,7 @@ class _RecipiEditState extends State<RecipiEdit>{
         // 圧縮したファイルを端末の拡張ディスクに保存
         File saveFile = File(thumbnailPath);
         await saveFile.writeAsBytesSync(thumbnailresult, flush: true, mode: FileMode.write);
-        print('#########saveFile:${saveFile.path}');
+//        print('#########saveFile:${saveFile.path}');
         return false;
     } else {
         return true;
@@ -580,7 +542,7 @@ class _RecipiEditState extends State<RecipiEdit>{
                   ),
 //                  child: Image.memory(imageFiles[i].readAsBytesSync()),
                   onTap: !_isEdit ? null :(){
-                    print('材料編集');
+//                    print('材料編集');
                     _changeEditType(editType: 1,index: i,); //材料
                   }
               ),
@@ -626,7 +588,7 @@ class _RecipiEditState extends State<RecipiEdit>{
                   ],
                 ),
                 onTap: (){
-                  print('材料追加');
+//                  print('材料追加');
                   _changeEditType(editType: 1,index: -1); //材料
                 }
             ),
@@ -720,7 +682,7 @@ class _RecipiEditState extends State<RecipiEdit>{
                     ],
                   ),
                   onTap: !_isEdit ? null :(){
-                    print('作り方編集');
+//                    print('作り方編集');
                     _changeEditType(editType: 2,index: i,); //作り方
                   }
               ),
@@ -767,7 +729,7 @@ class _RecipiEditState extends State<RecipiEdit>{
                   ],
                 ),
                 onTap: (){
-                  print('作り方を追加');
+//                  print('作り方を追加');
                   _changeEditType(editType: 2,index: -1); //作り方
                 }
             ),
@@ -808,8 +770,8 @@ class _RecipiEditState extends State<RecipiEdit>{
                   _isDescriptionEdit || !_isEdit
                   ? ImagePickers.previewImage(_photos[i].path)
                   : _showImgSelectModal(thumbnail: false,edit: true,photo: _photos[i],index: i);
-                    print('###tap!!!!');
-                    print('no:${_photos[i].no},path:${_photos[i].path}');
+//                    print('###tap!!!!');
+//                    print('no:${_photos[i].no},path:${_photos[i].path}');
 
                   }
               ),
@@ -930,7 +892,7 @@ class _RecipiEditState extends State<RecipiEdit>{
         )
     ).then((result) {
       if(result == null){
-        print('何もしない');
+//        print('何もしない');
       } else if(result == 'delete') {
         //削除ボタン押下時
         setState(() {
@@ -1008,7 +970,6 @@ class _RecipiEditState extends State<RecipiEdit>{
                   ),),
                 onPressed: () {
                   Navigator.pop(context);
-//                  _onDelete();
                   Navigator.pop(context,'delete');
 
                 },
@@ -1026,30 +987,9 @@ class _RecipiEditState extends State<RecipiEdit>{
     );
   }
 
-  //該当レシピ削除
-  void _onDelete() async {
-    //レシピを削除
-    await dbHelper.deleteMyRecipi(this._selectedID);
-    //レシピIDに紐づくタグを削除する
-    await dbHelper.deleteTagRecipiId(this._selectedID);
-    //レシピIDに紐づくごはん日記のレシピリストを削除する
-    await dbHelper.deleteDiaryRecipibyRecipiID(this._selectedID);
-    //MYレシピの場合
-    if(this._type == 2){
-      //材料リストを削除
-      await dbHelper.deleteRecipiIngredient(this._selectedID);
-      //作り方リストを削除
-      await dbHelper.deleteRecipiHowto(this._selectedID);
-    }else{
-      //変更前の写真リストを削除
-      await dbHelper.deleteRecipiPhoto(this._selectedID);
-    }
-    _onList();
-  }
-
   //文字変換処理
   Future<void> _vision() async {
-    print('文字変換処理');
+//    print('文字変換処理');
     this._setIsLoading();
 
     VisionText visionText;
@@ -1065,8 +1005,8 @@ class _RecipiEditState extends State<RecipiEdit>{
         visionText = await _textRecognizer.processImage(visionImage);
       }catch(e){
         //エラー処理
-        print('Error: ${e}');
-        print('visionText: ${visionText}');
+//        print('Error: ${e}');
+//        print('visionText: ${visionText}');
         setState(() {
           this._visionTextController.text = '';
           this._isError = !this._isError;
@@ -1076,10 +1016,10 @@ class _RecipiEditState extends State<RecipiEdit>{
       }
       //OCR(文字認識)処理にてエラーとならなかった場合
       if(!this._isError){
-        String text = visionText.text;
+//        String text = visionText.text;
         //コンソール出力
-        print('visionText.blocks:${visionText.blocks.length}');
-        print('visionText.text:${text}');
+//        print('visionText.blocks:${visionText.blocks.length}');
+//        print('visionText.text:${text}');
 
         var buf = StringBuffer();
         for (TextBlock block in visionText.blocks) {
@@ -1090,7 +1030,7 @@ class _RecipiEditState extends State<RecipiEdit>{
           final List<RecognizedLanguage> languages = block.recognizedLanguages;
 //        print(languages);
 //        buf.write("=====================\n");
-          print('テキストlength：${block.lines.length}');
+//          print('テキストlength：${block.lines.length}');
           for (TextLine line in block.lines) {
             print('--------------------------');
             print('テキスト：${line.text}');
@@ -1260,10 +1200,7 @@ class _RecipiEditState extends State<RecipiEdit>{
   //レシピ編集
   Widget scrollArea(){
     return Container(
-//      key: GlobalKey(),
       child: SingleChildScrollView(
-//        key: GlobalKey(),
-//        padding: const EdgeInsets.only(left: 10.0, right: 10.0),
         child: showForm(),
       ),
     );
@@ -1281,11 +1218,8 @@ class _RecipiEditState extends State<RecipiEdit>{
                 ? <Widget>[
                   thumbnailArea(), //トップ画像
                   titleArea(), //タイトル
-//                  line(),
                   photoArea(), //写真
-//                  line(),
                   photoAddArea(), //写真入力欄
-//                  line(),
                   deleteButtonArea(),//削除ボタン
                ]
                 : <Widget>[
@@ -1293,25 +1227,17 @@ class _RecipiEditState extends State<RecipiEdit>{
                   titleArea(),     //タイトル
                   DescriptionTitleArea(),
                   ocrTextArea(),   //文字変換
-//                  line(),
                   photoArea(), //写真
-//                  line(),
                   photoAddArea(), //写真入力欄
-//                  line(),
                   deleteButtonArea(), //削除ボタン
               ]
              : <Widget>[
               thumbnailArea(), //トップ画像
               titleArea(), //タイトル
-//              line(),
               ingredientArea(), //材料
-//              line(),
               ingredientAddArea(), //材料入力欄
-//              line(),
               howToArea(), //作り方
-//              line(),
               howToAddArea(), //作り方入力欄
-//              line(),
               deleteButtonArea(),//削除ボタン
              ]
           ),
@@ -1329,8 +1255,6 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //トップ画像
   Widget thumbnailArea(){
-//    return Consumer<Display>(
-//        builder: (context,Display,_) {
     return
       _isEdit
       ? _recipi.thumbnail.isEmpty
@@ -1401,8 +1325,6 @@ class _RecipiEditState extends State<RecipiEdit>{
                 ),
               ),
           );
-//        }
-//    );
   }
 
   //トップ画像に表示する文言
@@ -1749,8 +1671,6 @@ class _RecipiEditState extends State<RecipiEdit>{
 
   //文字変換テキストエリア
   Widget ocrTextArea(){
-//    return Consumer<Display>(
-//        builder: (context,Display,_) {
       return
         _isEdit
           ? _recipi.thumbnail.isEmpty
@@ -1798,7 +1718,6 @@ class _RecipiEditState extends State<RecipiEdit>{
               ),
             ),
           );
-//    });
   }
 
   //削除ボタン

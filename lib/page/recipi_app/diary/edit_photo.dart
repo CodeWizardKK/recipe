@@ -25,31 +25,29 @@ class EditPhoto extends StatefulWidget{
 class _EditPhotoState extends State<EditPhoto>{
 
   Common common;
-  List<DPhoto> _selectedPhotos = List<DPhoto>();
-  String _error = 'No Error Dectected';
-  bool _isLoading = false;
-  GalleryMode _galleryMode = GalleryMode.image;
-  GlobalKey globalKey;
+  List<DPhoto> _selectedItems = List<DPhoto>();   //カメラロールから選択した写真を格納
+  String _error = 'No Error Dectected';           //エラーメッセージ
+  bool _isLoading = false;                        //true:カメラロールから選択した写真を読み込み中
 
   @override
   void initState() {
     super.initState();
     this.init();
-    globalKey = GlobalKey();
   }
 
   //初期処理
   void init(){
-    common = Common();
     setState(() {
-      this._selectedPhotos = [];
-      widget.photos.forEach((photo) => this._selectedPhotos.add(photo));
+      //初期化
+      this.common = Common();
+      this._selectedItems = [];
+      widget.photos.forEach((photo) => this._selectedItems.add(photo));
     });
   }
 
   //+ボタン押下時処理(Android)
   Future<void> selectImageAndroid() async {
-    print('android');
+//    print('android');
     List<Asset> resultList = List<Asset>();
     List<Asset> images = List<Asset>();
     String error = 'No Error Dectected';
@@ -81,10 +79,10 @@ class _EditPhotoState extends State<EditPhoto>{
 
       for (int i = 0; i < resultList.length; i++) {
         var path = await FlutterAbsolutePath.getAbsolutePath(resultList[i].identifier);
-        print('path:${path}');
+//        print('path:${path}');
         DPhoto photo = DPhoto(path: path);
         setState(() {
-          this._selectedPhotos.add(photo);
+          this._selectedItems.add(photo);
         });
         File thumbnailfile = File(path);
         //サムネイル用にファイル名を変更
@@ -101,7 +99,7 @@ class _EditPhotoState extends State<EditPhoto>{
         // 圧縮したファイルを端末の拡張ディスクに保存
         File saveFile = File(thumbnailPath);
         await saveFile.writeAsBytesSync(thumbnailresult, flush: true, mode: FileMode.write);
-        print('saveFile:${saveFile.path}');
+//        print('saveFile:${saveFile.path}');
       }
 
     Future.delayed(Duration(seconds: 1),(){
@@ -117,9 +115,10 @@ class _EditPhotoState extends State<EditPhoto>{
 
   //+ボタン押下時処理(iOS)
   Future<void> selectImageIOS() async {
-    print('iOS');
+//    print('iOS');
     List<Media> _listImagePaths = List();
     String error = 'No Error Dectected';
+    GalleryMode _galleryMode = GalleryMode.image;
 
     try{
       _galleryMode = GalleryMode.image;
@@ -147,7 +146,7 @@ class _EditPhotoState extends State<EditPhoto>{
         for(var i = 0; i < _listImagePaths.length; i++){
           DPhoto photo = DPhoto(path: _listImagePaths[i].path);
           setState(() {
-            this._selectedPhotos.add(photo);
+            this._selectedItems.add(photo);
           });
 
           Media thumbnailfile = _listImagePaths[i];
@@ -165,7 +164,7 @@ class _EditPhotoState extends State<EditPhoto>{
           // 圧縮したファイルを端末の拡張ディスクに保存
           File saveFile = File(thumbnailPath);
           await saveFile.writeAsBytesSync(thumbnailresult, flush: true, mode: FileMode.write);
-          print('saveFile:${saveFile.path}');
+//          print('saveFile:${saveFile.path}');
         }
       }
 
@@ -181,15 +180,15 @@ class _EditPhotoState extends State<EditPhoto>{
 
   //イメージのno取得処理
   void _setNo(){
-    for(var i = 0; i < this._selectedPhotos.length; i++){
-      this._selectedPhotos[i].no = i + 1;
+    for(var i = 0; i < this._selectedItems.length; i++){
+      this._selectedItems[i].no = i + 1;
     }
   }
 
   //保存ボタン押下時処理
   void _onSubmit() async {
     await this._setNo();
-    Navigator.pop(context,this._selectedPhotos);
+    Navigator.pop(context,this._selectedItems);
   }
 
   //×ボタン押下時処理
@@ -256,14 +255,14 @@ class _EditPhotoState extends State<EditPhoto>{
       crossAxisSpacing: 2.0,
       mainAxisSpacing: 2.0,
       shrinkWrap: true,
-      children: List.generate(_selectedPhotos.length, (index){
+      children: List.generate(_selectedItems.length, (index){
         return Container(
           child:Stack(
             children: <Widget>[
               Container(
                 width: MediaQuery.of(context).size.width * 0.35,
                 height: MediaQuery.of(context).size.width * 0.35,
-                child: Image.file(File(_selectedPhotos[index].path),fit: BoxFit.cover,),
+                child: Image.file(File(_selectedItems[index].path),fit: BoxFit.cover,),
               ),
               Positioned(
                 left: MediaQuery.of(context).size.width * 0.25,
@@ -276,7 +275,7 @@ class _EditPhotoState extends State<EditPhoto>{
                     onPressed: (){
                       setState(() {
                         //イメージ削除
-                        _selectedPhotos.removeAt(index);
+                        _selectedItems.removeAt(index);
                       });
                     },
                   ),

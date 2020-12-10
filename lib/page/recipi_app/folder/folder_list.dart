@@ -37,8 +37,8 @@ class _FolderListState extends State<FolderList>{
   List<MyrecipiGroupFolder> _recipisGroupBy;  //フォルダID毎のレシピ件数を格納
   List<Check> _folders;                       //チェックボック付きフォルダリスト
   bool _isCheck = false;                      //true:チェックボックス表示
-  bool _isError = false;
-  bool _isGetMstFolders = false;
+  bool _isError = false;                      //true:エラー画面表示
+  bool _isGetMstFolders = false;              //true:フォルダDBからの読み取り取得完了
 
   @override
   void initState() {
@@ -47,15 +47,16 @@ class _FolderListState extends State<FolderList>{
   }
 
   void init() async {
-    //初期化
-    dbHelper = DBHelper();
-    common = Common();
-    _displayList = [];
-    _recipisGroupBy = [];
-    _folders = [];
-
+    setState(() {
+      //初期化
+      this.dbHelper = DBHelper();
+      this.common = Common();
+      this._displayList = [];
+      this._recipisGroupBy = [];
+      this._folders = [];
+    });
     //レコードリフレッシュ
-    this.refreshImages();
+    await this.refreshImages();
   }
 
   //表示しているレコードのリセットし、最新のレコードを取得し、表示
@@ -87,7 +88,7 @@ class _FolderListState extends State<FolderList>{
         this._isGetMstFolders = true;
       });
     } catch (exception) {
-      print(exception);
+//      print(exception);
       this._isError = true;
     }
   }
@@ -116,7 +117,7 @@ class _FolderListState extends State<FolderList>{
     //編集画面へ遷移
     Navigator.push(context,
         MaterialPageRoute(
-          builder: (context) => RecipiEdit(Nrecipi: recipi, Ningredients: [], NhowTos: [], Nphotos: []),
+          builder: (context) => RecipiEdit(selectedRecipi: recipi, selectedIngredients: [], selectedHowTos: [], selectedPhotos: []),
           fullscreenDialog: true,
         )
     ).then((result) {
@@ -168,7 +169,7 @@ class _FolderListState extends State<FolderList>{
 
   //フォルダ別レシピリストの表示
   void _onListGroupBy({int index}){
-    print('folderID:${this._folders[index].id},name:${this._folders[index].name},isCheck:${this._folders[index].isCheck}');
+//    print('folderID:${this._folders[index].id},name:${this._folders[index].name},isCheck:${this._folders[index].isCheck}');
     //フォルダ情報をset
     Provider.of<Display>(context, listen: false).setFolder(this._folders[index]);
     //4:フォルダ別レシピ一覧へ遷移
@@ -283,7 +284,7 @@ class _FolderListState extends State<FolderList>{
   void _showSort({ Myrecipi recipi, String ingredients, List<Tag> tags, String title, int type, List ids}){
     Navigator.push(context,
         MaterialPageRoute(
-          builder: (context) => RecipiSort(Nrecipi: recipi,ingredientTX: ingredients,tags: tags,sortType: type,title: title,ids: ids, ),
+          builder: (context) => RecipiSort(selectedRecipi: recipi,ingredientTX: ingredients,tags: tags,sortType: type,title: title,ids: ids, ),
           fullscreenDialog: true,
         )
     ).then((result) {
@@ -318,7 +319,7 @@ class _FolderListState extends State<FolderList>{
             ids.add(this._folders[i].id);
           }
         if(ids.length > 0){
-          print('削除するフォルダマスタID：${ids}');
+//          print('削除するフォルダマスタID：${ids}');
           //フォルダマスタ削除処理
           for(var i = 0; i < ids.length; i++){
             //フォルダマスタ削除
@@ -350,7 +351,7 @@ class _FolderListState extends State<FolderList>{
           }
         }
         if(ids.length > 0){
-          print('削除するレシピID：${ids}');
+//          print('削除するレシピID：${ids}');
           for(var i = 0; i < ids.length; i++){
             //レシピを削除
             await dbHelper.deleteMyRecipi(ids[i]);
@@ -374,7 +375,7 @@ class _FolderListState extends State<FolderList>{
       await this.refreshImages(); //レコードリフレッシュ
 
     } catch (exception) {
-      print(exception);
+//      print(exception);
       this._isError = true;
     }
   }
@@ -419,7 +420,7 @@ class _FolderListState extends State<FolderList>{
               value: _folders[i].isCheck,
               onChanged: (bool value){
                 _onItemCheck(index: i,type: 1);
-                print('folderID:${_folders[i].id},name:${_folders[i].name},isCheck:${_folders[i].isCheck}');
+//                print('folderID:${_folders[i].id},name:${_folders[i].name},isCheck:${_folders[i].isCheck}');
               },
             )
                 : null,
@@ -433,7 +434,7 @@ class _FolderListState extends State<FolderList>{
             onTap: (){
               if(this._isCheck) {
                 _onItemCheck(index: i, type: 1);
-                print('folderID:${_folders[i].id},name:${_folders[i].name},isCheck:${_folders[i].isCheck}');
+//                print('folderID:${_folders[i].id},name:${_folders[i].name},isCheck:${_folders[i].isCheck}');
               }else{
                 //フォルダ別レシピリストを表示する
                 _onListGroupBy(index: i);
@@ -453,7 +454,7 @@ class _FolderListState extends State<FolderList>{
           fullscreenDialog: true,
         )
     ).then((result) {
-      print('閉じる');
+//      print('閉じる');
     });
   }
 

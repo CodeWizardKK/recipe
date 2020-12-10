@@ -42,7 +42,10 @@ class _HomeListState extends State<HomeList>{
   @override
   void initState() {
     super.initState();
-    common = Common();
+    setState(() {
+      //初期化
+      this.common = Common();
+    });
   }
 
   void _changeBottomNavigation(int index,BuildContext context){
@@ -54,7 +57,7 @@ class _HomeListState extends State<HomeList>{
   //編集処理
   void _onEdit({int selectedId,int type}){
     //編集画面へ遷移
-    print('selectId[${selectedId}]');
+//    print('selectId[${selectedId}]');
     //ごはん日記
     if(type == 4){
       DateFormat formatter = DateFormat('yyyy-MM-dd');
@@ -71,7 +74,7 @@ class _HomeListState extends State<HomeList>{
       //編集画面へ遷移
       Navigator.push(context,
           MaterialPageRoute(
-            builder: (context) => DiaryEdit(diary: diary),
+            builder: (context) => DiaryEdit(selectedDiary: diary),
             fullscreenDialog: true,
           )
       ).then((result) {
@@ -93,7 +96,7 @@ class _HomeListState extends State<HomeList>{
       //編集画面へ遷移
       Navigator.push(context,
           MaterialPageRoute(
-            builder: (context) => RecipiEdit(Nrecipi: recipi, Ningredients: [], NhowTos: [], Nphotos: []),
+            builder: (context) => RecipiEdit(selectedRecipi: recipi, selectedIngredients: [], selectedHowTos: [], selectedPhotos: []),
             fullscreenDialog: true,
           )
       ).then((result) {
@@ -135,7 +138,7 @@ class _HomeListState extends State<HomeList>{
           fullscreenDialog: true,
         )
     ).then((result) {
-      print('閉じる');
+//      print('閉じる');
     });
   }
 

@@ -42,19 +42,17 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
   List<Tag> _tags;                            //タグリストを格納
   List<MultiSelectItem<MstTag>> _displayTags; //DBから取得したレコードをMultiSelectItem型で格納
   List<MstTag> _selectedtags;                 //タグ検索で選択したタグを格納
-  bool _isSearch = false;                      //true:検索結果表示
-  bool _isTagSearch = false;                   //true:タグ検索結果表示
-  bool _isCheck = false;                      //true:チェックボックス表示
-  bool _isSelectedDelete = false;                //true:編集画面にて削除するボタン押下された場合
-
+  bool _isSearch = false;                     //true:検索結果表示
+  bool _isTagSearch = false;                  //true:タグ検索結果表示
+  bool _isEditable = false;                   //true:右上Checkアイコン押下時に有効。複数アイテム選択編集モード管理フラグ
+  bool _isSelectedDelete = false;             //true:編集画面にて削除するボタン押下された場合
   List<CheckRecipi> _displayRecipisLazy = List<CheckRecipi>(); //遅延読み込み用リスト
   int _recipiCurrentLength = 0;                                //遅延読み込み件数を格納
-
   List<CheckRecipi> _displaySearchsLazy = List<CheckRecipi>(); //遅延読み込み用リスト
   int _searchCurrentLength = 0;                                //遅延読み込み件数を格納
-  final int increment = 10; //読み込み件数
-  FRefreshController controller = FRefreshController();
-  String text = "Drop-down to loading";
+  final int increment = 10;                                    //読み込み件数
+  FRefreshController controller = FRefreshController();        //lazyload
+  String text = "Drop-down to loading";                        //lazyload用text
 
   @override
   void initState() {
@@ -63,23 +61,24 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
   }
 
   void init() async {
-    //初期化
-    this.dbHelper = DBHelper();
-    this.common = Common();
-    this._ingredients = [];
-    this._displayList = [];
-    this._recipis = [];
-    this._displayRecipis = [];
-    this._searchs = [];
-    this._displaySearchs = [];
-    this._tags = [];
-    this._displayTags = [];
-    this._selectedtags = [];
-    this._displayRecipisLazy.clear();
-    this._displaySearchsLazy.clear();
-    this.controller = FRefreshController();
-    FRefresh.debug = true;
-
+    setState(() {
+      //初期化
+      this.dbHelper = DBHelper();
+      this.common = Common();
+      this._ingredients = [];
+      this._displayList = [];
+      this._recipis = [];
+      this._displayRecipis = [];
+      this._searchs = [];
+      this._displaySearchs = [];
+      this._tags = [];
+      this._displayTags = [];
+      this._selectedtags = [];
+      this._displayRecipisLazy.clear();
+      this._displaySearchsLazy.clear();
+      this.controller = FRefreshController();
+      FRefresh.debug = true;
+    });
     //レコードリフレッシュ
     await this.refreshImages();
     //タグリスト取得
@@ -90,11 +89,11 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
 
   //レシピリスト用遅延読み込み
   Future _loadMoreRecipi() async {
-    print('+++++_loadMoreRecipi+++++++');
+//    print('+++++_loadMoreRecipi+++++++');
     for (var i = _recipiCurrentLength; i < _recipiCurrentLength + increment; i++) {
       if( i < this._displayRecipis.length){
           setState(() {
-            print(_displayRecipis[i].title);
+//            print(_displayRecipis[i].title);
             _displayRecipisLazy.add(_displayRecipis[i]);
           });
       } else {
@@ -108,7 +107,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
 
   //検索リスト用遅延読み込み
   Future _loadMoreSearch() async {
-    print('+++++_loadMoreSearch+++++++');
+//    print('+++++_loadMoreSearch+++++++');
     for (var i = _searchCurrentLength; i < _searchCurrentLength + increment; i++) {
       if( i < this._displaySearchs.length){
         setState(() {
@@ -215,7 +214,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
     //編集画面へ遷移
     Navigator.push(context,
         MaterialPageRoute(
-          builder: (context) => RecipiEdit(Nrecipi: recipi, Ningredients: [], NhowTos: [], Nphotos: []),
+          builder: (context) => RecipiEdit(selectedRecipi: recipi, selectedIngredients: [], selectedHowTos: [], selectedPhotos: []),
           fullscreenDialog: true,
         )
     ).then((result) async {
@@ -445,7 +444,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
   void _showDetail({ Myrecipi recipi, List<Ingredient> ingredients, List<HowTo> howTos, List<Photo> photos }){
     Navigator.push(context,
         MaterialPageRoute(
-          builder: (context) => RecipiEdit(Nrecipi: recipi,Ningredients: ingredients,NhowTos: howTos,Nphotos: photos,),
+          builder: (context) => RecipiEdit(selectedRecipi: recipi,selectedIngredients: ingredients,selectedHowTos: howTos,selectedPhotos: photos,),
           fullscreenDialog: true,
         )
     ).then((result) {
@@ -535,12 +534,12 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
   void _showSort({ Myrecipi recipi, String ingredients, List<Tag> tags, String title, int type, List ids}){
     Navigator.push(context,
         MaterialPageRoute(
-          builder: (context) => RecipiSort(Nrecipi: recipi,ingredientTX: ingredients,tags: tags,sortType: type,title: title,ids: ids, ),
+          builder: (context) => RecipiSort(selectedRecipi: recipi,ingredientTX: ingredients,tags: tags,sortType: type,title: title,ids: ids, ),
           fullscreenDialog: true,
         )
     ).then((result) async {
-      if(this._isCheck){
-        this._isCheck = false;
+      if(this._isEditable){
+        this._isEditable = false;
       }
       //最新のリストを取得し展開する
       await this.refreshImages();
@@ -567,7 +566,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
   //右上チェックボタン押下時処理
   void _onCheck(){
     setState(() {
-      this._isCheck = !this._isCheck;
+      this._isEditable = !this._isEditable;
     });
     //検索結果表示の場合
     if(this._isSearch || _isTagSearch){
@@ -609,7 +608,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
         }
       }
       if(ids.length > 0){
-        print('削除するレシピID：${ids}');
+//        print('削除するレシピID：${ids}');
         //削除処理
         for(var i = 0; i < ids.length; i++){
           //レシピを削除
@@ -627,7 +626,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
         }
       }
       setState(() {
-        this._isCheck = !this._isCheck;
+        this._isEditable = !this._isEditable;
       });
     }
     //検索結果表示の場合
@@ -749,7 +748,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
         leading: backBtn(),
         elevation: 0.0,
         title: Center(
-          child: Text(_isCheck ? '${_selectedCount()}個選択':'${_folder.name}',
+          child: Text(_isEditable ? '${_selectedCount()}個選択':'${_folder.name}',
             style: TextStyle(
               color: Colors.white,
               fontSize: 20,
@@ -758,7 +757,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
             ),
           ),
         ),
-        actions: _isCheck
+        actions: _isEditable
             ? <Widget>[
           completeBtn(),
         ]
@@ -802,7 +801,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
             onPressed: (){
               FocusScope.of(context).unfocus();
               setState(() {
-                this._isCheck = !this._isCheck;
+                this._isEditable = !this._isEditable;
               });
             },
           ),
@@ -888,7 +887,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
   //フォルダ、タグ付け、削除するボタン
   Widget buttonArea(){
     return
-    !_isCheck
+    !_isEditable
       ? Container()
       : SizedBox(
 //      height: MediaQuery.of(context).size.height * 0.05,
@@ -914,7 +913,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
                     ),
                     onPressed: _onDisabled() ? null :(){
                       _onFolderTap(type: 1);
-                      print('フォルダ');
+//                      print('フォルダ');
                     },
                   ),
                 ),
@@ -937,7 +936,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
                     ),
                     onPressed: _onDisabled() ? null :(){
                       _onFolderTap(type: 2);
-                      print('タグ付け');
+//                      print('タグ付け');
                     },
                   ),
                 ),
@@ -960,7 +959,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
                     ),
                     onPressed: _onDisabled() ? null :(){
                       _onDelete();
-                      print('削除する');
+//                      print('削除する');
                     },
                   ),
               ),
@@ -1305,7 +1304,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    if(this._isCheck)
+                    if(this._isEditable)
                       Container(
                           width: MediaQuery.of(context).size.width * 0.1,
   //                      padding: EdgeInsets.all(5),
@@ -1313,7 +1312,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
                             value: this._displayList[index].isCheck,
                             onChanged: (bool value){
                               _onItemCheck(index: index);
-                              print('ID:${this._displayList[index].id},name:${this._displayList[index].title},isCheck:${this._displayList[index].isCheck}');
+//                              print('ID:${this._displayList[index].id},name:${this._displayList[index].title},isCheck:${this._displayList[index].isCheck}');
                             },
                           )
                       ),
@@ -1397,7 +1396,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
                       ),
                     ),
                     //フォルダエリア
-                    if(!this._isCheck)
+                    if(!this._isEditable)
                       SizedBox(
                         width: MediaQuery.of(context).size.width * 0.12,
                         height: MediaQuery.of(context).size.height * 0.16,
@@ -1418,7 +1417,7 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
               ),
               onTap: (){
                 FocusScope.of(context).unfocus();
-                if(this._isCheck){
+                if(this._isEditable){
                   _onItemCheck(index: index);
                 }else{
                   _onDetail(index: index);

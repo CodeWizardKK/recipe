@@ -24,9 +24,9 @@ class _EditIngredientState extends State<EditIngredient>{
   final _name = TextEditingController();      //材料名
   final _quantity = TextEditingController();  //分量
   bool _isNew = false;                        //true:新規 false:更新
-  List<Format> _seasonings = List();          //調味料リスト
-  List<Format> _quantityunit = List();        //分量単位リスト
-  Ingredient _ingredient = Ingredient();      //値を更新(セット)し返す
+  List<Format> _seasonings = List();          //調味料DBから取得したレコードを格納
+  List<Format> _quantityunit = List();        //分量単位DBから取得したレコードを格納
+  Ingredient _ingredient = Ingredient();      //材料
 
   @override
   void initState() {
@@ -35,11 +35,11 @@ class _EditIngredientState extends State<EditIngredient>{
   }
 
   Future<void> _init() async {
-    dbHelper = DBHelper();
     //seasonings、quantityunitの取得
     var seasonings = await dbHelper.getSeasoning();
     var quantityunit = await dbHelper.getQuantityUnit();
     setState(() {
+      this.dbHelper = DBHelper();
       this._seasonings = seasonings;
       this._quantityunit = quantityunit;
       this._ingredient = widget.ingredient;
@@ -69,7 +69,7 @@ class _EditIngredientState extends State<EditIngredient>{
     if(!_isNew){
       this._ingredient.name = _name.text;
       this._ingredient.quantity = _quantity.text;
-      print('id:${this._ingredient.id},no:${this._ingredient.no},name:${this._ingredient.name},quantity:${this._ingredient.quantity}');
+//      print('id:${this._ingredient.id},no:${this._ingredient.no},name:${this._ingredient.name},quantity:${this._ingredient.quantity}');
       Navigator.pop(context,this._ingredient);
     //新規の場合
     } else {
@@ -302,7 +302,7 @@ class _EditIngredientState extends State<EditIngredient>{
                           setState(() {
                             _quantity.text += '${_quantityunit[index].name}';
                           });
-                          print('${_quantityunit[index].name}');
+//                          print('${_quantityunit[index].name}');
                         },
                       ),
                     ),

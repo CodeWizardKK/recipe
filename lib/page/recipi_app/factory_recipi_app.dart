@@ -6,21 +6,16 @@ import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/page/recipi_app/recipi/recipi_list.dart';
 import 'package:recipe_app/page/recipi_app/home/home_list.dart';
 import 'package:recipe_app/page/recipi_app/album/album_list.dart';
-import 'package:recipe_app/page/recipi_app/folder/factory_recipi.dart';
+import 'package:recipe_app/page/recipi_app/folder/factory_folder.dart';
 
 class FactoryRecipiApp extends StatelessWidget{
 
-  var _rootPages = <Widget>[HomeList(),RecipiList(),FactoryFolder(),DiaryList(),AlbumList()];
-
+  final _rootPages = <Widget>[HomeList(),RecipiList(),FactoryFolder(),DiaryList(),AlbumList()];
 
   @override
   Widget build(BuildContext context) {
     return Consumer<Display>(
-//      key: GlobalKey(),
       builder: (context,Display,_){
-//        if(Display.currentIndex >= _listPages.length){
-//          return ErrorPage();
-//        }
         return _rootPages[Display.currentIndex];
       },
     );

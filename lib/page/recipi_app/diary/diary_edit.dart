@@ -15,9 +15,9 @@ import 'package:intl/intl.dart';
 
 class DiaryEdit extends StatefulWidget{
 
-  DisplayDiary diary = DisplayDiary();
+  DisplayDiary selectedDiary = DisplayDiary();
 
-  DiaryEdit({Key key, @required this.diary}) : super(key: key);
+  DiaryEdit({Key key, @required this.selectedDiary}) : super(key: key);
 
   @override
   _DiaryEditState createState() => _DiaryEditState();
@@ -26,37 +26,37 @@ class DiaryEdit extends StatefulWidget{
 class _DiaryEditState extends State<DiaryEdit>{
 
   DBHelper dbHelper;
-  int _selectedID;              //編集するID
-  int _selectedCategory = 1;    //分類（1：指定なし、2：朝食、3：昼食、4：夕食、5：間食）
-  bool _isDelete = false;       //true:削除ボタン押下時
-  DisplayDiary _diary = DisplayDiary();
-  TextEditingController body  = TextEditingController();  //本文
+  DisplayDiary _diary = DisplayDiary();                  //ご飯日記
+  int _selectedID;                                       //編集するID
+  int _selectedCategory = 1;                             //選択した分類（1：指定なし、2：朝食、3：昼食、4：夕食、5：間食）
+  final TextEditingController _body  = TextEditingController();//本文
 
   @override
   void initState() {
     super.initState();
-    dbHelper = DBHelper();
     this._init();
   }
 
+  //初期処理
   void _init(){
     //idを取得
     setState(() {
-    this._selectedID = widget.diary.id;
-    this._diary = DisplayDiary(
-          id: widget.diary.id
-        ,body: widget.diary.body
-        ,date: widget.diary.date
-        ,category: widget.diary.category
-        ,thumbnail: widget.diary.thumbnail
-        ,photos: setPhots(widget.diary.photos)
-        ,recipis: setRecipis(widget.diary.recipis)
-    );
-    this.body.text = this._diary.body;
+      this.dbHelper = DBHelper();
+      this._selectedID = widget.selectedDiary.id;
+      this._diary = DisplayDiary(
+            id: widget.selectedDiary.id
+          ,body: widget.selectedDiary.body
+          ,date: widget.selectedDiary.date
+          ,category: widget.selectedDiary.category
+          ,thumbnail: widget.selectedDiary.thumbnail
+          ,photos: setPhotos(widget.selectedDiary.photos)
+          ,recipis: setRecipis(widget.selectedDiary.recipis)
+      );
+      this._body.text = this._diary.body;
     });
   }
 
-  List<DPhoto> setPhots(List<DPhoto> p){
+  List<DPhoto> setPhotos(List<DPhoto> p){
     List<DPhoto> photos = [];
     p.forEach((photo) => photos.add(photo));
     return photos;
@@ -102,7 +102,7 @@ class _DiaryEditState extends State<DiaryEdit>{
     Diary diary = Diary
       (
          id: this._selectedID
-        ,body: this.body.text
+        ,body: this._body.text
         ,date: this._diary.date
         ,category: this._diary.category
         ,thumbnail: this._diary.thumbnail
@@ -233,9 +233,6 @@ class _DiaryEditState extends State<DiaryEdit>{
     await dbHelper.deleteDiaryRecipi(this._selectedID);
     //日記IDに紐づく写真リストを削除する
     await dbHelper.deleteDiaryPhoto(this._selectedID);
-    setState(() {
-      this._isDelete = true;
-    });
     _onList(type: 4);
   }
 
@@ -359,7 +356,7 @@ class _DiaryEditState extends State<DiaryEdit>{
         )
     ).then((result) {
       if(result != 'close'){
-        print('###保存');
+//        print('###保存');
         if(editType == 0){
           setState(() {
             this._diary.recipis = result;
@@ -370,7 +367,7 @@ class _DiaryEditState extends State<DiaryEdit>{
           });
         }
       } else {
-        print('###クローズ');
+//        print('###クローズ');
       }
     });
   }
@@ -687,7 +684,7 @@ class _DiaryEditState extends State<DiaryEdit>{
                     width: MediaQuery.of(context).size.width * 0.98,
                     height: MediaQuery.of(context).size.width * 0.6,
                     child: TextField(
-                      controller: body,
+                      controller: _body,
                       autofocus: false,
                       minLines: 14,
                       maxLines: 14,

@@ -27,18 +27,17 @@ class EditRecipi extends StatefulWidget{
 
 class _EditRecipiState extends State<EditRecipi>{
 
-  DBHelper dbHelper = DBHelper();
-  Common common = Common();
-
-  List<Myrecipi> _recipis = List<Myrecipi>();
-  List<Ingredient> _ingredients = List<Ingredient>();
-  List<Tag> _tags = List<Tag>();
-  List<DRecipi> _selectedRecipis = List<DRecipi>();
-  List<Myrecipi> _recipisLazy = List<Myrecipi>();               //遅延読み込み用リスト
-  int _recipiCurrentLength = 0;                                //遅延読み込み件数を格納
-  final int increment = 10; //読み込み件数
-  FRefreshController controller = FRefreshController();
-  String text = "Drop-down to loading";
+  DBHelper dbHelper;
+  Common common;
+  List<Myrecipi> _recipis = List<Myrecipi>();           //DBから取得した値を格納
+  List<Ingredient> _ingredients = List<Ingredient>();   //DBから取得した値を格納
+  List<Tag> _tags = List<Tag>();                        //DBから取得した値を格納
+  List<DRecipi> _selectedItems = List<DRecipi>();       //レシピ一覧から選択したレシピを格納
+  List<Myrecipi> _lazy = List<Myrecipi>();              //遅延読み込み用リスト
+  int _currentLength = 0;                               //遅延読み込み件数を格納
+  final int increment = 10;                             //読み込み件数
+  FRefreshController controller = FRefreshController(); //lazyload
+  String text = "Drop-down to loading";                 //lazyload用text
 
   @override
   void initState() {
@@ -46,26 +45,30 @@ class _EditRecipiState extends State<EditRecipi>{
     this.init();
   }
 
+  //初期処理
   void init() async {
     setState(() {
-      this._selectedRecipis = [];
-      this._recipisLazy.clear();
+      //初期化
+      this.dbHelper = DBHelper();
+      this.common = Common();
+      this._selectedItems = [];
+      this._lazy.clear();
       this.controller = FRefreshController();
       FRefresh.debug = true;
     });
     //レシピリスト取得
     await this.getRecipiList();
     //レシピリスト用遅延読み込み
-    await this._loadMoreRecipi();
+    await this._loadMore();
   }
 
   //レシピリスト用遅延読み込み
-  Future _loadMoreRecipi() async {
-    print('+++++_loadMoreRecipi+++++++');
-    for (var i = _recipiCurrentLength; i < _recipiCurrentLength + increment; i++) {
+  Future _loadMore() async {
+//    print('+++++_loadMore+++++++');
+    for (var i = _currentLength; i < _currentLength + increment; i++) {
       if( i < this._recipis.length){
         setState(() {
-          _recipisLazy.add(_recipis[i]);
+          _lazy.add(_recipis[i]);
         });
       }else{
         break;
@@ -73,7 +76,7 @@ class _EditRecipiState extends State<EditRecipi>{
 
     }
     setState(() {
-      _recipiCurrentLength = _recipisLazy.length;
+      _currentLength = _lazy.length;
     });
   }
 
@@ -104,13 +107,13 @@ class _EditRecipiState extends State<EditRecipi>{
 
     //選択レシピリストをセット
     setState(() {
-      widget.recipis.forEach((recipi) => this._selectedRecipis.add(recipi));
+      widget.recipis.forEach((recipi) => this._selectedItems.add(recipi));
     });
   }
 
   //保存ボタン押下時処理
   void _onSubmit(){
-    Navigator.pop(context,this._selectedRecipis);
+    Navigator.pop(context,this._selectedItems);
   }
 
   //×ボタン押下時処理
@@ -159,19 +162,19 @@ class _EditRecipiState extends State<EditRecipi>{
       height: 140,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-          itemCount: _selectedRecipis.length,
+          itemCount: _selectedItems.length,
           itemBuilder: (context,index){
             return Container(
               width: 90,
               child: Stack(
                 children: <Widget>[
-                  _selectedRecipis[index].image.isNotEmpty
+                  _selectedItems[index].image.isNotEmpty
                   ? Card(
 //                    color: Colors.blue,
                     child: Container(
                       width: 100,
                       height: 100,
-                      child: Image.file(File(common.replaceImage(_selectedRecipis[index].image)),fit: BoxFit.cover,),
+                      child: Image.file(File(common.replaceImage(_selectedItems[index].image)),fit: BoxFit.cover,),
                     ),
                   )
                   : Card(
@@ -193,7 +196,7 @@ class _EditRecipiState extends State<EditRecipi>{
                         onPressed: (){
                           setState(() {
                             //イメージ削除
-                            _selectedRecipis.removeAt(index);
+                            _selectedItems.removeAt(index);
                           });
                         },
                       ),
@@ -282,7 +285,7 @@ class _EditRecipiState extends State<EditRecipi>{
       footerHeight: 70.0,
       onLoad: () {
         Timer(Duration(milliseconds: 1000), () {
-          _loadMoreRecipi();
+          _loadMore();
           controller.finishLoad();
 //          print('controller.position = ${controller.position}, controller.scrollMetrics = ${controller.scrollMetrics}');
 //          setState(() {
@@ -296,7 +299,7 @@ class _EditRecipiState extends State<EditRecipi>{
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             ListView.builder(
-                itemCount: _recipisLazy.length,
+                itemCount: _lazy.length,
                 physics: NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
                 itemBuilder: (_, index) {
@@ -441,14 +444,14 @@ class _EditRecipiState extends State<EditRecipi>{
                 ),
               ),
                 onTap: (){
-                  print('recipiID:${this._recipis[index].id},thumbnail:${this._recipis[index].thumbnail}');
+//                  print('recipiID:${this._recipis[index].id},thumbnail:${this._recipis[index].thumbnail}');
                   bool isDelete = false;
                   //tapしたレシピが選択レシピリストに存在する場合
-                  for(var k = 0; k < this._selectedRecipis.length; k++){
-                    if(this._recipis[index].id == this._selectedRecipis[k].recipi_id){
+                  for(var k = 0; k < this._selectedItems.length; k++){
+                    if(this._recipis[index].id == this._selectedItems[k].recipi_id){
                       //削除
                       setState(() {
-                        this._selectedRecipis.removeAt(k);
+                        this._selectedItems.removeAt(k);
                       });
                       isDelete = true;
                       break;
@@ -458,7 +461,7 @@ class _EditRecipiState extends State<EditRecipi>{
                   if(!isDelete){
                     setState(() {
                       DRecipi recipi = DRecipi(recipi_id: this._recipis[index].id,image: this._recipis[index].thumbnail);
-                      this._selectedRecipis.add(recipi);
+                      this._selectedItems.add(recipi);
                     });
                   }
                 }

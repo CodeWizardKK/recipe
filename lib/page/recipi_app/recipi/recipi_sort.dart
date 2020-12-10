@@ -16,14 +16,14 @@ import 'package:recipe_app/model/Check.dart';
 
 class RecipiSort extends StatefulWidget{
 
-  Myrecipi Nrecipi = Myrecipi();  //選択したレシピ
+  Myrecipi selectedRecipi = Myrecipi();  //選択したレシピ
   String ingredientTX = '';       //選択したレシピの材料(テキスト)
   List<Tag> tags;                 //選択したレシピのタグ
   int sortType = 0;               //表示タイプ 0:全表示 1,3:フォルダのみ 2,4:タグのみ
-  String title = '';              //表示するタイトル
+  String title = '';              //AppBar情に表示するタイトル
   List ids = [];                  //チェックボックスにてチェックしたレシピ(ID)を格納
 
-  RecipiSort({Key key, @required this.Nrecipi, @required this.ingredientTX,@required this.sortType,@required this.tags,@required this.title,@required this.ids,}) : super(key: key);
+  RecipiSort({Key key, @required this.selectedRecipi, @required this.ingredientTX,@required this.sortType,@required this.tags,@required this.title,@required this.ids,}) : super(key: key);
 
   @override
   _RecipiSortState createState() => _RecipiSortState();
@@ -78,13 +78,13 @@ class _RecipiSortState extends State<RecipiSort>{
     //フォルダ管理
     } else if(_sortType == 1 || _sortType == 3){
       if(_sortType == 1){
-        print('選択したレシピID[${widget.ids}]');
+//        print('選択したレシピID[${widget.ids}]');
       }
       await this._getMstfolders(type: 1,isRefresh: true,sortType: this._sortType);
     //タグ管理
     } else if(_sortType == 2 || _sortType == 4) {
       if(_sortType == 2){
-        print('選択したレシピID[${widget.ids}]');
+//        print('選択したレシピID[${widget.ids}]');
       }
       await this._getMstTags(type: 2,isRefresh: true,sortType: this._sortType);
     }
@@ -92,7 +92,7 @@ class _RecipiSortState extends State<RecipiSort>{
 
   //選択のフォルダをチェック済み状態にする(フォルダアイコン押下時のみセット)
   bool checkFolder({int id}){
-    if(id == widget.Nrecipi.folder_id){
+    if(id == widget.selectedRecipi.folder_id){
       return true;
     }
     return false;
@@ -118,7 +118,7 @@ class _RecipiSortState extends State<RecipiSort>{
 
   //モーダルの保存するボタン押下時処理
   void _onModalSubmit({int type,int selectedId}) async {
-    print('type:${type}');
+//    print('type:${type}');
     //空の場合登録せず閉じる
     if(this._name.isEmpty){
       return;
@@ -157,7 +157,7 @@ class _RecipiSortState extends State<RecipiSort>{
 
         //タグマスタに登録したを内容を表示形式にし追加する
         //フォルダアイコンをタップした場合のみ、登録したタグを選択状態にする
-        print('登録したtagmstID${result.id}');
+//        print('登録したtagmstID${result.id}');
         Check check = Check(id: result.id,name: result.name,isCheck: this._sortType == 0 ? true : false);
         this.addDisplayCheck(check: check,type: type);
 
@@ -234,7 +234,7 @@ class _RecipiSortState extends State<RecipiSort>{
     //フォルダアイコン押下時
     }else{
       //該当のレシピを取得
-      Myrecipi recipi = widget.Nrecipi;
+      Myrecipi recipi = widget.selectedRecipi;
 
       //変更前のフォルダIDを取得
       int old_folder_id = recipi.folder_id;
@@ -254,9 +254,9 @@ class _RecipiSortState extends State<RecipiSort>{
       }
       //タグの更新
       bool equals = this._equals(oldItem:this._oldTags, newItem:this._tags);
-      print('equals:${equals}');
+//      print('equals:${equals}');
       if(!equals){
-        print('--------タグテーブル更新---------');
+//        print('--------タグテーブル更新---------');
         //タグ削除処理
         await dbHelper.deleteTagRecipiId(recipi.id);
 
@@ -267,7 +267,7 @@ class _RecipiSortState extends State<RecipiSort>{
           }
         }
       }else{
-        print('--------タグテーブル更新しない---------');
+//        print('--------タグテーブル更新しない---------');
       }
     }
      //一覧リストへ遷移
@@ -294,7 +294,7 @@ class _RecipiSortState extends State<RecipiSort>{
 
   //テキスト欄入力
   void _onChange(String name){
-    print('###入力内容:${name}');
+//    print('###入力内容:${name}');
 
     setState(() {
       this._name = name;
@@ -314,7 +314,7 @@ class _RecipiSortState extends State<RecipiSort>{
         this._folders[index].isCheck = !this._folders[index].isCheck;
       });
       //フォルダリストをsetする
-      print('ID:${_folders[index].id},NAME:${_folders[index].name},isCheck:${_folders[index].isCheck}');
+//      print('ID:${_folders[index].id},NAME:${_folders[index].name},isCheck:${_folders[index].isCheck}');
 
     //フォルダリスト(複数選択)
     }else if(type == 3){
@@ -322,7 +322,7 @@ class _RecipiSortState extends State<RecipiSort>{
         this._folders[index].isCheck = !this._folders[index].isCheck;
       });
       //フォルダリストをsetする
-      print('ID:${_folders[index].id},NAME:${_folders[index].name},isCheck:${_folders[index].isCheck}');
+//      print('ID:${_folders[index].id},NAME:${_folders[index].name},isCheck:${_folders[index].isCheck}');
 
 
     //タグリスト
@@ -383,7 +383,7 @@ class _RecipiSortState extends State<RecipiSort>{
         }
       }
       if(ids.length > 0){
-        print('削除するフォルダマスタID：${ids}');
+//        print('削除するフォルダマスタID：${ids}');
         //フォルダマスタ削除処理
         for(var i = 0; i < ids.length; i++){
           //フォルダマスタ削除
@@ -409,7 +409,7 @@ class _RecipiSortState extends State<RecipiSort>{
         }
       }
       if(ids.length > 0){
-        print('削除するタグマスタID：${ids}');
+//        print('削除するタグマスタID：${ids}');
         //タグマスタ削除処理
         for(var i = 0; i < ids.length; i++){
           //タグマスタ削除
@@ -1132,12 +1132,12 @@ class _RecipiSortState extends State<RecipiSort>{
   //サムネイル
   Widget thumbnailArea(){
         return
-          widget.Nrecipi.thumbnail.isNotEmpty
+          widget.selectedRecipi.thumbnail.isNotEmpty
               ? SizedBox(
             height: MediaQuery.of(context).size.width * 0.25,
             width: MediaQuery.of(context).size.width * 0.25,
             child: Container(
-              child: Image.file(File(common.replaceImage(widget.Nrecipi.thumbnail)),fit: BoxFit.cover,),
+              child: Image.file(File(common.replaceImage(widget.selectedRecipi.thumbnail)),fit: BoxFit.cover,),
             ),
           )
               : SizedBox(
@@ -1156,7 +1156,7 @@ class _RecipiSortState extends State<RecipiSort>{
       Container(
 //        height: MediaQuery.of(context).size.height * 0.05,
         padding: EdgeInsets.all(5),
-        child: Text('${widget.Nrecipi.title}',
+        child: Text('${widget.selectedRecipi.title}',
           maxLines: 2,
           style: TextStyle(
               fontSize: 15,

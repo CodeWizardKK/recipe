@@ -29,14 +29,16 @@ class _EditTitleState extends State<EditTitle>{
     super.initState();
     //編集内容を取得
     TitleForm item = widget.titleForm;
-    //レシピ種別を取得
-    this._type = widget.type;
-    //編集内容を展開
-    this._title.text = item.title;
-    this._description.text = item.description;
-    this._quantity.text = item.quantity.toString();
-    this._unit = item.unit;
-    this._time.text = item.time.toString();
+    setState(() {
+      //レシピ種別を取得
+      this._type = widget.type;
+      //編集内容を展開
+      this._title.text = item.title;
+      this._description.text = item.description;
+      this._quantity.text = item.quantity.toString();
+      this._unit = item.unit;
+      this._time.text = item.time.toString();
+    });
   }
 
   //保存ボタン押下時処理
@@ -56,7 +58,7 @@ class _EditTitleState extends State<EditTitle>{
 
   //単位 表示用
   String _displayUnit({int unit}){
-    print(unit);
+//    print(unit);
     if(unit == 1){
       return '人分';
     }

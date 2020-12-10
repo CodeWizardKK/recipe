@@ -36,31 +36,29 @@ class _RecipiListState extends State<RecipiList>{
 
   DBHelper dbHelper;
   Common common;
-  List<Ingredient> _ingredients;
-  List _displayList;                          //チェックボック付きレシピリストor検索リスト
   List<Myrecipi> _recipis;                    //DBから取得したレコードを格納
   List<CheckRecipi> _displayRecipis;          //チェックボック付きレシピリスト
   List<Myrecipi> _searchs;                    //DBから取得したレコードを格納
   List<CheckRecipi> _displaySearchs;          //チェックボック付き検索リスト
   List<MstTag> _Mtags;                        //DBから取得したレコードを格納
-  List<MultiSelectItem<MstTag>> _displayTags; //DBから取得したレコードをMultiSelectItem型で格納
-  List<MstTag> _selectedtags;                 //タグ検索で選択したタグを格納
+  List<Ingredient> _ingredients;              //DBから取得したレコードを格納
   List<Tag> _tags;                            //DBから取得したレコードを格納
-  bool _isSearch = false;                      //true:検索結果表示
-  bool _isTagSearch = false;                   //true:タグ検索結果表示
-  bool _isCheck = false;                      //true:チェックボックス表示
-  bool _isSelectedDelete = false;                //true:編集画面にて削除するボタン押下された場合
-
+  List<MultiSelectItem<MstTag>> _displayTags; //DBから取得したレコードをMultiSelectItem型で格納
+  List<MstTag> _selectedSearchTags;           //タグ検索で選択したタグを格納
+  List _displayList;                          //チェックボック付きレシピリストor検索結果レシピリスト
+  bool _isSearchText = false;                 //true:テキスト検索結果表示
+  bool _isSearchTag = false;                  //true:タグ検索結果表示
+  bool _isEditable = false;                   //true:右上Checkアイコン押下時に有効。複数アイテム選択編集モード管理フラグ
+  bool _isDelete = false;                     //true:編集画面にて削除ボタン押下時
+  int _recipiCurrentLength = 0;               //遅延読み込み件数を格納
+  int _searchCurrentLength = 0;               //遅延読み込み件数を格納
+  final int increment = 10;                   //読み込み件数
+  bool _isError = false;                      //true:エラー画面表示
+  bool _isGetMyRecipis = false;               //true:レシピ用DBからの読み取り取得完了
   List<CheckRecipi> _displayRecipisLazy = List<CheckRecipi>(); //遅延読み込み用リスト
-  int _recipiCurrentLength = 0;                                //遅延読み込み件数を格納
-
   List<CheckRecipi> _displaySearchsLazy = List<CheckRecipi>(); //遅延読み込み用リスト
-  int _searchCurrentLength = 0;                                //遅延読み込み件数を格納
-  final int increment = 10; //読み込み件数
-  bool _isError = false;
-  bool _isGetMyRecipis = false;
-  FRefreshController controller = FRefreshController();
-  String text = "Drop-down to loading";
+  FRefreshController controller = FRefreshController();        //lazyload
+  String text = "Drop-down to loading";                        //lazyload用text
 
   @override
   void initState() {
@@ -69,24 +67,25 @@ class _RecipiListState extends State<RecipiList>{
   }
 
   void init() async {
-    //初期化
-    this.dbHelper = DBHelper();
-    this.common = Common();
-    this._ingredients = [];
-    this._displayList = [];
-    this._recipis = [];
-    this._displayRecipis = [];
-    this._searchs = [];
-    this._displaySearchs = [];
-    this._Mtags = [];
-    this._displayTags = [];
-    this._selectedtags = [];
-    this._tags = [];
-    this._displayRecipisLazy.clear();
-    this._displaySearchsLazy.clear();
-    this.controller = FRefreshController();
-    FRefresh.debug = true;
-
+    setState(() {
+      //初期化
+      this.dbHelper = DBHelper();
+      this.common = Common();
+      this._ingredients = [];
+      this._displayList = [];
+      this._recipis = [];
+      this._displayRecipis = [];
+      this._searchs = [];
+      this._displaySearchs = [];
+      this._Mtags = [];
+      this._displayTags = [];
+      this._selectedSearchTags = [];
+      this._tags = [];
+      this._displayRecipisLazy.clear();
+      this._displaySearchsLazy.clear();
+      this.controller = FRefreshController();
+      FRefresh.debug = true;
+    });
     //レコードリフレッシュ
     await this.refreshImages();
     //タグリスト取得
@@ -97,7 +96,7 @@ class _RecipiListState extends State<RecipiList>{
 
   //レシピリスト用遅延読み込み
   Future _loadMoreRecipi() async {
-    print('+++++_loadMoreRecipi+++++++');
+//    print('+++++_loadMoreRecipi+++++++');
     for (var i = _recipiCurrentLength; i < _recipiCurrentLength + increment; i++) {
       if( i < this._displayRecipis.length){
           setState(() {
@@ -113,17 +112,17 @@ class _RecipiListState extends State<RecipiList>{
   }
 
   void reset(){
-    this._isSearch = false;
-    this._isTagSearch = false;
-    this._isCheck = false;
-    this._isSelectedDelete = false;
+    this._isSearchText = false;
+    this._isSearchTag = false;
+    this._isEditable = false;
+    this._isDelete = false;
     this._recipiCurrentLength = 0;
     this._searchCurrentLength = 0;
   }
 
   //検索リスト用遅延読み込み
   Future _loadMoreSearch() async {
-    print('+++++_loadMoreSearch+++++++');
+//    print('+++++_loadMoreSearch+++++++');
     for (var i = _searchCurrentLength; i < _searchCurrentLength + increment; i++) {
       if( i < this._displaySearchs.length){
         setState(() {
@@ -154,7 +153,7 @@ class _RecipiListState extends State<RecipiList>{
       //取得したレシピをstoreに保存
       Provider.of<Display>(context, listen: false).setRecipis(_recipis);
       setState(() {
-        print('11111111111');
+//        print('11111111111');
         //チェックBox付きレシピリストの生成
         this._displayRecipis = Provider.of<Display>(context, listen: false).createDisplayRecipiList(isFolderIdZero: true);
         this._isGetMyRecipis = true;
@@ -183,7 +182,7 @@ class _RecipiListState extends State<RecipiList>{
 //        this._displayRecipis = Provider.of<Display>(context, listen: false).createDisplayRecipiList(isFolderIdZero: true);
       });
     } catch (exception) {
-      print(exception);
+//      print(exception);
       this._isError = true;
     }
   }
@@ -224,7 +223,7 @@ class _RecipiListState extends State<RecipiList>{
         });
       }
     } catch (exception) {
-      print(exception);
+//      print(exception);
       this._isError = true;
     }
   }
@@ -253,7 +252,7 @@ class _RecipiListState extends State<RecipiList>{
     //編集画面へ遷移
     Navigator.push(context,
         MaterialPageRoute(
-          builder: (context) => RecipiEdit(Nrecipi: recipi, Ningredients: [], NhowTos: [], Nphotos: []),
+          builder: (context) => RecipiEdit(selectedRecipi: recipi, selectedIngredients: [], selectedHowTos: [], selectedPhotos: []),
           fullscreenDialog: true,
         )
     ).then((result) async {
@@ -270,16 +269,16 @@ class _RecipiListState extends State<RecipiList>{
   void _onTagSearch() async{
     List recipiIds = [];
     setState(() {
-      this._isTagSearch = this._isTagSearchFlg();
-//      print(_isTagSearch);
+      this._isSearchTag = this._getSearchTagFlg();
+//      print(_isSearchTag);
     });
 
     //検索するタグが選択されている場合
-    if(this._isTagSearch){
+    if(this._isSearchTag){
       //選択したタグIDを取得
       List tagIds = [];
-      for(var i = 0; i < this._selectedtags.length; i++){
-          tagIds.add(this._selectedtags[i].id);
+      for(var i = 0; i < this._selectedSearchTags.length; i++){
+          tagIds.add(this._selectedSearchTags[i].id);
       }
       //検索するタグを連結した文字列を作成
       String mstTagIdsTX = tagIds.join(',');
@@ -288,7 +287,7 @@ class _RecipiListState extends State<RecipiList>{
         recipiIds = await dbHelper.getTagsGropByRecipiId(mstTagIdsTX,tagIds.length);
 //      print('タグ検索結果：${recipiIds.length}');
       } catch (exception) {
-        print(exception);
+//        print(exception);
         this._isError = true;
       }
 
@@ -297,7 +296,7 @@ class _RecipiListState extends State<RecipiList>{
       });
 
       //テキスト検索ありの場合
-      if(this._isSearch){
+      if(this._isSearchText){
         //検索結果を取得
         var searchs = Provider.of<Display>(context, listen: false).getSearchsTX();
 
@@ -358,22 +357,22 @@ class _RecipiListState extends State<RecipiList>{
     if(searchText.isEmpty){
       //seachフラグ解除
       setState(() {
-        this._isSearch = false;
+        this._isSearchText = false;
       });
       //検索欄が未入力の場合でタグ検索ありの場合
-      if(this._isTagSearch){
+      if(this._isSearchTag){
         _onTagSearch();
       }
       return;
     }
     //検索欄が入力されている場合
     setState(() {
-      this._isSearch = true;
+      this._isSearchText = true;
       this._searchs.clear(); //検索結果用リストのリセット
     });
 
     //タグ検索あり(+テキスト検索あり)の場合
-    if(this._isTagSearch){
+    if(this._isSearchTag){
       //検索結果を取得
       var searchs = Provider.of<Display>(context, listen: false).getSearchs();
 
@@ -492,7 +491,7 @@ class _RecipiListState extends State<RecipiList>{
         photos = await dbHelper.getRecipiPhotos(this._displayList[index].id);
       }
     } catch (exception) {
-      print(exception);
+//      print(exception);
       this._isError = true;
     }
     this._showDetail(recipi: recipi, ingredients: ingredients,howTos: howTos,photos: photos);
@@ -502,13 +501,13 @@ class _RecipiListState extends State<RecipiList>{
   void _showDetail({ Myrecipi recipi, List<Ingredient> ingredients, List<HowTo> howTos, List<Photo> photos }){
     Navigator.push(context,
         MaterialPageRoute(
-          builder: (context) => RecipiEdit(Nrecipi: recipi,Ningredients: ingredients,NhowTos: howTos,Nphotos: photos,),
+          builder: (context) => RecipiEdit(selectedRecipi: recipi,selectedIngredients: ingredients,selectedHowTos: howTos,selectedPhotos: photos,),
           fullscreenDialog: true,
         )
     ).then((result) {
       if(result == 'delete'){
         setState(() {
-          this._isSelectedDelete = true;
+          this._isDelete = true;
         });
         _onDelete(recipi: recipi);
       } else {
@@ -606,23 +605,17 @@ class _RecipiListState extends State<RecipiList>{
   void _showSort({ Myrecipi recipi, String ingredients, List<Tag> tags, String title, int type, List ids}){
     Navigator.push(context,
         MaterialPageRoute(
-          builder: (context) => RecipiSort(Nrecipi: recipi,ingredientTX: ingredients,tags: tags,sortType: type,title: title,ids: ids, ),
+          builder: (context) => RecipiSort(selectedRecipi: recipi,ingredientTX: ingredients,tags: tags,sortType: type,title: title,ids: ids, ),
           fullscreenDialog: true,
         )
     ).then((result) async {
-//      print(result);
-//    if(type == 3 || type == 4){
-//      this.reset()
-//      this.init();
-//
-//    } else {
-      if(this._isCheck){
-        this._isCheck = false;
+      if(this._isEditable){
+        this._isEditable = false;
       }
       //最新のリストを取得し展開する
       await this.refreshImages();
       //タグ検索ありの場合
-      if(_selectedtags.length != 0){
+      if(_selectedSearchTags.length != 0){
         await this._getTags(type: 1);
         await this._onTagSearch();
       } else {
@@ -647,10 +640,10 @@ class _RecipiListState extends State<RecipiList>{
   //右上チェックボタン押下時処理
   void _onCheck(){
     setState(() {
-      this._isCheck = !this._isCheck;
+      this._isEditable = !this._isEditable;
     });
     //検索結果表示の場合
-    if(this._isSearch || _isTagSearch){
+    if(this._isSearchText || _isSearchTag){
       //チェックBox付き検索結果リストの生成
       setState(() {
         this._displaySearchs.clear();
@@ -673,7 +666,7 @@ class _RecipiListState extends State<RecipiList>{
     try{
 
       //編集画面に削除ボタン押下された場合
-      if(this._isSelectedDelete){
+      if(this._isDelete){
         isRecipiDelete = true;
         //レシピを削除
         await dbHelper.deleteMyRecipi(recipi.id);
@@ -689,7 +682,7 @@ class _RecipiListState extends State<RecipiList>{
         await dbHelper.deleteDiaryRecipibyRecipiID(recipi.id);
       } else {
         if(ids.length > 0){
-          print('削除するフォルダマスタID：${ids}');
+//          print('削除するフォルダマスタID：${ids}');
           //フォルダマスタ削除処理
           for(var i = 0; i < ids.length; i++){
             //フォルダマスタ削除
@@ -722,7 +715,7 @@ class _RecipiListState extends State<RecipiList>{
         }
         if(ids.length > 0){
           isRecipiDelete = true;
-          print('削除するレシピID：${ids}');
+//          print('削除するレシピID：${ids}');
           for(var i = 0; i < ids.length; i++){
             //レシピを削除
             await dbHelper.deleteMyRecipi(ids[i]);
@@ -739,11 +732,11 @@ class _RecipiListState extends State<RecipiList>{
           }
         }
         setState(() {
-          this._isCheck = !this._isCheck;
+          this._isEditable = !this._isEditable;
         });
       }
       //検索結果表示の場合
-      if(this._isSearch || _isTagSearch){
+      if(this._isSearchText || _isSearchTag){
         List<Myrecipi> searchs = Provider.of<Display>(context, listen: false).getSearchs();
         //検索結果のリフレッシュ
         for(var i = 0; i <ids.length; i++){
@@ -754,7 +747,7 @@ class _RecipiListState extends State<RecipiList>{
             }
           }
         }
-        if(_isSelectedDelete){
+        if(_isDelete){
           for(var k = 0; k < this._displayList.length; k++){
             if(recipi.id == this._displayList[k].id){
               this._displayList.removeAt(k);
@@ -786,22 +779,22 @@ class _RecipiListState extends State<RecipiList>{
         await controller.refresh();
       }
       //削除完了したので、削除フラグをfalseに戻す
-      if(this._isSelectedDelete){
+      if(this._isDelete){
         setState(() {
-          this._isSelectedDelete = !this._isSelectedDelete;
+          this._isDelete = !this._isDelete;
         });
       }
 
     } catch (exception) {
-      print(exception);
+//      print(exception);
       this._isError = true;
     }
 
   }
 
   //タグ検索モーダルにてタグが選択されている場合trueを返す
-  bool _isTagSearchFlg(){
-      if(_selectedtags == null || _selectedtags.isEmpty){
+  bool _getSearchTagFlg(){
+      if(_selectedSearchTags == null || _selectedSearchTags.isEmpty){
         return false;
       }
       return true;
@@ -815,11 +808,6 @@ class _RecipiListState extends State<RecipiList>{
         count++;
       }
     }
-//    for(var i = 0; i < this._folders.length; i++){
-//      if(_folders[i].isCheck){
-//        count++;
-//      }
-//    }
     return count;
   }
 
@@ -831,7 +819,7 @@ class _RecipiListState extends State<RecipiList>{
           fullscreenDialog: true,
         )
     ).then((result) {
-      print('閉じる');
+//      print('閉じる');
     });
   }
 
@@ -843,15 +831,15 @@ class _RecipiListState extends State<RecipiList>{
 
   @override
   Widget build(BuildContext context) {
-    print('height:${MediaQuery.of(context).size.height}');
+//    print('height:${MediaQuery.of(context).size.height}');
     return Scaffold(
-      drawer: _isCheck ? null : drawerNavigation(),
+      drawer: _isEditable ? null : drawerNavigation(),
       appBar: AppBar(
         backgroundColor: Colors.deepOrange[100 * (1 % 9)],
-//        leading: _isCheck ? Container() : menuBtn(),
+//        leading: _isEditable ? Container() : menuBtn(),
         elevation: 0.0,
         title: Center(
-          child: Text(_isCheck ? '${_selectedCount()}個選択':'レシピ',
+          child: Text(_isEditable ? '${_selectedCount()}個選択':'レシピ',
             style: TextStyle(
               color: Colors.white,
               fontSize: 20,
@@ -860,7 +848,7 @@ class _RecipiListState extends State<RecipiList>{
             ),
           ),
         ),
-        actions: _isCheck
+        actions: _isEditable
             ? <Widget>[
           completeBtn(),
         ]
@@ -997,7 +985,7 @@ class _RecipiListState extends State<RecipiList>{
             onPressed: (){
               FocusScope.of(context).unfocus();
               setState(() {
-                this._isCheck = !this._isCheck;
+                this._isEditable = !this._isEditable;
               });
             },
           ),
@@ -1087,7 +1075,7 @@ class _RecipiListState extends State<RecipiList>{
   //フォルダ、タグ付け、削除するボタン
   Widget buttonArea(){
     return
-    !_isCheck
+    !_isEditable
       ? Container()
       : SizedBox(
 //      height: MediaQuery.of(context).size.height * 0.05,
@@ -1113,7 +1101,7 @@ class _RecipiListState extends State<RecipiList>{
                     ),
                     onPressed: _onDisabled(type: 1) ? null :(){
                       _onFolderTap(type: 1);
-                      print('フォルダ');
+//                      print('フォルダ');
                     },
                   ),
               ),
@@ -1136,7 +1124,7 @@ class _RecipiListState extends State<RecipiList>{
                     ),
                     onPressed: _onDisabled(type: 2) ? null :(){
                       _onFolderTap(type: 2);
-                      print('タグ付け');
+//                      print('タグ付け');
                     },
                   ),
                 ),
@@ -1159,7 +1147,7 @@ class _RecipiListState extends State<RecipiList>{
                     ),
                     onPressed: _onDisabled(type: 3) ? null :(){
                       _onDelete();
-                      print('削除する');
+//                      print('削除する');
                     },
                   ),
                 ),
@@ -1202,7 +1190,7 @@ class _RecipiListState extends State<RecipiList>{
     return Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children:
-        _isSearch || _isTagSearch
+        _isSearchText || _isSearchTag
         ? <Widget>[
           searchArea(), //検索欄
           searchResultArea(), //検索結果
@@ -1466,7 +1454,7 @@ class _RecipiListState extends State<RecipiList>{
   //レシピリストの生成
   Widget createRecipi(int index){
 
-    if(_isSearch || _isTagSearch){
+    if(_isSearchText || _isSearchTag){
       this._displayList = this._displaySearchs;
     }else{
       this._displayList = this._displayRecipis;
@@ -1517,7 +1505,7 @@ class _RecipiListState extends State<RecipiList>{
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        if(this._isCheck)
+                        if(this._isEditable)
                           Container(
                               width: MediaQuery.of(context).size.width * 0.1,
   //                      padding: EdgeInsets.all(5),
@@ -1525,7 +1513,7 @@ class _RecipiListState extends State<RecipiList>{
                                 value: this._displayList[index].isCheck,
                                 onChanged: (bool value){
                                   _onItemCheck(index: index,type: 2);
-                                  print('ID:${this._displayList[index].id},name:${this._displayList[index].title},isCheck:${this._displayList[index].isCheck}');
+//                                  print('ID:${this._displayList[index].id},name:${this._displayList[index].title},isCheck:${this._displayList[index].isCheck}');
                                 },
                               )
                           ),
@@ -1610,7 +1598,7 @@ class _RecipiListState extends State<RecipiList>{
                           ),
                         ),
                         //フォルダエリア
-                        if(!this._isCheck)
+                        if(!this._isEditable)
                           SizedBox(
                             width: MediaQuery.of(context).size.width * 0.12,
                             height: MediaQuery.of(context).size.height * 0.16,
@@ -1631,7 +1619,7 @@ class _RecipiListState extends State<RecipiList>{
                   ),
                   onTap: (){
                     FocusScope.of(context).unfocus();
-                    if(this._isCheck){
+                    if(this._isEditable){
                       _onItemCheck(index: index,type: 2);
                     }else{
                       _onDetail(index: index);
@@ -1690,7 +1678,7 @@ class _RecipiListState extends State<RecipiList>{
                           initialChildSize: 0.40,
                           listType: MultiSelectListType.CHIP,
                           searchable: true,
-                          buttonIcon: Icon(Icons.local_offer,color: _selectedtags == null || _selectedtags.isEmpty ? Colors.grey : Colors.deepOrange[100 * (1 % 9)] ,size: 35,),
+                          buttonIcon: Icon(Icons.local_offer,color: _selectedSearchTags == null || _selectedSearchTags.isEmpty ? Colors.grey : Colors.deepOrange[100 * (1 % 9)] ,size: 35,),
                           buttonText: Text(""),
                           title: Text("タグで検索"),
     //                      selectedColor: Colors.deepOrange[100 * (2 % 9)] ,
@@ -1699,7 +1687,7 @@ class _RecipiListState extends State<RecipiList>{
                           items: _displayTags,
                           onConfirm: (results) {
                             setState(() {
-                              _selectedtags = results;
+                              _selectedSearchTags = results;
                             });
                             this._onTagSearch();
                           },

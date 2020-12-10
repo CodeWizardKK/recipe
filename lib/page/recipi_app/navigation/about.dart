@@ -13,12 +13,17 @@ class _AboutState extends State<About>{
 
   DBHelper dbHelper;
   Common common;
-  String _title = 'アプリについて';            //表示するタイトル
+  final String _title = 'アプリについて';            //表示するタイトル
 
 
   @override
   void initState() {
     super.initState();
+    setState(() {
+      //初期化
+      this.dbHelper = DBHelper();
+      this.common = Common();
+    });
   }
 
   //一覧リストへ遷移
@@ -55,12 +60,12 @@ class _AboutState extends State<About>{
     );
   }
 
-  //閉じるボタン
+  //左上ボタン
   Widget leading(){
     return Container();
   }
 
-  //完了ボタン
+  //閉じるボタン
   Widget closeBtn(){
     return Container(
       width: MediaQuery.of(context).size.width * 0.25,
@@ -69,12 +74,12 @@ class _AboutState extends State<About>{
         child: FlatButton(
           color: Colors.white,
           child: FittedBox(fit:BoxFit.fitWidth,
-          child: Text('閉じる',
-            style: TextStyle(
-              color: Colors.deepOrange[100 * (1 % 9)],
-              fontSize: 15,
+            child: Text('閉じる',
+              style: TextStyle(
+                color: Colors.deepOrange[100 * (1 % 9)],
+                fontSize: 15,
+              ),
             ),
-          ),
           ),
           onPressed: (){
             _onClose();
@@ -95,30 +100,6 @@ class _AboutState extends State<About>{
 
   //ページ全体
   Widget showForm(){
-    return Container(
-//      alignment: Alignment.center,
-//      child: Column(
-//        crossAxisAlignment: CrossAxisAlignment.center,
-//        children:
-//          _sortType == 1 || _sortType == 3
-//          ? <Widget>[
-//            //フォルダ整理
-//            folderListArea(), //フォルダリストエリア
-//          ]
-//          : _sortType == 2 || _sortType == 4
-//            ? <Widget>[
-//            //タグ整理
-//              tagListArea(), //タグリストエリア
-//            ]
-//            : <Widget>[
-//              //全て
-//              recipiArea(), //選択レシピ表示エリア
-//              headerArea(type: 1), //フォルダに移動
-//              folderListArea(), //フォルダリストエリア
-//              headerArea(type: 2), //タグをつける
-//              tagListArea(), //タグリストエリア
-//            ]
-//      ),
-    );
+    return Container();
   }
 }
