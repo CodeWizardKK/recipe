@@ -34,22 +34,13 @@ PODS:
   - Firebase/MLVision (6.33.0):
     - Firebase/CoreOnly
     - FirebaseMLVision (~> 0.21.0)
-  - Firebase/MLVisionBarcodeModel (6.33.0):
-    - Firebase/CoreOnly
-    - FirebaseMLVisionBarcodeModel (~> 0.21.0)
-  - Firebase/MLVisionFaceModel (6.33.0):
-    - Firebase/CoreOnly
-    - FirebaseMLVisionFaceModel (~> 0.21.0)
-  - Firebase/MLVisionLabelModel (6.33.0):
-    - Firebase/CoreOnly
-    - FirebaseMLVisionLabelModel (~> 0.21.0)
   - Firebase/MLVisionTextModel (6.33.0):
     - Firebase/CoreOnly
     - FirebaseMLVisionTextModel (~> 0.21.0)
   - Firebase/RemoteConfig (6.33.0):
     - Firebase/CoreOnly
     - FirebaseRemoteConfig (~> 4.9.0)
-  - firebase_core (0.5.2-1):
+  - firebase_core (0.5.3):
     - Firebase/CoreOnly (~> 6.33.0)
     - Flutter
   - firebase_ml_vision (0.1.1):
@@ -107,12 +98,6 @@ PODS:
     - "GoogleToolboxForMac/NSData+zlib (~> 2.1)"
     - GTMSessionFetcher/Core (~> 1.1)
     - Protobuf (~> 3.12)
-  - FirebaseMLVisionBarcodeModel (0.21.0):
-    - FirebaseMLVision (~> 0.21)
-  - FirebaseMLVisionFaceModel (0.21.0):
-    - FirebaseMLVision (~> 0.21)
-  - FirebaseMLVisionLabelModel (0.21.0):
-    - FirebaseMLVision (~> 0.21)
   - FirebaseMLVisionTextModel (0.21.0):
     - FirebaseMLVision (~> 0.21)
   - FirebaseRemoteConfig (4.9.1):
@@ -236,9 +221,6 @@ DEPENDENCIES:
   - ext_storage (from `.symlinks/plugins/ext_storage/ios`)
   - Firebase/Analytics
   - Firebase/Functions
-  - Firebase/MLVisionBarcodeModel
-  - Firebase/MLVisionFaceModel
-  - Firebase/MLVisionLabelModel
   - Firebase/MLVisionTextModel
   - Firebase/RemoteConfig
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
@@ -272,9 +254,6 @@ SPEC REPOS:
     - FirebaseInstallations
     - FirebaseMLCommon
     - FirebaseMLVision
-    - FirebaseMLVisionBarcodeModel
-    - FirebaseMLVisionFaceModel
-    - FirebaseMLVisionLabelModel
     - FirebaseMLVisionTextModel
     - FirebaseRemoteConfig
     - FMDB
@@ -335,8 +314,8 @@ SPEC CHECKSUMS:
   BSImageView: a149459433a2687157d034c78e059d30ac7f2544
   ext_storage: 4eaf3a84d5594106e2ebcc2502248cfde53c8fa1
   Firebase: 8db6f2d1b2c5e2984efba4949a145875a8f65fe5
-  firebase_core: 7423d688a1c6f2f2d859d64ae26991be39989781
-  firebase_ml_vision: 2a31103bf58f5746b3af9486cd8e45d2021d3ade
+  firebase_core: 5d6a02f3d85acd5f8321c2d6d62877626a670659
+  firebase_ml_vision: cf3db3a9b870a2424e4c1c369b2123d31177cc9f
   firebase_remote_config: fae1229134d60988e1e9f2ef77849bcd7cad0843
   FirebaseABTesting: 8a9d8df3acc2b43f4a22014ddf9f601bca6af699
   FirebaseAnalytics: 5dd088bd2e67bb9d13dbf792d1164ceaf3052193
@@ -346,9 +325,6 @@ SPEC CHECKSUMS:
   FirebaseInstallations: 466c7b4d1f58fe16707693091da253726a731ed2
   FirebaseMLCommon: d218d75dd1c6c4e447f731ac22da56b88cb79431
   FirebaseMLVision: 68dd092b4c52a7ac163ec0d4f541d5711fc9fec6
-  FirebaseMLVisionBarcodeModel: 394cd61c52dc03558088caf82b0dade8028f57d5
-  FirebaseMLVisionFaceModel: a67b2bf9b8407127a0bdb0ba98eb265637d1dc9d
-  FirebaseMLVisionLabelModel: c6922e607cf4549b14981c80bf0d69eb51a2b547
   FirebaseMLVisionTextModel: e9f3cba0f31022ae9dd3d246aff9849075cacd98
   FirebaseRemoteConfig: 35a729305f254fb15a2e541d4b36f3a379da7fdc
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
@@ -380,6 +356,6 @@ SPEC CHECKSUMS:
   url_launcher: 6fef411d543ceb26efce54b05a0a40bfd74cbbef
   ZLPhotoBrowser-objc: c7684215bbde0ee990ad7bd1008e13bc3e6f6a32
 
-PODFILE CHECKSUM: 66d50548e563928baf4764c9adacbc907df236e2
+PODFILE CHECKSUM: e34de76c313eb7274a6cf79450c2947cc5deaf5b
 
 COCOAPODS: 1.10.0
