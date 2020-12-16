@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:frefresh/frefresh.dart';
 
-import 'package:recipe_app/page/recipi/recipi_edit.dart';
+import 'package:recipe_app/page/recipi/recipi_detail_edit.dart';
 import 'package:recipe_app/page/recipi/recipi_sort.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
