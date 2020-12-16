@@ -13,9 +13,9 @@ import 'package:image_pickers/image_pickers.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 
 import 'package:recipe_app/model/Myrecipi.dart';
-import 'package:recipe_app/page/recipi_app/recipi/edit_howto.dart';
-import 'package:recipe_app/page/recipi_app/recipi/edit_ingredient.dart';
-import 'package:recipe_app/page/recipi_app/recipi/edit_title.dart';
+import 'package:recipe_app/page/recipi/edit_howto.dart';
+import 'package:recipe_app/page/recipi/edit_ingredient.dart';
+import 'package:recipe_app/page/recipi/edit_title.dart';
 import 'package:recipe_app/services/database/DBHelper.dart';
 import 'package:recipe_app/services/Common.dart';
 import 'package:recipe_app/model/edit/Titleform.dart';

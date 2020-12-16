@@ -7,8 +7,8 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:image_pickers/image_pickers.dart';
 
-import 'package:recipe_app/page/recipi_app/diary/diary_edit.dart';
-import 'package:recipe_app/page/recipi_app/recipi/recipi_edit.dart';
+import 'package:recipe_app/page/diary/diary_edit.dart';
+import 'package:recipe_app/page/recipi/recipi_edit.dart';
 import 'package:recipe_app/model/edit/Ingredient.dart';
 import 'package:recipe_app/model/Tag.dart';
 import 'package:recipe_app/model/Myrecipi.dart';

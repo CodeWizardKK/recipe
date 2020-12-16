@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:get_it/get_it.dart';
 
-import 'package:recipe_app/page/recipi_app/factory_recipi_app.dart';
+import 'package:recipe_app/page/factory_recipi_app.dart';
 import 'package:recipe_app/store/display_state.dart';
 import 'package:recipe_app/services/http/versionCheckService.dart';
 import 'package:recipe_app/services/http/errorService.dart';
