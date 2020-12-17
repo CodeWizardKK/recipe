@@ -92,6 +92,32 @@ class _DiaryEditState extends State<DiaryEdit>{
     }
   }
 
+  //編集内容未入力チェック
+  bool _isEmptyDiaryCheck(){
+    if(this._diary.recipis.length != 0){
+      return false;
+    }
+    if(this._diary.photos.length != 0){
+      return false;
+    }
+    if(this._body.text != ''){
+      return false;
+    }
+    if(this._diary.date != _StringDateTime()){
+      return false;
+    }
+    if(this._diary.category != 1){
+      return false;
+    }
+    return true;
+  }
+
+  //現在時刻をStringに変換
+  String _StringDateTime(){
+    DateFormat formatter = DateFormat('yyyy-MM-dd');
+    return formatter.format(DateTime.now());
+  }
+
   //保存する押下時処理
   void _onSubmit() async {
     //料理
@@ -110,6 +136,11 @@ class _DiaryEditState extends State<DiaryEdit>{
 
     //新規登録の場合
     if(this._selectedID == -1){
+      //内容が未入力の場合
+      if(_isEmptyDiaryCheck()){
+        _onList(type: 0);
+        return;
+      }
       //ごはん日記テーブルへ登録
       Diary result = await dbHelper.insertDiary(diary);
       //登録した日記IDを取得
