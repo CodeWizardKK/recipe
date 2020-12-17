@@ -919,7 +919,7 @@ class _RecipiListState extends State<RecipiList>{
                   color: Colors.white,
                   child: ListTile(
                     leading: Icon(
-                      Icons.local_offer, color: Colors.deepOrange[100 * (1 % 9)],),
+                      Icons.email_outlined, color: Colors.deepOrange[100 * (1 % 9)],),
                     title: Text('アプリを友達に紹介',
                       style: TextStyle(
 //                  fontWeight: FontWeight.bold
@@ -935,7 +935,7 @@ class _RecipiListState extends State<RecipiList>{
                   color: Colors.white,
                   child: ListTile(
                     leading: Icon(
-                      Icons.local_offer, color: Colors.deepOrange[100 * (1 % 9)],),
+                      Icons.import_contacts, color: Colors.deepOrange[100 * (1 % 9)],),
                     title: Text('アプリについて',
                       style: TextStyle(
 //                  fontWeight: FontWeight.bold
