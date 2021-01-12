@@ -35,11 +35,13 @@ class _EditIngredientState extends State<EditIngredient>{
   }
 
   Future<void> _init() async {
+    setState(() {
+      this.dbHelper = DBHelper();
+    });
     //seasonings、quantityunitの取得
     var seasonings = await dbHelper.getSeasoning();
     var quantityunit = await dbHelper.getQuantityUnit();
     setState(() {
-      this.dbHelper = DBHelper();
       this._seasonings = seasonings;
       this._quantityunit = quantityunit;
       this._ingredient = widget.ingredient;
