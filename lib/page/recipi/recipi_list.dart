@@ -610,7 +610,9 @@ class _RecipiListState extends State<RecipiList>{
         )
     ).then((result) async {
       if(this._isEditable){
-        this._isEditable = false;
+        setState(() {
+          this._isEditable = false;
+        });
       }
       //最新のリストを取得し展開する
       await this.refreshImages();
@@ -622,15 +624,15 @@ class _RecipiListState extends State<RecipiList>{
         await this._getTags(type: 0);
       }
       if(result == 'FolderUpdate'){
-        setState(() {
-          //レシピリスト用遅延読み込みリセット
-          this._displayRecipisLazy.clear();
-          this._recipiCurrentLength = 0;
-
-        });
-        //レシピリスト用遅延読み込み
-        await this._loadMoreRecipi();
-//        await controller.refresh();
+//         setState(() {
+//           //レシピリスト用遅延読み込みリセット
+//           this._displayRecipisLazy.clear();
+//           this._recipiCurrentLength = 0;
+//
+//         });
+//         //レシピリスト用遅延読み込み
+//         await this._loadMoreRecipi();
+// //        await controller.refresh();
       }
 //    }
     });

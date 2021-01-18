@@ -539,7 +539,9 @@ class _GroupByFolderListState extends State<GroupByFolderList>{
         )
     ).then((result) async {
       if(this._isEditable){
-        this._isEditable = false;
+        setState(() {
+          this._isEditable = false;
+        });
       }
       //最新のリストを取得し展開する
       await this.refreshImages();
