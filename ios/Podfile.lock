@@ -44,8 +44,8 @@ PODS:
     - Firebase/CoreOnly (~> 6.33.0)
     - Flutter
   - firebase_ml_vision (0.1.1):
-    - Firebase/Core
-    - Firebase/MLVision
+    - Firebase/MLVision (= 6.33.0)
+    - firebase_core
     - Flutter
   - firebase_remote_config (0.4.2):
     - Firebase/CoreOnly (~> 6.33.0)
@@ -315,7 +315,7 @@ SPEC CHECKSUMS:
   ext_storage: 4eaf3a84d5594106e2ebcc2502248cfde53c8fa1
   Firebase: 8db6f2d1b2c5e2984efba4949a145875a8f65fe5
   firebase_core: 5d6a02f3d85acd5f8321c2d6d62877626a670659
-  firebase_ml_vision: cf3db3a9b870a2424e4c1c369b2123d31177cc9f
+  firebase_ml_vision: 67eb508fd50c3501b17ff84f1108c9da459dc8ef
   firebase_remote_config: fae1229134d60988e1e9f2ef77849bcd7cad0843
   FirebaseABTesting: 8a9d8df3acc2b43f4a22014ddf9f601bca6af699
   FirebaseAnalytics: 5dd088bd2e67bb9d13dbf792d1164ceaf3052193
