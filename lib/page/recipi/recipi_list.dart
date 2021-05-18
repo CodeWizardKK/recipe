@@ -375,13 +375,32 @@ class _RecipiListState extends State<RecipiList>{
     if(this._isSearchTag){
       //検索結果を取得
       var searchs = Provider.of<Display>(context, listen: false).getSearchs();
-
-      for(var i=0; i< searchs.length; i++){
+      for(var i = 0; i < searchs.length; i++){
+        //タイトル
         String title = searchs[i].title;
+        //タイトルと検索ワードが一致しているかチェック
         if(title.toLowerCase().contains(searchText.toLowerCase())) {
           setState(() {
             this._searchs.add(searchs[i]);
           });
+          //タイトルが一致していない場合
+        } else {
+          var targetIndex = this._recipis[i].id;
+          //レシピIDに紐づく材料を取得する
+          var ingredientList = this._ingredients.where(
+                  (ing) =>  ing.recipi_id == targetIndex
+          ).toList();
+          for (var k = 0; k < ingredientList.length; k++) {
+            String ingredient = ingredientList[k].name;
+            print(ingredient);
+            //材料リストと検索ワードが一致しているかチェク
+            if (ingredient.toLowerCase().contains(searchText.toLowerCase())) {
+              setState(() {
+                this._searchs.add(this._recipis[i]);
+              });
+              break;
+            }
+          }
         }
       }
       setState(() {
@@ -393,12 +412,32 @@ class _RecipiListState extends State<RecipiList>{
 
       //タグ検索なし(+テキスト検索あり)の場合
     }else{
-      for(var i=0; i< this._recipis.length; i++){
+      for(var i = 0; i < this._recipis.length; i++){
+        //タイトル
         String title = this._recipis[i].title;
+        //タイトルと検索ワードが一致しているかチェック
         if(title.toLowerCase().contains(searchText.toLowerCase())) {
           setState(() {
             this._searchs.add(this._recipis[i]);
           });
+          //タイトルが一致していない場合
+        } else {
+          var targetIndex = this._recipis[i].id;
+          //レシピIDに紐づく材料を取得する
+          var ingredientList = this._ingredients.where(
+                  (ing) =>  ing.recipi_id == targetIndex
+          ).toList();
+          for (var k = 0; k < ingredientList.length; k++) {
+            String ingredient = ingredientList[k].name;
+            print(ingredient);
+            //材料リストと検索ワードが一致しているかチェク
+            if (ingredient.toLowerCase().contains(searchText.toLowerCase())) {
+              setState(() {
+                this._searchs.add(this._recipis[i]);
+              });
+              break;
+            }
+          }
         }
       }
       //検索結果をstoreに保存
@@ -484,7 +523,7 @@ class _RecipiListState extends State<RecipiList>{
       );
 
     try{
-      if(this._displayList[index].type == 2){
+      if(this._displayList[index].type == 2 || this._displayList[index].type == 3 ){
         ingredients = await dbHelper.getIngredients(this._displayList[index].id);
         howTos = await dbHelper.getHowtos(this._displayList[index].id);
       }else{
@@ -674,6 +713,8 @@ class _RecipiListState extends State<RecipiList>{
         await dbHelper.deleteMyRecipi(recipi.id);
         //レシピIDに紐づくタグを削除する
         await dbHelper.deleteTagRecipiId(recipi.id);
+        //レシピIDに紐づく材料OCRを削除
+        await dbHelper.deleteRecipiIngredientOcr(recipi.id);
         //レシピIDに紐づく材料リストを削除
         await dbHelper.deleteRecipiIngredient(recipi.id);
         //レシピIDに紐づく作り方リストを削除
@@ -696,6 +737,8 @@ class _RecipiListState extends State<RecipiList>{
             for(var j = 0; j < recipis.length; j++){
               //レシピIDに紐づくタグを削除する
               await dbHelper.deleteTagRecipiId(recipis[j].id);
+              //レシピIDに紐づく材料OCRを削除
+              await dbHelper.deleteRecipiIngredientOcr(recipis[j].id);
               //レシピIDに紐づく材料リストを削除
               await dbHelper.deleteRecipiIngredient(recipis[j].id);
               //レシピIDに紐づく作り方リストを削除
@@ -723,6 +766,8 @@ class _RecipiListState extends State<RecipiList>{
             await dbHelper.deleteMyRecipi(ids[i]);
             //レシピIDに紐づくタグを削除する
             await dbHelper.deleteTagRecipiId(ids[i]);
+            //レシピIDに紐づく材料OCRを削除
+            await dbHelper.deleteRecipiIngredientOcr(ids[i]);
             //レシピIDに紐づく材料リストを削除
             await dbHelper.deleteRecipiIngredient(ids[i]);
             //レシピIDに紐づく作り方リストを削除
@@ -1586,7 +1631,8 @@ class _RecipiListState extends State<RecipiList>{
                                         height: MediaQuery.of(context).size.height < 600 ? MediaQuery.of(context).size.height * 0.08 : MediaQuery.of(context).size.height * 0.06,
                                         width: MediaQuery.of(context).size.width * 0.52,
                                         child: MultiSelectChipDisplay(
-                                          chipColor: Colors.yellow,
+                                          textStyle: TextStyle(color: Colors.amber),
+                                          chipColor: Colors.yellow[100 * (1 % 9)],
                                           onTap: null,
                                           items: tags
                                               .map((e) => MultiSelectItem<Tag>(e, e.name))

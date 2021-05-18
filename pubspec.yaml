@@ -60,6 +60,8 @@ dependencies:
   firebase_ml_vision: ^0.10.0
   flutter_switch: ^0.2.0
   frefresh: ^1.1.0
+  buttons_tabbar: ^1.1.2
+  flutter_slidable: ^0.5.7
 
 dev_dependencies:
 #  analysis_tool:

@@ -10,6 +10,7 @@ import 'package:recipe_app/model/Myrecipi.dart';
 import 'package:recipe_app/model/MyrecipiGroupFolder.dart';
 import 'package:recipe_app/model/edit/Howto.dart';
 import 'package:recipe_app/model/edit/Ingredient.dart';
+import 'package:recipe_app/model/edit/Ocr.dart';
 import 'package:recipe_app/model/edit/Photo.dart';
 import 'package:recipe_app/model/diary/Diary.dart';
 import 'package:recipe_app/model/diary/edit/Photo.dart';
@@ -76,6 +77,7 @@ class DBHelper{
   static final String MST_FOLDER_TABLE = 'mst_folder';
   static final String RECIPI_PHOTO_TABLE = 'recipi_photo';
   static final String RECIPI_INGREDIENT_TABLE = 'recipi_ingredient';
+  static final String RECIPI_INGREDIENT_OCR_TABLE = 'recipi_ingredient_ocr';
   static final String RECIPI_HOWTO_TABLE = 'recipi_howto';
   //ごはん日記
   static final String DIARY_TABLE = 'diary';
@@ -117,6 +119,7 @@ class DBHelper{
     await db.execute("CREATE TABLE $MST_FOLDER_TABLE ($ID INTEGER PRIMARY KEY, $NAME TEXT); ");
     await db.execute("CREATE TABLE $RECIPI_PHOTO_TABLE ($ID INTEGER PRIMARY KEY,$RECIPI_ID INTEGER,$NO INTEGER, $PATH TEXT); ");
     await db.execute("CREATE TABLE $RECIPI_INGREDIENT_TABLE ($ID INTEGER PRIMARY KEY,$RECIPI_ID INTEGER,$NO INTEGER, $NAME TEXT, $QUANTITY TEXT); ");
+    await db.execute("CREATE TABLE $RECIPI_INGREDIENT_OCR_TABLE ($ID INTEGER PRIMARY KEY,$RECIPI_ID INTEGER, $PATH TEXT); ");
     await db.execute("CREATE TABLE $RECIPI_HOWTO_TABLE ($ID INTEGER PRIMARY KEY,$RECIPI_ID INTEGER,$NO INTEGER, $MEMO TEXT, $PHOTO TEXT); ");
     //ごはん日記
     await db.execute("CREATE TABLE $DIARY_TABLE ($ID INTEGER PRIMARY KEY, $BODY TEXT, $DATE TEXT, $CATEGORY INTEGER, $THUMBNAIL INTEGER); ");
@@ -318,6 +321,22 @@ class DBHelper{
         print('myrecipi[${0}]${maps[0]}');
         //json形式 => Map型に展開する
     return Myrecipi.fromMap(maps[0]);
+  }
+
+  //recipi レシピIDに紐づく材料スキャン画像を取得
+  Future<List<Ocr>> getIngredientOcr(int recipi_id) async {
+    print('########id:${recipi_id}');
+    var dbClient = await db;
+    List<Map> maps = await dbClient.rawQuery('SELECT $ID,$RECIPI_ID,$PATH FROM $RECIPI_INGREDIENT_OCR_TABLE where $RECIPI_ID = ? ',[recipi_id]);
+    List<Ocr> ocrs = [];
+    if(maps.length > 0){
+      for(var i = 0; i < maps.length; i++){
+        print('ingredient[${i}]${maps[i]}');
+        //json形式 => Map型に展開する
+        ocrs.add(Ocr.fromMap(maps[i]));
+      }
+    }
+    return ocrs;
   }
 
   //recipi_ingredient レシピIDに紐づく材料データを取得
@@ -605,6 +624,16 @@ class DBHelper{
     }
   }
 
+  //recipi_ingredient_OCR
+  Future<void> insertRecipiIngredientOcr(Ocr ocr) async {
+    // for(var i = 0; i < ingredients.length; i++){
+      print('########insertするレコード[ingredientOCR]:${ocr.recipi_id},${ocr.id},${ocr.path}');
+      var dbClient = await db;
+      var id = await dbClient.insert(RECIPI_INGREDIENT_OCR_TABLE, ocr.toMap());
+      print('########insertしたレコード[ingredientOCR]:${id}');
+    // }
+  }
+
   //recipi_howto
   Future<void> insertRecipiHowto(List<HowTo> howTos) async {
     for(var i = 0; i < howTos.length; i++){
@@ -693,6 +722,16 @@ class DBHelper{
     print('####update結果:${result}');
   }
 
+  //該当するレシピのスキャン画像を更新
+  //recipi
+  Future<void> updateIngredientOcr({int recipi_id,String path}) async {
+    print('########update:ID${recipi_id},path${path}');
+    var dbClient = await db;
+    //json形式にして送る
+    var result = await dbClient.rawUpdate('UPDATE $RECIPI_INGREDIENT_OCR_TABLE SET $PATH = ? WHERE $RECIPI_ID = ?',[path,recipi_id]);
+    print('####update結果:${result}');
+  }
+
   //フォルダマスタを更新
   //mst_folder
   Future<void> updateMstFolder({int folder_id,String name}) async {
@@ -759,6 +798,16 @@ class DBHelper{
       var result = await dbClient.delete(
           RECIPI_INGREDIENT_TABLE, where: '$RECIPI_ID = ?', whereArgs: [recipi_id]);
       print('####②材料delete結果:${result}');
+  }
+
+  //レシピIDに紐づくデータを削除
+  //recipi_ingredient_ocr
+  Future<void> deleteRecipiIngredientOcr(int recipi_id) async {
+      print("########②材料OCRdeleteID:${recipi_id}");
+      var dbClient = await db;
+      var result = await dbClient.delete(
+          RECIPI_INGREDIENT_OCR_TABLE, where: '$RECIPI_ID = ?', whereArgs: [recipi_id]);
+      print('####②材料OCRdelete結果:${result}');
   }
 
   //レシピIDに紐づくデータを削除

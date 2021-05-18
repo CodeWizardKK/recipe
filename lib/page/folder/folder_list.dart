@@ -331,6 +331,8 @@ class _FolderListState extends State<FolderList>{
             for(var j = 0; j < recipis.length; j++){
               //レシピIDに紐づくタグを削除する
               await dbHelper.deleteTagRecipiId(recipis[j].id);
+              //レシピIDに紐づく材料OCRを削除
+              await dbHelper.deleteRecipiIngredientOcr(recipis[j].id);
               //レシピIDに紐づく材料リストを削除
               await dbHelper.deleteRecipiIngredient(recipis[j].id);
               //レシピIDに紐づく作り方リストを削除
@@ -357,6 +359,8 @@ class _FolderListState extends State<FolderList>{
             await dbHelper.deleteMyRecipi(ids[i]);
             //レシピIDに紐づくタグを削除する
             await dbHelper.deleteTagRecipiId(ids[i]);
+            //レシピIDに紐づく材料OCRを削除
+            await dbHelper.deleteRecipiIngredientOcr(ids[i]);
             //レシピIDに紐づく材料リストを削除
             await dbHelper.deleteRecipiIngredient(ids[i]);
             //レシピIDに紐づく作り方リストを削除

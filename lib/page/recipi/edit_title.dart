@@ -122,17 +122,18 @@ class _EditTitleState extends State<EditTitle>{
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children:
-            _type == 3
-            ? <Widget>[
-              titleArea(),            //タイトル
-              titleInputArea(),       //タイトル入力欄
-              quantityArea(),         //分量
-              quantityInputArea(),    //分量単位入力欄
-              timeArea(),             //調理時間
-              timeInputArea(),        //調理時間入力欄
-//              line(),
-            ]
-           : <Widget>[
+//             _type == 3
+//             ? <Widget>[
+//               titleArea(),            //タイトル
+//               titleInputArea(),       //タイトル入力欄
+//               quantityArea(),         //分量
+//               quantityInputArea(),    //分量単位入力欄
+//               timeArea(),             //調理時間
+//               timeInputArea(),        //調理時間入力欄
+// //              line(),
+//             ]
+//            :
+            <Widget>[
               titleArea(),            //タイトル
               titleInputArea(),       //タイトル入力欄
               descriptionArea(),      //説明メモ
