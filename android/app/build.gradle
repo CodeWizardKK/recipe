@@ -28,7 +28,7 @@ apply plugin: 'com.google.gms.google-services'
 //googleServices {disableVersionCheck = true}
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 33
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -42,7 +42,7 @@ android {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.example.recipe_app"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
@@ -73,7 +73,7 @@ configurations {
 dependencies {
     implementation 'com.google.firebase:firebase-core:18.0.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation platform('com.google.firebase:firebase-bom:26.0.0')
+    implementation platform('com.google.firebase:firebase-bom')
     implementation 'com.google.firebase:firebase-analytics'
 //    api 'com.google.firebase:firebase-ml-vision-image-label-model:17.0.2'
     api 'com.google.firebase:firebase-ml-vision-barcode-model:16.1.2'

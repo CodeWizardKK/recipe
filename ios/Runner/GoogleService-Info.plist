@@ -3,21 +3,21 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>960815181980-gqrqkm0l4ut14n21e49bnif9qnv0f40a.apps.googleusercontent.com</string>
+	<string>551198073525-i2tt1khorna5a5vep3e61bcu27h4sffa.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.960815181980-gqrqkm0l4ut14n21e49bnif9qnv0f40a</string>
+	<string>com.googleusercontent.apps.551198073525-i2tt1khorna5a5vep3e61bcu27h4sffa</string>
 	<key>API_KEY</key>
-	<string>AIzaSyAoz1D5gGnKhWnQW7oHBoROrFnIvlWuPh0</string>
+	<string>AIzaSyC8AmqNN0xa05m9O_vPmaaSRsklrKjuJhs</string>
 	<key>GCM_SENDER_ID</key>
-	<string>960815181980</string>
+	<string>551198073525</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.example.recipeApp-ios</string>
 	<key>PROJECT_ID</key>
-	<string>mlkit-66aba</string>
+	<string>flutter-firebase-case-2</string>
 	<key>STORAGE_BUCKET</key>
-	<string>mlkit-66aba.appspot.com</string>
+	<string>flutter-firebase-case-2.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,8 +29,8 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:960815181980:ios:c1c46e4d166ed8e2b23d59</string>
+	<string>1:551198073525:ios:4e55528d1c16371ee414fc</string>
 	<key>DATABASE_URL</key>
-	<string>https://mlkit-66aba.firebaseio.com</string>
+	<string>https://flutter-firebase-case-2.firebaseio.com</string>
 </dict>
 </plist>
